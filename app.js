@@ -207,7 +207,8 @@
     const act = same(s, state.active) && state.open ? ' active' : '';
     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
     if (c < 0) return `<button class="slot empty${act}" ${attr} aria-label="未入力"></button>`;
-    return `<button class="slot filled s${c & 3}${glow.has(c) ? ' hit' : ''}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>`;
+    const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
+    return `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>`;
   }
 
   function slotLabel(s) {
@@ -229,7 +230,7 @@
 
     let ph = '';
     for (let i = 0; i < state.n; i++) {
-      ph += `<div class="row"><div class="name">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div></div>`;
+      ph += `<div class="row"><div class="name">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
     }
     $('players').innerHTML = ph;
 
@@ -248,6 +249,7 @@
       });
       $('clear').style.visibility = cur >= 0 ? 'visible' : 'hidden';
     }
+    renderResults(); // プレイヤー行を作り直すので、勝率も描き直す
   }
 
   function buildGrid() {
@@ -264,15 +266,20 @@
   let res = { mode: 'none', eq: [], approx: false };
   let job = 0;
 
+  // 勝率は各プレイヤー行の右側(.pr)に表示。ボード下(#results)には補足の注記だけ出す
   function renderResults() {
-    let h = '';
     for (let i = 0; i < state.n; i++) {
       let txt = '—', w = 0;
       if (res.mode === 'calc') txt = '…';
-      if (res.mode === 'done') { txt = (res.approx ? '≈' : '') + res.eq[i].toFixed(1) + '%'; w = res.eq[i]; }
-      h += `<div class="res${res.mode === 'done' ? '' : ' dim'}"><div class="name">${pname(i)}</div>` +
-        `<div class="bar"><i style="width:${w}%"></i></div><div class="pct">${txt}</div></div>`;
+      const done = res.mode === 'done' && res.eq[i] !== undefined; // 人数変更の直後は古い結果を使わない
+      if (done) { txt = (res.approx ? '≈' : '') + res.eq[i].toFixed(1) + '%'; w = res.eq[i]; }
+      const cell = $('players').querySelector(`.pr[data-i="${i}"]`);
+      if (cell) {
+        cell.innerHTML = `<div class="pct${done ? '' : ' dim'}">${txt}</div>` +
+          `<div class="bar"><i style="width:${w}%"></i></div>`;
+      }
     }
+    let h = '';
     if (isRandom()) h += `<div class="note">vs ランダム${state.opp}人${res.mode === 'done' && res.approx ? '(近似値)' : ''}</div>`;
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
@@ -345,6 +352,15 @@
     const b = e.target.closest('button');
     if (b && !b.disabled) pick(+b.dataset.c);
   });
+  // ‹ ›: カードは変えずに、入力する枠だけ前後に移す(端は反対側につながる)
+  const moveActive = (d) => {
+    const list = slots();
+    const k = list.findIndex((s) => same(s, state.active));
+    state.active = list[(k + d + list.length) % list.length];
+    render();
+  };
+  $('prev').addEventListener('click', () => moveActive(-1));
+  $('next').addEventListener('click', () => moveActive(1));
   $('clear').addEventListener('click', () => { set(state.active, -1); render(); recompute(); });
   $('close').addEventListener('click', () => { state.open = false; render(); });
   $('open').addEventListener('click', () => {
