@@ -9,7 +9,7 @@
   --felt:#0e2f26; --felt2:#143d32; --line:#2a5a4b;
   --ivory:#f3efe3; --ink:#1b1b1b;
   --brass:#d8b252; --mute:#8fb0a3;
-  --cursor:#4dd0ff; /* 入力位置マーカー。カードの装飾とは独立した高コントラスト色 */
+  --cursor:#4dd0ff; /* 入力中の枠のカーソル。光るカードの金色とは別系統の色にする */
   --c0:#1b1b1b; --c1:#c2342f; --c2:#2457c5; --c3:#1f7a3d;
 }
 *{box-sizing:border-box}
@@ -38,7 +38,7 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .stepper .n{min-width:52px;text-align:center;font-size:13px;color:var(--mute);white-space:nowrap}
 .stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
 
-.row{display:flex;align-items:flex-start;gap:8px;padding:24px 0 8px;border-top:1px solid var(--line)}
+.row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
 .row.board .name{padding-top:20px}
 .slots{display:flex;gap:8px}
@@ -49,38 +49,27 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
   color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
 .slot.filled{background:var(--ivory);border:2px solid var(--ivory)}
 .slot.s0{color:var(--c0)} .slot.s1{color:var(--c1)} .slot.s2{color:var(--c2)} .slot.s3{color:var(--c3)}
-/* 最強5枚: 金線だけを残し、カード本体は通常の明るさのまま。その他のカードだけ暗くする */
-.slot.hit{background:var(--ivory);border-color:#ffd24a;
-  box-shadow:inset 0 0 0 1px #ffd24a}
+/* 光るカード: 強いハンドの5枚を明るい金色で浮かせ、それ以外のカードを暗くして目立たせる */
+.slot.hit{background:#fff3c4;border-color:#ffd24a;transform:translateY(-3px);
+  box-shadow:0 0 0 3px #ffd24a,0 0 16px 4px rgba(255,210,74,.9)}
 .slot.off{opacity:.4}
-/* 入力カーソル: カード上部に独立した ▼ マーカーを置き、上下に動かす。
-   カードの border / Best-5の金線 / 暗転とは別レイヤーなので競合しない。 */
-.slot.active{position:relative;z-index:2}
-.slot.active::before{content:"▼";position:absolute;left:50%;top:-20px;
-  transform:translateX(-50%);color:var(--cursor);font-size:15px;font-weight:800;line-height:1;
-  text-shadow:0 0 5px rgba(77,208,255,.75);pointer-events:none;
-  animation:cursorBob .9s ease-in-out infinite}
-@keyframes cursorBob{
-  0%,100%{transform:translate(-50%,0)}
-  50%{transform:translate(-50%,-3px)}
-}
+/* 入力中のカーソル = 外側のリング(outline)。
+   光るカードは内側の border / box-shadow、暗転は opacity、カーソルは outline と、使う層を分けて重ならないようにする。
+   z-index は、隣の光るカード(transform で別の重なり順になる)の光に埋もれないため。
+   リングが近すぎる/遠すぎるときは outline-offset を調整 (2px → 3px など) */
+.slot.active{outline:2px solid var(--cursor);outline-offset:2px;position:relative;z-index:2}
+.slot.off.active{opacity:1}
 .slot.empty.active{background:rgba(77,208,255,.12)}
 .slot small{display:block;font-size:17px}
 .prow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .prow .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
 .prow .name{padding-top:20px}
 
-.pr{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:9px}
-.pr .made{min-width:0;color:var(--mute);font-size:11px;line-height:1.2;letter-spacing:-.03em;text-align:right;white-space:nowrap}
-.pr .made.dim{color:var(--line)}
-.pr .pctcol{width:72px;flex:none;text-align:right}
+.pr{flex:1;min-width:0;text-align:right;padding-top:9px}
 .pr .pct{font-size:24px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
 .pr .pct.dim{color:var(--mute)}
 .pr .bar{height:6px;margin-top:7px;background:var(--felt2);border-radius:3px;overflow:hidden}
 .pr .bar i{display:block;height:100%;background:var(--brass);width:0}
-.actions{display:flex;gap:8px;margin-bottom:2px}
-.action{flex:1;height:36px;border-radius:18px;border:1px solid var(--line);background:none;color:var(--ivory);font-size:13px}
-.action.primary{background:var(--brass);border-color:var(--brass);color:var(--ink);font-weight:700}
 #results{margin-top:6px}
 details.cats{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 details.cats summary{font-size:13px;color:var(--mute);cursor:pointer}
@@ -123,8 +112,8 @@ body.picking #open{display:none}
 .hin p,.hin li{font-size:13px;line-height:1.7;color:var(--ivory);margin:2px 0}
 .hin ul{margin:2px 0;padding-left:18px}
 .hin .sub{color:var(--mute)}
-.glowdemo{display:inline-block;width:14px;height:18px;border-radius:3px;background:var(--ivory);vertical-align:-3px;
-  border:2px solid #ffd24a;box-shadow:inset 0 0 0 1px #ffd24a}
+.glowdemo{display:inline-block;width:14px;height:18px;border-radius:3px;background:#fff3c4;vertical-align:-3px;
+  box-shadow:0 0 0 2px #ffd24a,0 0 8px 2px rgba(255,210,74,.9)}
 details.dev{margin-top:22px;border-top:1px solid var(--line);padding-top:10px}
 details.dev summary{font-size:12px;color:var(--mute)}
 #verify .lead{font-size:12px;color:var(--mute);margin:8px 0;line-height:1.6}
@@ -163,16 +152,12 @@ details.dev summary{font-size:12px;color:var(--mute)}
     </div>
   </div>
 
-  <div class="actions" role="group" aria-label="カード操作">
-    <button id="randomFill" class="action primary">ランダム配布</button>
-    <button id="reset" class="action">リセット</button>
-  </div>
-
   <div id="players"></div>
   <div id="board"></div>
   <div id="results"></div>
   <p class="note">引き分けは取り分を等分して計算</p>
   <div id="cats"></div>
+  <button id="reset" class="ghost">リセット</button>
 </main>
 
 <button id="open" aria-label="カードピッカーを開く">▼</button>
@@ -197,7 +182,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>画面下の ▼ でカードを選びます。選ぶと次の枠へ自動で進みます。</li>
       <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
       <li>ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れます。</li>
-      <li>入力中の枠の上に、水色の <b>▼</b> が上下に動いて表示されます。</li>
+      <li>入力中の枠は、水色の枠で示します。</li>
       <li>他の枠で使っているカードは選べません。</li>
     </ul>
 
@@ -215,16 +200,11 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>計算するのは、ボード0枚(Preflop)・Flop3枚・Turn・River のときです。Flopが1〜2枚などの途中は「入力待ち」になります。</li>
     </ul>
 
-    <h3>最強5枚</h3>
+    <h3>光るカード</h3>
     <ul>
-      <li><span class="glowdemo"></span> 金色の線が付いたカードは、今いちばん強いハンドを作る5枚です(ボード3枚+手札2枚 / ボード4枚+手札1枚 / ボード5枚、など)。それ以外の入力済みカードは暗くなります。</li>
-      <li>表示するのは、全員の中でいちばん強いハンドの5枚だけです(各プレイヤーの最強を全員分表示するわけではありません)。Flop以降で、全員のカードが入力されると表示されます。</li>
+      <li><span class="glowdemo"></span> 金色に光って浮き上がっているカードは、今いちばん強いハンドを作る5枚です(ボード3枚+手札2枚 / ボード4枚+手札1枚 / ボード5枚、など)。それ以外のカードは暗くなります。</li>
+      <li>光るのは、全員の中でいちばん強いハンドの5枚だけです(各プレイヤーの最強ではありません)。Flop以降で、全員のカードが入力されると表示されます。</li>
       <li class="sub">同じ強さのプレイヤーがいるときは、その全員のカードが光ります。光る5枚は評価器が選んだ組です。</li>
-    </ul>
-
-    <h3>確定役</h3>
-    <ul>
-      <li>Flop以降、各プレイヤーの勝率の左に、現在のカードから既に確定している最強の5枚の役を表示します。Preflopや入力途中では「—」です。</li>
     </ul>
 
     <h3>最終役の見込み</h3>
@@ -254,12 +234,6 @@ details.dev summary{font-size:12px;color:var(--mute)}
     <ul>
       <li>引き分けは取り分を等分して計算します。</li>
       <li>プレイヤーの並びは固定です(勝率順には並べ替えません)。</li>
-    </ul>
-
-    <h3>カード操作</h3>
-    <ul>
-      <li><b>ランダム配布</b>は、入力済みのカードを残して、現在の人数・現在のストリートに存在する空欄だけをランダムに埋めます。</li>
-      <li><b>リセット</b>は、人数・モードを変えず、P1〜P4とBoardのカードだけをすべて消します。</li>
     </ul>
 
     <h3>保存と共有</h3>

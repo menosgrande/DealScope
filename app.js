@@ -161,17 +161,6 @@
     made.forEach((m) => { if (m.score === top) m.cards.forEach((c) => glow.add(c)); });
   }
 
-  /* ---------- 現在の確定役 ---------- */
-  // Flop以降で、現在のカードから既に確定している最強5枚の役名を返す。
-  // Preflopや入力途中ではまだ5枚役が確定しないため「—」。
-  function madeHandName(i) {
-    const board = boardCards();
-    if (!board || board.length < 3) return '—';
-    const [a, b] = state.players[i];
-    if (a < 0 || b < 0) return '—';
-    return HAND_NAMES[E.bestFive(board.concat([a, b])).score >>> 20];
-  }
-
   /* ---------- 描画 ---------- */
   function slotHTML(s) {
     const c = get(s);
@@ -246,11 +235,8 @@
       if (done) { txt = (res.approx ? '≈' : '') + res.eq[i].toFixed(1) + '%'; w = res.eq[i]; }
       const cell = $('players').querySelector(`.pr[data-i="${i}"]`);
       if (cell) {
-        const made = madeHandName(i);
-        cell.innerHTML =
-          `<div class="made${made === '—' ? ' dim' : ''}">${made}</div>` +
-          `<div class="pctcol"><div class="pct${done ? '' : ' dim'}">${txt}</div>` +
-          `<div class="bar"><i style="width:${w}%"></i></div></div>`;
+        cell.innerHTML = `<div class="pct${done ? '' : ' dim'}">${txt}</div>` +
+          `<div class="bar"><i style="width:${w}%"></i></div>`;
       }
     }
     let h = '';
@@ -342,48 +328,6 @@
     })();
   }
 
-  /* ---------- ランダム配布 ---------- */
-  // 現在のボード状態から、ランダム配布の対象にする長さを決める。
-  // 正常な状態は 0 / 3 / 4 / 5枚。入力途中なら次の完成状態まで埋める。
-  function boardTargetCount() {
-    const b = state.board;
-    const f = b.slice(0, 3).filter((c) => c >= 0).length;
-    const t = b[3] >= 0, r = b[4] >= 0;
-    if (r) return 5;
-    if (t) return 4;
-    if (f === 0) return 0;
-    return 3;
-  }
-
-  // 入力済みカードは変えず、現在の人数・ストリートに存在する空欄だけをランダムに埋める。
-  function randomFill() {
-    const targets = [];
-    for (let i = 0; i < count(); i++) {
-      for (let j = 0; j < 2; j++) {
-        const s = { t: 'p', i, j };
-        if (get(s) < 0) targets.push(s);
-      }
-    }
-    const bn = boardTargetCount();
-    for (let j = 0; j < bn; j++) {
-      const s = { t: 'b', j };
-      if (get(s) < 0) targets.push(s);
-    }
-    if (!targets.length) { state.open = false; render(); return; }
-
-    const used = usedCards();
-    const pool = [];
-    for (let c = 0; c < 52; c++) if (!used.has(c)) pool.push(c);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    targets.forEach((s, i) => set(s, pool[i]));
-    state.open = false;
-    render();
-    recompute();
-  }
-
   /* ---------- イベント ---------- */
   function onSlotClick(e) {
     const b = e.target.closest('.slot');
@@ -423,8 +367,6 @@
     if (get(state.active) >= 0) { const e = list.find((s) => get(s) < 0); if (e) state.active = e; }
     render();
   });
-  $('randomFill').addEventListener('click', randomFill);
-
   // リセット: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
   $('reset').addEventListener('click', () => {
     state.players = S.emptyHands();
