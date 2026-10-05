@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DealScope — カード勝率</title>
+<style>
+:root{
+  --felt:#0e2f26; --felt2:#143d32; --line:#2a5a4b;
+  --ivory:#f3efe3; --ink:#1b1b1b; --red:#c2342f;
+  --brass:#d8b252; --mute:#8fb0a3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--felt);color:var(--ivory);
+  font-family:"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent}
+main{max-width:520px;margin:0 auto;padding:16px 14px calc(88px + env(safe-area-inset-bottom));}
+body.picking main{padding-bottom:calc(250px + env(safe-area-inset-bottom));}
+h1{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--mute);letter-spacing:.04em}
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stepper{display:inline-flex;align-items:center;height:38px;border:1px solid var(--line);border-radius:19px}
+.stepper button{width:40px;height:100%;border:0;background:none;color:var(--ivory);font-size:18px}
+.stepper button:disabled{opacity:.25}
+.stepper .n{min-width:44px;text-align:center;font-size:14px;color:var(--mute)}
+.stepper b{font-size:18px;color:var(--ivory);margin-right:2px}
+.pill{display:inline-flex;align-items:center;height:38px;padding:0 14px;border-radius:19px;
+  border:1px solid var(--line);background:none;color:var(--mute);font-size:14px}
+:root{--c0:#1b1b1b;--c1:#c2342f;--c2:#2457c5;--c3:#1f7a3d}
+.slot.s0,#grid button.s0{color:var(--c0)}
+.slot.s1,#grid button.s1{color:var(--c1)}
+.slot.s2,#grid button.s2{color:var(--c2)}
+.slot.s3,#grid button.s3{color:var(--c3)}
+.row{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.row .name{width:78px;font-size:14px;color:var(--mute);flex:none}
+.slots{display:flex;gap:8px}
+.slot{width:46px;height:62px;border-radius:7px;border:2px dashed var(--line);background:transparent;
+  color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
+.slot.filled{background:var(--ivory);border:2px solid var(--ivory)}
+.slot.active{border:2px solid var(--brass);box-shadow:0 0 0 2px rgba(216,178,82,.35)}
+.slot.empty.active{background:rgba(216,178,82,.12)}
+.slot small{display:block;font-size:17px}
+#results{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+.res{display:grid;grid-template-columns:78px 1fr 84px;align-items:center;gap:12px;padding:7px 0}
+.res .name{font-size:14px;color:var(--mute)}
+.res .bar{height:8px;background:var(--felt2);border-radius:4px;overflow:hidden}
+.res .bar i{display:block;height:100%;background:var(--brass);width:0}
+.res .pct{text-align:right;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.res.dim .pct{color:var(--mute)}
+.note{font-size:12px;color:var(--mute);margin:6px 0 0}
+.ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
+  border-radius:8px;height:36px;padding:0 14px;font-size:13px}
+#verify{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+#verify[hidden]{display:none}
+#verify .lead{font-size:12px;color:var(--mute);margin:0 0 8px;line-height:1.6}
+#verify .ghost{margin-top:0}
+.vsum{margin:12px 0 4px;font-size:15px;font-weight:700}
+.vsum.ok{color:#6fcf8f}.vsum.ng{color:#ff7b7b}
+.vh{margin:14px 0 2px;font-size:12px;letter-spacing:.06em;color:var(--brass)}
+.vr{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
+.vr .st{font-weight:700;text-align:center}
+.vr .st.ok{color:#6fcf8f}.vr .st.ng{color:#ff7b7b}.vr .st.info,.vr .st.run{color:var(--mute)}
+.vr .t{font-size:14px}
+.vr .d{font-size:12px;color:var(--mute);margin-top:2px;line-height:1.55}
+.vr details{margin-top:4px}
+.vr summary{font-size:12px;color:var(--mute)}
+.vr pre{white-space:pre-wrap;word-break:break-all;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);margin:4px 0 0}
+#open{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));
+  width:64px;height:40px;border-radius:20px;border:0;background:var(--brass);color:var(--ink);font-size:18px}
+body.picking #open{display:none}
+#picker{position:fixed;left:0;right:0;bottom:0;background:#0a211a;border-top:1px solid var(--line);
+  padding:8px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
+#picker[hidden]{display:none}
+.phead{display:flex;align-items:center;gap:8px;max-width:520px;margin:0 auto 6px}
+#pickLabel{flex:1;font-size:14px;color:var(--ivory)}
+.phead button{height:32px;border-radius:16px;border:1px solid var(--line);background:none;color:var(--mute);padding:0 12px;font-size:13px}
+.phead #close{width:56px;background:var(--brass);color:var(--ink);border:0;font-size:16px}
+#grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;max-width:520px;margin:0 auto}
+#grid button{height:36px;padding:0;border-radius:5px;border:0;background:var(--ivory);color:var(--ink);
+  font-size:13px;font-weight:700;line-height:1}
+#grid button:disabled{opacity:.18}
+#grid button.cur{outline:2px solid var(--brass)}
+button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <h1>DealScope</h1>
+  <div class="bar">
+    <div class="stepper" role="group" aria-label="人数">
+      <button id="dec" aria-label="人数を減らす">−</button>
+      <span class="n"><b id="nval">2</b>人</span>
+      <button id="inc" aria-label="人数を増やす">＋</button>
+    </div>
+    <button id="copy" class="pill">リンクをコピー</button>
+  </div>
+  <div id="players"></div>
+  <div id="board"></div>
+  <div id="results"></div>
+  <p class="note">引き分けは取り分を等分して計算</p>
+  <button id="reset" class="ghost">リセット</button><button id="vtoggle" class="ghost">検証</button>
+  <section id="verify" hidden>
+    <p class="lead">勝率の計算が正しいかの自動チェックと、この端末での計算速度を確認できます。</p>
+    <button id="runAll" class="ghost">計算が正しいか確認</button><button id="runBench" class="ghost">計算速度を測る</button>
+    <div id="out"></div>
+  </section>
+</main>
+
+<button id="open" aria-label="カードピッカーを開く">▼</button>
+
+<div id="picker" hidden>
+  <div class="phead">
+    <div id="pickLabel"></div>
+    <button id="clear">外す</button>
+    <button id="close" aria-label="閉じる">×</button>
+  </div>
+  <div id="grid"></div>
+</div>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
