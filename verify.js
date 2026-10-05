@@ -196,6 +196,30 @@
     return ((w + t / 2) / tot) * 100;
   }
 
+  // 相手2人・リバー確定: 相手2人の手の全組み合わせを、本番とは別の素朴なループで数える
+  function exactTwoRandomRiver(hero, board) {
+    const dead = new Set([...hero, ...board]);
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!dead.has(c)) deck.push(c);
+    const hv = E.evaluate(hero.concat(board));
+    let sum = 0, tot = 0;
+    for (let i = 0; i < deck.length; i++) for (let j = i + 1; j < deck.length; j++) {
+      const s1 = E.evaluate([deck[i], deck[j]].concat(board));
+      for (let k = 0; k < deck.length; k++) {
+        if (k === i || k === j) continue;
+        for (let l = k + 1; l < deck.length; l++) {
+          if (l === i || l === j) continue;
+          const s2 = E.evaluate([deck[k], deck[l]].concat(board));
+          tot++;
+          const best = s1 > s2 ? s1 : s2;
+          if (hv > best) sum += 1;
+          else if (hv === best) sum += 1 / (1 + (s1 === hv ? 1 : 0) + (s2 === hv ? 1 : 0));
+        }
+      }
+    }
+    return (sum / tot) * 100;
+  }
+
   async function testVsRandom() {
     let allOk = true;
     for (const [note, hs, bs] of [
@@ -229,6 +253,19 @@
     if (!mcOk) allOk = false;
     row(mcOk ? 'ok' : 'ng', 'ランダム相手 フロップ: 厳密値と近似計算が一致',
       `厳密 ${pct(ex)}(${num(r.value.total)}通り)。Preflopと同じ近似計算を、厳密値のあるフロップで確認`, lines.join('\n'));
+    // 相手2人(リバー): 近似計算を、全組み合わせの数え上げと比較
+    {
+      const h2 = cards('Ks Kd'), b2 = cards('2c 7d 9h Js Kc');
+      const ex2 = exactTwoRandomRiver(h2, b2);
+      const mc2 = E.monteCarloVsRandom(h2, b2, 100000, { seed: 12345, opponents: 2 }).equity[0];
+      const p2 = ex2 / 100;
+      const se2 = Math.max(Math.sqrt(p2 * (1 - p2) / 100000) * 100, 0.05);
+      const ok2 = Math.abs(mc2 - ex2) <= 4 * se2;
+      if (!ok2) allOk = false;
+      row(ok2 ? 'ok' : 'ng', 'ランダム相手2人 リバー: 近似計算と全組み合わせの一致',
+        `全組み合わせ ${pct(ex2)} / 近似計算(10万回) ${pct(mc2)} / 差 ${Math.abs(mc2 - ex2).toFixed(2)}pt`);
+      await tick();
+    }
     // Preflop: 正解値は外部の計算機の値待ち
     const pre = E.monteCarloVsRandom(cards('As Ks'), [], 100000, { seed: 12345 }).equity[0];
     row('info', 'ランダム相手 プリフロップ(AKs)', `近似計算 ${pct(pre)}。正解値は未登録(外部の計算機の値を、サイト名・取得日・引き分けの扱いと一緒に登録する)`);

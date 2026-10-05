@@ -7,8 +7,9 @@
 <style>
 :root{
   --felt:#0e2f26; --felt2:#143d32; --line:#2a5a4b;
-  --ivory:#f3efe3; --ink:#1b1b1b; --red:#c2342f;
+  --ivory:#f3efe3; --ink:#1b1b1b;
   --brass:#d8b252; --mute:#8fb0a3;
+  --c0:#1b1b1b; --c1:#c2342f; --c2:#2457c5; --c3:#1f7a3d;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--felt);color:var(--ivory);
@@ -16,32 +17,48 @@ html,body{margin:0;background:var(--felt);color:var(--ivory);
   -webkit-tap-highlight-color:transparent}
 main{max-width:520px;margin:0 auto;padding:16px 14px calc(88px + env(safe-area-inset-bottom));}
 body.picking main{padding-bottom:calc(250px + env(safe-area-inset-bottom));}
-h1{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--mute);letter-spacing:.04em}
-.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.stepper{display:inline-flex;align-items:center;height:38px;border:1px solid var(--line);border-radius:19px}
-.stepper button{width:40px;height:100%;border:0;background:none;color:var(--ivory);font-size:18px}
+button{font-family:inherit}
+button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04em}
+.top .btns{display:flex;gap:8px}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:17px;
+  border:1px solid var(--line);background:none;color:var(--mute);font-size:13px}
+.pill.icon{width:34px;padding:0;font-weight:700}
+
+.ctl{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:19px;overflow:hidden}
+.seg button{height:36px;padding:0 12px;font-size:13px;background:none;border:0;color:var(--mute)}
+.seg button.on{background:var(--brass);color:var(--ink);font-weight:700}
+.stepper{display:inline-flex;align-items:center;height:36px;border:1px solid var(--line);border-radius:18px}
+.stepper button{width:34px;height:100%;border:0;background:none;color:var(--ivory);font-size:18px}
 .stepper button:disabled{opacity:.25}
-.stepper .n{min-width:44px;text-align:center;font-size:14px;color:var(--mute)}
-.stepper b{font-size:18px;color:var(--ivory);margin-right:2px}
-.pill{display:inline-flex;align-items:center;height:38px;padding:0 14px;border-radius:19px;
-  border:1px solid var(--line);background:none;color:var(--mute);font-size:14px}
-:root{--c0:#1b1b1b;--c1:#c2342f;--c2:#2457c5;--c3:#1f7a3d}
-.slot.s0,#grid button.s0{color:var(--c0)}
-.slot.s1,#grid button.s1{color:var(--c1)}
-.slot.s2,#grid button.s2{color:var(--c2)}
-.slot.s3,#grid button.s3{color:var(--c3)}
-.row{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
-.row .name{width:78px;font-size:14px;color:var(--mute);flex:none}
+.stepper .n{min-width:52px;text-align:center;font-size:13px;color:var(--mute);white-space:nowrap}
+.stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
+
+.row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
+.row.board .name{padding-top:20px}
 .slots{display:flex;gap:8px}
-.slot{width:46px;height:62px;border-radius:7px;border:2px dashed var(--line);background:transparent;
+.bslots{display:flex;gap:12px}
+.grp .slots{gap:4px}
+.cap{font-size:10px;color:var(--mute);text-align:center;margin-top:3px;letter-spacing:.04em}
+.slot{width:44px;height:60px;border-radius:7px;border:2px dashed var(--line);background:transparent;
   color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
 .slot.filled{background:var(--ivory);border:2px solid var(--ivory)}
+.slot.s0{color:var(--c0)} .slot.s1{color:var(--c1)} .slot.s2{color:var(--c2)} .slot.s3{color:var(--c3)}
 .slot.active{border:2px solid var(--brass);box-shadow:0 0 0 2px rgba(216,178,82,.35)}
 .slot.empty.active{background:rgba(216,178,82,.12)}
+.slot.hit{border-color:#ffe08a;box-shadow:0 0 0 2px #ffe08a,0 0 14px 3px rgba(255,224,138,.8)}
 .slot small{display:block;font-size:17px}
+.prow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.prow .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
+.prow .name{padding-top:20px}
+
 #results{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
-.res{display:grid;grid-template-columns:78px 1fr 84px;align-items:center;gap:12px;padding:7px 0}
-.res .name{font-size:14px;color:var(--mute)}
+.res{display:grid;grid-template-columns:64px 1fr 84px;align-items:center;gap:12px;padding:7px 0}
+.res .name{font-size:13px;color:var(--mute)}
 .res .bar{height:8px;background:var(--felt2);border-radius:4px;overflow:hidden}
 .res .bar i{display:block;height:100%;background:var(--brass);width:0}
 .res .pct{text-align:right;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -49,21 +66,7 @@ h1{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--mute);letter-spaci
 .note{font-size:12px;color:var(--mute);margin:6px 0 0}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
-#verify{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
-#verify[hidden]{display:none}
-#verify .lead{font-size:12px;color:var(--mute);margin:0 0 8px;line-height:1.6}
-#verify .ghost{margin-top:0}
-.vsum{margin:12px 0 4px;font-size:15px;font-weight:700}
-.vsum.ok{color:#6fcf8f}.vsum.ng{color:#ff7b7b}
-.vh{margin:14px 0 2px;font-size:12px;letter-spacing:.06em;color:var(--brass)}
-.vr{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
-.vr .st{font-weight:700;text-align:center}
-.vr .st.ok{color:#6fcf8f}.vr .st.ng{color:#ff7b7b}.vr .st.info,.vr .st.run{color:var(--mute)}
-.vr .t{font-size:14px}
-.vr .d{font-size:12px;color:var(--mute);margin-top:2px;line-height:1.55}
-.vr details{margin-top:4px}
-.vr summary{font-size:12px;color:var(--mute)}
-.vr pre{white-space:pre-wrap;word-break:break-all;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);margin:4px 0 0}
+
 #open{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));
   width:64px;height:40px;border-radius:20px;border:0;background:var(--brass);color:var(--ink);font-size:18px}
 body.picking #open{display:none}
@@ -77,32 +80,66 @@ body.picking #open{display:none}
 #grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;max-width:520px;margin:0 auto}
 #grid button{height:36px;padding:0;border-radius:5px;border:0;background:var(--ivory);color:var(--ink);
   font-size:13px;font-weight:700;line-height:1}
+#grid button.s0{color:var(--c0)} #grid button.s1{color:var(--c1)} #grid button.s2{color:var(--c2)} #grid button.s3{color:var(--c3)}
 #grid button:disabled{opacity:.18}
 #grid button.cur{outline:2px solid var(--brass)}
-button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+/* ヘルプ */
+#help{position:fixed;inset:0;background:var(--felt);z-index:10;overflow:auto;
+  padding:16px 14px calc(28px + env(safe-area-inset-bottom))}
+#help[hidden]{display:none}
+.hin{max-width:520px;margin:0 auto}
+.hhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hhead h2{font-size:16px;margin:0}
+.hin h3{font-size:13px;color:var(--brass);margin:18px 0 4px;letter-spacing:.04em}
+.hin p,.hin li{font-size:13px;line-height:1.7;color:var(--ivory);margin:2px 0}
+.hin ul{margin:2px 0;padding-left:18px}
+.hin .sub{color:var(--mute)}
+.glowdemo{display:inline-block;width:14px;height:18px;border-radius:3px;background:var(--ivory);vertical-align:-3px;
+  box-shadow:0 0 0 2px #ffe08a,0 0 8px 2px rgba(255,224,138,.8)}
+details.dev{margin-top:22px;border-top:1px solid var(--line);padding-top:10px}
+details.dev summary{font-size:12px;color:var(--mute)}
+#verify .lead{font-size:12px;color:var(--mute);margin:8px 0;line-height:1.6}
+#verify .ghost{margin-top:0}
+.vsum{margin:12px 0 4px;font-size:15px;font-weight:700}
+.vsum.ok{color:#6fcf8f}.vsum.ng{color:#ff7b7b}
+.vh{margin:14px 0 2px;font-size:12px;letter-spacing:.06em;color:var(--brass)}
+.vr{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
+.vr .st{font-weight:700;text-align:center}
+.vr .st.ok{color:#6fcf8f}.vr .st.ng{color:#ff7b7b}.vr .st.info,.vr .st.run{color:var(--mute)}
+.vr .t{font-size:14px}
+.vr .d{font-size:12px;color:var(--mute);margin-top:2px;line-height:1.55}
+.vr details{margin-top:4px}
+.vr summary{font-size:12px;color:var(--mute)}
+.vr pre{white-space:pre-wrap;word-break:break-all;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);margin:4px 0 0}
 </style>
 </head>
 <body>
 <main>
-  <h1>DealScope</h1>
-  <div class="bar">
-    <div class="stepper" role="group" aria-label="人数">
-      <button id="dec" aria-label="人数を減らす">−</button>
-      <span class="n"><b id="nval">2</b>人</span>
-      <button id="inc" aria-label="人数を増やす">＋</button>
+  <div class="top">
+    <h1>DealScope</h1>
+    <div class="btns">
+      <button id="copy" class="pill">リンクをコピー</button>
+      <button id="helpBtn" class="pill icon" aria-label="ヘルプ">?</button>
     </div>
-    <button id="copy" class="pill">リンクをコピー</button>
   </div>
+
+  <div class="ctl">
+    <div id="mode" class="seg" role="group" aria-label="モード">
+      <button data-m="known">既知ハンド</button><button data-m="random">ランダム相手</button>
+    </div>
+    <div class="stepper" role="group" aria-label="人数">
+      <button id="dec" aria-label="減らす">−</button>
+      <span class="n"><span id="nlabel"></span><b id="nval">2</b>人</span>
+      <button id="inc" aria-label="増やす">＋</button>
+    </div>
+  </div>
+
   <div id="players"></div>
   <div id="board"></div>
   <div id="results"></div>
   <p class="note">引き分けは取り分を等分して計算</p>
-  <button id="reset" class="ghost">リセット</button><button id="vtoggle" class="ghost">検証</button>
-  <section id="verify" hidden>
-    <p class="lead">勝率の計算が正しいかの自動チェックと、この端末での計算速度を確認できます。</p>
-    <button id="runAll" class="ghost">計算が正しいか確認</button><button id="runBench" class="ghost">計算速度を測る</button>
-    <div id="out"></div>
-  </section>
+  <button id="reset" class="ghost">リセット</button>
 </main>
 
 <button id="open" aria-label="カードピッカーを開く">▼</button>
@@ -114,6 +151,61 @@ button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
     <button id="close" aria-label="閉じる">×</button>
   </div>
   <div id="grid"></div>
+</div>
+
+<div id="help" hidden>
+  <div class="hin">
+    <div class="hhead"><h2>DealScope</h2><button id="helpClose" class="pill icon" aria-label="閉じる">×</button></div>
+    <p class="sub">カードを入力すると、今の勝率がすぐ分かります。</p>
+
+    <h3>入力</h3>
+    <ul>
+      <li>画面下の ▼ でカードを選びます。選ぶと次の枠へ自動で進みます。</li>
+      <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
+      <li>他の枠で使っているカードは選べません。</li>
+    </ul>
+
+    <h3>モード</h3>
+    <ul>
+      <li><b>既知ハンド(2〜4人)</b>: 全員のカード2枚を入力します。全員そろうと、厳密に計算します。</li>
+      <li><b>ランダム相手(1〜4人)</b>: 自分(Hero)のカードだけ入力します。相手はランダムなカードと仮定します。</li>
+      <li class="sub">ランダム相手は、相手が1人でFlop以降なら厳密な値です。それ以外は近似値(≈)で、実行のたびに少し変わります。</li>
+      <li class="sub">人数を減らしたり、モードを切り替えたりすると、いなくなったプレイヤーのカードは消えます。</li>
+    </ul>
+
+    <h3>ボード</h3>
+    <ul>
+      <li>Flop(3枚) → Turn → River の順に、横一列で入力します。</li>
+      <li>計算するのは、ボード0枚(Preflop)・Flop3枚・Turn・River のときです。Flopが1〜2枚などの途中は「入力待ち」になります。</li>
+    </ul>
+
+    <h3>光るカード</h3>
+    <ul>
+      <li><span class="glowdemo"></span> 光っているカードは、今いちばん強いハンドを作る5枚です(ボード3枚+手札2枚 / ボード4枚+手札1枚 / ボード5枚、など)。</li>
+      <li>Flop以降で、全員のカードが入力されると表示されます。同じ強さなら、同点のプレイヤーのカードが光ります。</li>
+    </ul>
+
+    <h3>勝率の見方</h3>
+    <ul>
+      <li>引き分けは取り分を等分して計算します。</li>
+      <li>プレイヤーの並びは固定です(勝率順には並べ替えません)。</li>
+    </ul>
+
+    <h3>保存と共有</h3>
+    <ul>
+      <li>入力は端末に自動で保存されます。</li>
+      <li>URLの <code>#</code> 以降に局面が入ります。「リンクをコピー」で共有できます。</li>
+    </ul>
+
+    <details class="dev" id="dev">
+      <summary>開発者向け: 計算の検証</summary>
+      <div id="verify">
+        <p class="lead">勝率の計算が正しいかの自動チェックと、この端末での計算速度を確認できます。</p>
+        <button id="runAll" class="ghost">計算が正しいか確認</button><button id="runBench" class="ghost">計算速度を測る</button>
+        <div id="out"></div>
+      </div>
+    </details>
+  </div>
 </div>
 
 <script src="engine.js"></script>

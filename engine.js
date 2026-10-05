@@ -248,8 +248,9 @@
     return { equity: [((win + tie / 2) / total) * 100], total };
   }
 
-  // Monte Carlo (Preflop用 / 検証用): Exact とは別コードパス
-  function monteCarloVsRandom(hero, board, trials, opts) {
+  // Monte Carlo: Hero vs ランダムな相手 opps人(1〜4)。Exact とは別コードパス
+  // 約4096試行ごとに進捗を yield する(時間分割で実行できる)
+  function* monteCarloVsRandomGen(hero, board, opps, trials, opts) {
     opts = opts || {};
     const evalFn = opts.evalFn || evaluate;
     let seed = (opts.seed >>> 0) || ((Math.random() * 4294967296) >>> 0) || 1;
@@ -261,10 +262,15 @@
     const known = new Set([hero[0], hero[1], ...board]);
     const pool = [];
     for (let c = 0; c < 52; c++) if (!known.has(c)) pool.push(c);
-    const bl = board.length, need = 5 - bl, draw = 2 + need;
-    const hs = new Array(7), os = new Array(7);
+    const bl = board.length, need = 5 - bl, draw = 2 * opps + need;
+    const hs = new Array(7);
+    const os = [];
+    for (let o = 0; o < opps; o++) os.push(new Array(7));
     hs[0] = hero[0]; hs[1] = hero[1];
-    for (let k = 0; k < bl; k++) { hs[2 + k] = board[k]; os[2 + k] = board[k]; }
+    for (let k = 0; k < bl; k++) {
+      hs[2 + k] = board[k];
+      for (let o = 0; o < opps; o++) os[o][2 + k] = board[k];
+    }
 
     let sole = 0, split = 0;
     for (let t = 0; t < trials; t++) {
@@ -272,15 +278,53 @@
         const k = j + Math.floor((next() / 4294967296) * (pool.length - j));
         const tmpc = pool[j]; pool[j] = pool[k]; pool[k] = tmpc;
       }
-      os[0] = pool[0]; os[1] = pool[1];
-      for (let j = 0; j < need; j++) { hs[2 + bl + j] = pool[2 + j]; os[2 + bl + j] = pool[2 + j]; }
-      const h = evalFn(hs), o = evalFn(os);
-      if (h > o) sole++; else if (h === o) split += 0.5;
+      for (let o = 0; o < opps; o++) { os[o][0] = pool[2 * o]; os[o][1] = pool[2 * o + 1]; }
+      for (let j = 0; j < need; j++) {
+        const v = pool[2 * opps + j];
+        hs[2 + bl + j] = v;
+        for (let o = 0; o < opps; o++) os[o][2 + bl + j] = v;
+      }
+      const h = evalFn(hs);
+      let beaten = false, ties = 0;
+      for (let o = 0; o < opps; o++) {
+        const s = evalFn(os[o]);
+        if (s > h) { beaten = true; break; }
+        if (s === h) ties++;
+      }
+      if (!beaten) { if (ties === 0) sole++; else split += 1 / (ties + 1); }
+      if (((t + 1) & 4095) === 0) yield (t + 1) / trials;
     }
     return { equity: [((sole + split) / trials) * 100], trials };
   }
 
-  const api = { RANKS, SUITS, cardName, evaluate, exactGen, exactSync, monteCarlo, exactVsRandomGen, monteCarloVsRandom };
+  function monteCarloVsRandom(hero, board, trials, opts) {
+    const g = monteCarloVsRandomGen(hero, board, (opts && opts.opponents) || 1, trials, opts);
+    for (;;) { const r = g.next(); if (r.done) return r.value; }
+  }
+
+  /* ---------- 最強の5枚 ----------
+   * cards(5〜7枚)から最強の5枚組を返す。同点の組は配列の前方のカードを優先する
+   * (呼び出し側は「ボード → ホールカード」の順で渡す。ボードだけで成立する役ではホールカードを光らせないため)。
+   */
+  function bestFive(cards) {
+    const n = cards.length;
+    let best = -1, bestCards = null;
+    const idx = [0, 1, 2, 3, 4];
+    const five = new Array(5);
+    for (;;) {
+      for (let k = 0; k < 5; k++) five[k] = cards[idx[k]];
+      const s = evaluate(five);
+      if (s > best) { best = s; bestCards = five.slice(); }
+      let i = 4;
+      while (i >= 0 && idx[i] === n - 5 + i) i--;
+      if (i < 0) break;
+      idx[i]++;
+      for (let j = i + 1; j < 5; j++) idx[j] = idx[j - 1] + 1;
+    }
+    return { score: best, cards: bestCards };
+  }
+
+  const api = { RANKS, SUITS, cardName, evaluate, exactGen, exactSync, monteCarlo, exactVsRandomGen, monteCarloVsRandomGen, monteCarloVsRandom, bestFive };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PokerEq = api;
 })(typeof window !== 'undefined' ? window : globalThis);
