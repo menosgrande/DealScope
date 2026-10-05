@@ -3,6 +3,9 @@
  * 「計算が正しいか確認」
  *   ① 役の判定: 5枚役の全分布を、公表されている件数と照合 / 別方式の評価器と勝敗を照合
  *   ② 勝率の計算: 既知ケースで 正解値 ・ Exact ・ Monte Carlo を比較
+ *   ③ ランダム相手
+ *   ④ 最終役の見込み: 役ごとの割合を、別方式の評価器・Monte Carlo と照合
+ *   ⑤ 入力状態の整理: 重複カードの整理・URLの往復・保存データの読み込み (state.js)
  * 「計算速度を測る」
  *   この端末での Exact の所要時間
  *
@@ -272,6 +275,162 @@
     return allOk;
   }
 
+
+  /* ---------- ④ 最終役の見込み ---------- */
+  const CATNAMES = ['ハイカード', 'ワンペア', 'ツーペア', 'スリーカード', 'ストレート', 'フラッシュ', 'フルハウス', 'フォーカード', 'ストレートフラッシュ'];
+  const catOf = (v) => Math.floor(v / Math.pow(13, 5)); // naiveEval の値 → 役のカテゴリ
+  const catLine = (c) => c.map((v, k) => (v > 0 ? `${CATNAMES[k]} ${v.toFixed(2)}%` : null)).filter(Boolean).join(' / ');
+  // MC と Exact の割合の差を、勝率の検証と同じ式(4σ)で判定
+  function catsClose(mc, ex, n) {
+    let maxZ = 0, maxDiff = 0;
+    for (let k = 0; k < 9; k++) {
+      const p = ex[k] / 100;
+      const se = Math.max(Math.sqrt(p * (1 - p) / n) * 100, 0.05);
+      maxZ = Math.max(maxZ, Math.abs(mc[k] - ex[k]) / se);
+      maxDiff = Math.max(maxDiff, Math.abs(mc[k] - ex[k]));
+    }
+    return { ok: maxZ <= 4, maxDiff };
+  }
+
+  async function testFinalHands() {
+    let allOk = true;
+
+    // (a) リバー確定: 最終役は決まっている。別方式の評価器の判定と照合
+    for (const cs of CASES.filter((c) => cards(c.board).length === 5)) {
+      const hands = cs.hands.map(cards), board = cards(cs.board);
+      const ex = E.exactSync(hands, board);
+      const want = hands.map((h) => catOf(naiveEval(h.concat(board))));
+      const ok = ex.cats.every((c, p) => c.every((v, k) => Math.abs(v - (k === want[p] ? 100 : 0)) < 1e-9));
+      if (!ok) allOk = false;
+      row(ok ? 'ok' : 'ng', `最終役 ${cs.note}`,
+        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)}(別方式の判定: ${CATNAMES[want[p]]})`).join('<br>'));
+    }
+    await tick();
+
+    // (b) フロップ3人: 各人の合計が100% / Exact と Monte Carlo(別コードパス)が一致
+    {
+      const hands = ['As Ks', 'Qh Qc', 'Js Ts'].map(cards), board = cards('8s 7s 2d');
+      const ex = E.exactSync(hands, board);
+      const sumOk = ex.cats.every((c) => Math.abs(c.reduce((a, b) => a + b, 0) - 100) < 1e-9);
+      const N = 100000;
+      const mc = E.monteCarlo(hands, board, N, { seed: 12345 });
+      const cmp = mc.cats.map((c, p) => catsClose(c, ex.cats[p], N));
+      const ok = sumOk && cmp.every((r) => r.ok);
+      if (!ok) allOk = false;
+      row(ok ? 'ok' : 'ng', '最終役 フロップ3人: 各人の合計100%、Exact と Monte Carlo が一致',
+        `各人の合計 ${sumOk ? '100%' : '不一致'} / Monte Carlo ${num(N)}回との差 最大 ${Math.max(...cmp.map((r) => r.maxDiff)).toFixed(2)}pt`,
+        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)}`).join('\n'));
+      await tick();
+    }
+
+    // (c) ランダム相手: Hero は、相手の人数が変わっても同じ分布(Exact = 相手1人 と MC 相手2人 を比較)
+    {
+      const hero = cards('As Ks'), board = cards('8s 7s 2d');
+      const g = E.exactVsRandomGen(hero, board);
+      let r; while (!(r = g.next()).done) { /* 完了まで */ }
+      const ex = r.value.cats; // [Hero, 相手]
+      const sumOk = ex.every((c) => Math.abs(c.reduce((a, b) => a + b, 0) - 100) < 1e-9);
+      const N = 100000;
+      const lines = []; let ok = sumOk;
+      for (const opps of [1, 2]) {
+        const mc = E.monteCarloVsRandom(hero, board, N, { seed: 12345, opponents: opps }).cats;
+        const h = catsClose(mc[0], ex[0], N), o = catsClose(mc[1], ex[1], N * opps);
+        if (!h.ok || !o.ok) ok = false;
+        lines.push(`相手${opps}人 Monte Carlo: Hero の差 最大${h.maxDiff.toFixed(2)}pt / 相手(1人あたり)の差 最大${o.maxDiff.toFixed(2)}pt`);
+        await tick();
+      }
+      if (!ok) allOk = false;
+      row(ok ? 'ok' : 'ng', '最終役 ランダム相手: Exact と Monte Carlo(相手1人・2人)が一致',
+        '相手の人数が変わっても、Hero と相手1人あたりの分布は同じになるはず。Exact(相手1人)と比較',
+        lines.join('\n') + `\nHero: ${catLine(ex[0])}\n相手: ${catLine(ex[1])}`);
+    }
+    return allOk;
+  }
+
+  /* ---------- ⑤ 入力状態の整理 (state.js) ---------- */
+  async function testStateHelpers() {
+    const S = window.DealState;
+    let allOk = true;
+    const check = (name, ok, detail) => { if (!ok) allOk = false; row(ok ? 'ok' : 'ng', name, '', detail); };
+    const H = (a, b) => [card(a), card(b)];
+    const blank = () => [[-1, -1], [-1, -1], [-1, -1], [-1, -1]];
+    const json = JSON.stringify;
+
+    // dedupe: Board と P1 を守り、後ろ(P2→P3→P4)の重複だけ空欄にする
+    {
+      const board = cards('Ah 7d 2c').concat([-1, -1]);
+      const players = blank();
+      players[0] = H('As', 'Kd');
+      players[1] = H('Ah', 'Qs');   // Ah は Board と重複 → P2 側が空欄
+      players[2] = H('Kd', 'Jc');   // Kd は P1 と重複 → P3 側が空欄
+      players[3] = H('Qs', 'Jc');   // Qs は P2(残った Qs) と重複、Jc は P3 の Jc と重複
+      const r = S.dedupe(board, players);
+      const want = [H('As', 'Kd'), [-1, card('Qs')], [-1, card('Jc')], [-1, -1]];
+      const ok = json(r.players) === json(want) && json(r.board) === json(board) &&
+        players[1][0] === card('Ah'); // 入力の配列そのものは変更しない
+      check('重複の整理: Board と Hero(P1) を優先し、P2→P3→P4 の重複だけ空欄にする', ok, json(r.players));
+    }
+    // dedupe: 重複が無ければそのまま
+    {
+      const players = blank(); players[0] = H('As', 'Kd'); players[1] = H('Qh', 'Qs');
+      const r = S.dedupe(cards('2c 3c 4c').concat([-1, -1]), players);
+      check('重複の整理: 重複が無ければ変わらない', json(r.players) === json(players), '');
+    }
+    // encode → decode の往復
+    {
+      const mk = (mode, n, opp, p, b) => ({ mode, n, opp, players: p, board: b });
+      const p3 = blank(); p3[0] = H('Ad', 'Ts'); p3[1] = H('2c', '7h'); p3[2] = H('Kd', 'Ks');
+      const pr = blank(); pr[0] = H('Ad', 'Ts');
+      const full = cards('Kh 7d 3s Qc 2h');
+      const cases = [
+        mk('known', 2, 1, blank(), [-1, -1, -1, -1, -1]),
+        mk('known', 3, 1, p3, [-1, -1, -1, -1, -1]),
+        mk('known', 3, 1, p3, full),
+        mk('known', 4, 1, blank(), cards('Kh 7d 3s').concat([-1, -1])),
+        mk('random', 2, 1, pr, [-1, -1, -1, -1, -1]),
+        mk('random', 2, 3, pr, cards('Kh 7d 3s Qc').concat([-1])),
+        mk('random', 2, 4, blank(), full),
+      ];
+      let bad = [];
+      cases.forEach((c, i) => {
+        const h = S.encode(c);
+        const d = h === '' ? { mode: 'known', n: 2, opp: 1, players: blank(), board: [-1, -1, -1, -1, -1] } : S.decode(h);
+        if (!d || d.mode !== c.mode || (c.mode === 'known' && d.n !== c.n) || (c.mode === 'random' && d.opp !== c.opp) ||
+            json(d.board) !== json(c.board) || json(d.players.slice(0, c.mode === 'random' ? 1 : c.n)) !== json(c.players.slice(0, c.mode === 'random' ? 1 : c.n))) {
+          bad.push(`#${i} ${h}`);
+        }
+      });
+      check('URL: 書き出して読み戻すと同じ状態になる', bad.length === 0, bad.length ? '不一致: ' + bad.join(', ') : `${cases.length}パターン一致`);
+    }
+    // URL にはランダム相手のとき P2 以降を入れない
+    {
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs');
+      const h = S.encode({ mode: 'random', n: 2, opp: 2, players: p, board: [-1, -1, -1, -1, -1] });
+      check('URL: ランダム相手では、隠れているP2以降を含めない', h === '#AsKd-??-??', h);
+    }
+    // 不正なURLは null
+    {
+      const bads = ['#AdTs-??-2c7h', '#AdTs-2c7h-KdKs-QdQs-JdJs', '#AdTs-2c7', '#AdTs-2c7h/Kh7d/Qc/2h/xx', '#??-??', '#AdTs-??-??-??-??-??'];
+      const leaked = bads.filter((b) => S.decode(b) !== null);
+      check('URL: 不正な形式は読み込まない', leaked.length === 0, leaked.length ? '読み込めてしまった: ' + leaked.join(', ') : `${bads.length}パターン拒否`);
+    }
+    // 保存データ: 旧形式 (n === 1 = ランダム相手) / 新形式 / 壊れたデータ
+    {
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs'); p[2] = H('2c', '3c');
+      const b = [-1, -1, -1, -1, -1];
+      const legacy = S.normalizeSaved({ n: 1, opp: 3, players: p, board: b });
+      const modern = S.normalizeSaved({ mode: 'random', n: 3, opp: 2, players: p, board: b });
+      const dup = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: [H('As', 'Kd'), H('As', 'Qs'), [-1, -1], [-1, -1]], board: b });
+      const ok = legacy && legacy.mode === 'random' && legacy.opp === 3 && legacy.n === 2 &&
+        modern && modern.mode === 'random' && modern.n === 3 && json(modern.players[1]) === json(p[1]) && json(modern.players[3]) === json([-1, -1]) &&
+        dup && json(dup.players[1]) === json([-1, card('Qs')]) &&
+        S.normalizeSaved(null) === null && S.normalizeSaved({ n: 9, players: p, board: b }) === null &&
+        S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
+      check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
+    }
+    return allOk;
+  }
+
   /* ---------- 計算速度 ---------- */
   async function bench() {
     const four = ['As Ks', 'Qh Qc', 'Jd Td', '9c 9d'].map(cards);
@@ -318,6 +477,10 @@
     results.push(await testCases());
     head('③ ランダム相手(1人モード)');
     results.push(await testVsRandom());
+    head('④ 最終役の見込み');
+    results.push(await testFinalHands());
+    head('⑤ 入力状態の整理');
+    results.push(await testStateHelpers());
     const ok = results.every(Boolean);
     sum.className = 'vsum ' + (ok ? 'ok' : 'ng');
     sum.textContent = ok ? '✓ すべて合格' : '✕ 不合格の項目があります';

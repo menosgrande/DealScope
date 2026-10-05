@@ -9,6 +9,7 @@
   --felt:#0e2f26; --felt2:#143d32; --line:#2a5a4b;
   --ivory:#f3efe3; --ink:#1b1b1b;
   --brass:#d8b252; --mute:#8fb0a3;
+  --cursor:#4dd0ff; /* 入力中の枠のカーソル。光るカードの金色とは別系統の色にする */
   --c0:#1b1b1b; --c1:#c2342f; --c2:#2457c5; --c3:#1f7a3d;
 }
 *{box-sizing:border-box}
@@ -48,12 +49,17 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
   color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
 .slot.filled{background:var(--ivory);border:2px solid var(--ivory)}
 .slot.s0{color:var(--c0)} .slot.s1{color:var(--c1)} .slot.s2{color:var(--c2)} .slot.s3{color:var(--c3)}
-.slot.active{border:2px solid var(--brass);box-shadow:0 0 0 2px rgba(216,178,82,.35)}
-.slot.empty.active{background:rgba(216,178,82,.12)}
 /* 光るカード: 強いハンドの5枚を明るい金色で浮かせ、それ以外のカードを暗くして目立たせる */
 .slot.hit{background:#fff3c4;border-color:#ffd24a;transform:translateY(-3px);
   box-shadow:0 0 0 3px #ffd24a,0 0 16px 4px rgba(255,210,74,.9)}
 .slot.off{opacity:.4}
+/* 入力中のカーソル = 外側のリング(outline)。
+   光るカードは内側の border / box-shadow、暗転は opacity、カーソルは outline と、使う層を分けて重ならないようにする。
+   z-index は、隣の光るカード(transform で別の重なり順になる)の光に埋もれないため。
+   リングが近すぎる/遠すぎるときは outline-offset を調整 (2px → 3px など) */
+.slot.active{outline:2px solid var(--cursor);outline-offset:2px;position:relative;z-index:2}
+.slot.off.active{opacity:1}
+.slot.empty.active{background:rgba(77,208,255,.12)}
 .slot small{display:block;font-size:17px}
 .prow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .prow .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
@@ -65,6 +71,14 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .pr .bar{height:6px;margin-top:7px;background:var(--felt2);border-radius:3px;overflow:hidden}
 .pr .bar i{display:block;height:100%;background:var(--brass);width:0}
 #results{margin-top:6px}
+details.cats{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.cats summary{font-size:13px;color:var(--mute);cursor:pointer}
+.ctbl{width:100%;border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
+.ctbl th{font-size:12px;font-weight:600;color:var(--mute);text-align:right;padding:4px 6px}
+.ctbl td{font-size:13px;padding:5px 6px;text-align:right;border-top:1px solid var(--line)}
+.ctbl td:first-child{text-align:left;color:var(--mute);font-size:12px}
+.ctbl td.z{color:var(--line)}
+.ctbl td.top{color:var(--brass);font-weight:700}
 .note{font-size:12px;color:var(--mute);margin:6px 0 0}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
@@ -142,6 +156,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div id="board"></div>
   <div id="results"></div>
   <p class="note">引き分けは取り分を等分して計算</p>
+  <div id="cats"></div>
   <button id="reset" class="ghost">リセット</button>
 </main>
 
@@ -167,6 +182,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>画面下の ▼ でカードを選びます。選ぶと次の枠へ自動で進みます。</li>
       <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
       <li>ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れます。</li>
+      <li>入力中の枠は、水色の枠で示します。</li>
       <li>他の枠で使っているカードは選べません。</li>
     </ul>
 
@@ -175,7 +191,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li><b>既知ハンド(2〜4人)</b>: 全員のカード2枚を入力します。全員そろうと、厳密に計算します。</li>
       <li><b>ランダム相手(1〜4人)</b>: 自分(Hero)のカードだけ入力します。相手はランダムなカードと仮定します。</li>
       <li class="sub">ランダム相手は、相手が1人でFlop以降なら厳密な値です。それ以外は近似値(≈)で、実行のたびに少し変わります。</li>
-      <li class="sub">人数を減らしたり、モードを切り替えたりすると、いなくなったプレイヤーのカードは消えます。</li>
+      <li class="sub">人数を減らしたときだけ、いなくなったプレイヤーのカードは消えます。モードを切り替えても入力は残り、既知ハンドに戻すと元どおりになります(戻したとき、Hero・ボードと同じカードがあれば、隠れていた側が空欄になります)。</li>
     </ul>
 
     <h3>ボード</h3>
@@ -189,6 +205,13 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li><span class="glowdemo"></span> 金色に光って浮き上がっているカードは、今いちばん強いハンドを作る5枚です(ボード3枚+手札2枚 / ボード4枚+手札1枚 / ボード5枚、など)。それ以外のカードは暗くなります。</li>
       <li>光るのは、全員の中でいちばん強いハンドの5枚だけです(各プレイヤーの最強ではありません)。Flop以降で、全員のカードが入力されると表示されます。</li>
       <li class="sub">同じ強さのプレイヤーがいるときは、その全員のカードが光ります。光る5枚は評価器が選んだ組です。</li>
+    </ul>
+
+    <h3>最終役の見込み</h3>
+    <ul>
+      <li>勝率の下の「最終役の見込み」を開くと、<b>最終的にどの役になるか</b>の割合が、プレイヤーごとに出ます。</li>
+      <li>例: 「ワンペア 30%」は、起こりうる全パターンのうち30%で、その人の最終役がワンペアになる、という意味です。<b>ワンペアで勝つ確率ではありません</b>。</li>
+      <li class="sub">勝率と同じ計算で数えています。ランダム相手が2人以上のときは、相手1人あたりの割合です。</li>
     </ul>
 
     <h3>計算のしくみ</h3>
@@ -215,8 +238,8 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
     <h3>保存と共有</h3>
     <ul>
-      <li>入力は端末に自動で保存されます。</li>
-      <li>URLの <code>#</code> 以降に局面が入ります。「リンクをコピー」で共有できます。</li>
+      <li>入力は端末に自動で保存されます(モードを切り替えて隠れているプレイヤーの分も含みます)。</li>
+      <li>URLの <code>#</code> 以降に局面が入ります。入るのは、いま表示しているモードの入力だけです。「リンクをコピー」で共有できます。</li>
     </ul>
 
     <details class="dev" id="dev">
@@ -231,6 +254,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
 </div>
 
 <script src="engine.js"></script>
+<script src="state.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

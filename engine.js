@@ -8,6 +8,11 @@
  *   exactGen()    完全列挙 (generator: 時間分割で実行できる)
  *   exactSync()   完全列挙 (最後まで一気に実行)
  *   monteCarlo()  検証用。ランアウト生成・試行管理・集計は exact とは別コードパス
+ *
+ * 最終役の分布 (cats)
+ *   各計算の戻り値に cats を持つ。cats[p][k] = 「全パターン(試行)のうち、プレイヤー p の最終役が
+ *   カテゴリ k だった割合(%)」。k は evaluate() のカテゴリ(0 high … 8 straight flush)。
+ *   「その役で勝つ確率」ではない。勝率の計算と同じ走査の副産物として数えるだけで、勝率は変わらない。
  */
 (function (root) {
   'use strict';
@@ -90,9 +95,20 @@
     return Math.round(r);
   }
 
+  // 回数の配列 (P人 × 9カテゴリ) → 割合(%)の配列
+  function catPct(counts, P, denom) {
+    const r = [];
+    for (let p = 0; p < P; p++) {
+      const row = [];
+      for (let k = 0; k < 9; k++) row.push((counts[p * 9 + k] / denom) * 100);
+      r.push(row);
+    }
+    return r;
+  }
+
   /* ---------- Exact (完全列挙) ----------
    * hands: [[c,c], ...]  board: 0〜5枚
-   * yield: 進捗(0〜1) / return: { equity:[%...], total }
+   * yield: 進捗(0〜1) / return: { equity:[%...], cats:[[9カテゴリの%]...], total }
    */
   function* exactGen(hands, board, opts) {
     const evalFn = (opts && opts.evalFn) || evaluate;
@@ -106,6 +122,7 @@
     const total = choose(n, m);
 
     const cnt = new Float64Array(P * 5); // [p*5 + w] = 「w人同点で勝った」回数
+    const cat = new Float64Array(P * 9); // [p*9 + k] = 最終役がカテゴリ k だった回数
     const sc = new Array(P);
     const tmp = new Array(7);
     const bd = board.slice();
@@ -121,6 +138,7 @@
         tmp[0] = hands[p][0]; tmp[1] = hands[p][1];
         const s = evalFn(tmp);
         sc[p] = s;
+        cat[p * 9 + (s >>> 20)]++;
         if (s > best) { best = s; w = 1; } else if (s === best) w++;
       }
       for (let p = 0; p < P; p++) if (sc[p] === best) cnt[p * 5 + w]++;
@@ -140,7 +158,7 @@
       for (let w = 1; w <= 4; w++) e += cnt[p * 5 + w] / w;
       equity.push((e / total) * 100);
     }
-    return { equity, total };
+    return { equity, cats: catPct(cat, P, total), total };
   }
 
   function exactSync(hands, board, opts) {
@@ -171,6 +189,7 @@
 
     const sole = new Array(P).fill(0);   // 単独勝利の回数
     const split = new Array(P).fill(0);  // 引き分け時の取り分の合計
+    const cat = new Float64Array(P * 9); // 最終役のカテゴリ別の回数
     const seven = new Array(7);
 
     for (let t = 0; t < trials; t++) {
@@ -187,6 +206,7 @@
         seven[0] = hands[p][0]; seven[1] = hands[p][1];
         const s = evalFn(seven);
         scores.push(s);
+        cat[p * 9 + (s >>> 20)]++;
         if (s > best) best = s;
       }
       let winners = 0;
@@ -197,7 +217,7 @@
       }
     }
     const equity = sole.map((w, p) => ((w + split[p]) / trials) * 100);
-    return { equity, trials };
+    return { equity, cats: catPct(cat, P, trials), trials };
   }
 
   /* ---------- ランダム相手 (Hero 1人 vs ランダムな相手1人) ----------
@@ -217,6 +237,7 @@
     const total = choose(n, 2) * choose(rn, m);
 
     let win = 0, tie = 0, done = 0;
+    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手の最終役のカテゴリ別の回数
     const rest = new Array(rn);
     const hs = new Array(7), os = new Array(7);
     hs[0] = hero[0]; hs[1] = hero[1];
@@ -234,6 +255,7 @@
           for (let j = 0; j < m; j++) bd[bl + j] = rest[idx[j]];
           for (let q = 0; q < 5; q++) { hs[2 + q] = bd[q]; os[2 + q] = bd[q]; }
           const h = evalFn(hs), o = evalFn(os);
+          hc[h >>> 20]++; oc[o >>> 20]++;
           if (h > o) win++; else if (h === o) tie++;
           done++;
           if ((done & 8191) === 0) yield done / total;
@@ -245,7 +267,8 @@
         }
       }
     }
-    return { equity: [((win + tie / 2) / total) * 100], total };
+    // cats = [Hero, 相手]
+    return { equity: [((win + tie / 2) / total) * 100], cats: [catPct(hc, 1, total)[0], catPct(oc, 1, total)[0]], total };
   }
 
   // Monte Carlo: Hero vs ランダムな相手 opps人(1〜4)。Exact とは別コードパス
@@ -273,6 +296,7 @@
     }
 
     let sole = 0, split = 0;
+    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手(全員ぶん合計)の最終役のカテゴリ別の回数
     for (let t = 0; t < trials; t++) {
       for (let j = 0; j < draw; j++) {
         const k = j + Math.floor((next() / 4294967296) * (pool.length - j));
@@ -285,16 +309,23 @@
         for (let o = 0; o < opps; o++) os[o][2 + bl + j] = v;
       }
       const h = evalFn(hs);
+      hc[h >>> 20]++;
       let beaten = false, ties = 0;
-      for (let o = 0; o < opps; o++) {
+      for (let o = 0; o < opps; o++) { // 最終役を数えるため、Heroが負けた後も全員を評価する (勝率の結果は変わらない)
         const s = evalFn(os[o]);
-        if (s > h) { beaten = true; break; }
-        if (s === h) ties++;
+        oc[s >>> 20]++;
+        if (s > h) beaten = true;
+        else if (s === h) ties++;
       }
       if (!beaten) { if (ties === 0) sole++; else split += 1 / (ties + 1); }
       if (((t + 1) & 4095) === 0) yield (t + 1) / trials;
     }
-    return { equity: [((sole + split) / trials) * 100], trials };
+    // cats = [Hero, 相手(1人あたり)]
+    return {
+      equity: [((sole + split) / trials) * 100],
+      cats: [catPct(hc, 1, trials)[0], catPct(oc, 1, trials * opps)[0]],
+      trials,
+    };
   }
 
   function monteCarloVsRandom(hero, board, trials, opts) {

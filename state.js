@@ -1,0 +1,138 @@
+/* state.js — 入力状態の純関数 (UI非依存・外部依存なし)
+ *
+ * app.js から切り出した「DOMに触らない部分」。verify.js で検証できるようにするため。
+ *
+ * 状態のかたち (snapshot)
+ *   mode    : 'known' | 'random'
+ *   n       : 既知ハンドの人数 (2〜4)。ランダム相手モードの間も保持する
+ *   opp     : ランダム相手の人数 (1〜4)
+ *   players : [[c,c] × 4]   -1 = 未入力。ランダム相手モードでは players[0] = Hero
+ *             (= 既知ハンドの P1 と共有)。players[1〜n-1] は画面に出ないが保持する
+ *   board   : [c × 5]       [0..2]=Flop, [3]=Turn, [4]=River
+ *
+ * 「人数を減らす」と「モードを切り替える」は別処理:
+ *   人数を減らす → いなくなったプレイヤーのカードを破棄する (app.js の setCount)
+ *   モード切替   → 破棄しない。ランダム相手 → 既知ハンドに戻すときだけ dedupe() で重複を除く
+ */
+(function (root) {
+  'use strict';
+
+  const RANKS = '23456789TJQKA'; // engine.js と同じ並び (rank = c >> 2)
+
+  const emptyHands = () => [[-1, -1], [-1, -1], [-1, -1], [-1, -1]];
+  const emptyBoard = () => [-1, -1, -1, -1, -1];
+
+  /* ---------- 重複カードの整理 ----------
+   * 先に出てくるカードを残し、後ろの重複を空欄 (-1) にする。
+   * 優先順位: Board → P1(Hero) → P2 → P3 → P4
+   *   = 画面に出ていたもの (Board・Hero) を守り、隠れていた P2〜P4 だけを整理する。
+   * 入力は変更せず、新しい配列を返す。
+   */
+  function dedupe(board, players) {
+    const seen = new Set();
+    const keep = (c) => {
+      if (c < 0 || seen.has(c)) return -1;
+      seen.add(c);
+      return c;
+    };
+    const b = board.map(keep);
+    const p = players.map((h) => h.map(keep));
+    return { board: b, players: p };
+  }
+
+  /* ---------- URL ----------
+   * 既知ハンド:   #P1-P2[-P3[-P4]]/Flop/Turn/River     例: #AdTs-2c7h/Kh7d3s/Qc/2h
+   * ランダム相手: #Hero-??[-??…]/Flop/Turn/River        例: #AdTs-??-??/Kh7d3s   (?? = ランダムな相手1人)
+   * カードは「ランク(A K Q J T 9…2)+スート(s h d c)」の2文字、空欄は xx。末尾の空欄は省略。
+   * URLには「いま表示しているモードの入力」だけを入れる (隠れているP2〜P4は入れない)。
+   */
+  const tok = (c) => (c < 0 ? 'xx' : RANKS[c >> 2] + 'shdc'[c & 3]);
+  function trimTok(arr) {
+    const t = arr.map(tok);
+    while (t.length && t[t.length - 1] === 'xx') t.pop();
+    return t.join('');
+  }
+
+  function encode(s) {
+    let hs;
+    if (s.mode === 'random') {
+      hs = [trimTok(s.players[0]) || 'xx'].concat(new Array(s.opp).fill('??')).join('-');
+    } else {
+      const hands = [];
+      for (let i = 0; i < s.n; i++) hands.push(trimTok(s.players[i]));
+      hs = hands.join('-');
+    }
+    const segs = [trimTok(s.board.slice(0, 3)), trimTok([s.board[3]]), trimTok([s.board[4]])];
+    while (segs.length && segs[segs.length - 1] === '') segs.pop();
+    if (!segs.length && s.mode === 'known' && s.n === 2 && hs === '-') return ''; // 何も入力していない初期状態
+    return '#' + hs + (segs.length ? '/' + segs.join('/') : '');
+  }
+
+  /* 不正なら null。ランダム相手のURLは n = 2 (既知ハンドの人数は URL からは分からない) */
+  function decode(hash) {
+    const body = String(hash).replace(/^#/, '');
+    if (!body) return null;
+    const parts = body.split('/');
+    if (parts.length > 4) return null;
+    const hs = parts[0].split('-');
+    let mode, n, opp = 1;
+    if (hs.length === 1 || hs.slice(1).every((x) => x === '??')) { // ランダム相手 (Hero のみのURLも受け付ける)
+      mode = 'random';
+      n = 2;
+      opp = Math.max(1, hs.length - 1);
+      if (opp > 4) return null;
+    } else {
+      mode = 'known';
+      n = hs.length;
+      if (n < 2 || n > 4 || hs.includes('??')) return null;
+    }
+    const toks = (str) => {
+      if (str.length % 2) return null;
+      const r = [];
+      for (let i = 0; i < str.length; i += 2) {
+        const t = str.slice(i, i + 2).toLowerCase();
+        if (t === 'xx') { r.push(-1); continue; }
+        const rk = '23456789tjqka'.indexOf(t[0]), su = 'shdc'.indexOf(t[1]);
+        if (rk < 0 || su < 0) return null;
+        r.push(rk * 4 + su);
+      }
+      return r;
+    };
+    const pad = (a, len) => { while (a.length < len) a.push(-1); return a; };
+    const shown = mode === 'random' ? 1 : n; // URL に入っているプレイヤー数
+    const players = [];
+    for (let i = 0; i < 4; i++) {
+      const t = i < shown ? toks(hs[i]) : [];
+      if (!t || t.length > 2) return null;
+      players.push(pad(t, 2));
+    }
+    const flop = toks(parts[1] || ''), turn = toks(parts[2] || ''), river = toks(parts[3] || '');
+    if (!flop || !turn || !river || flop.length > 3 || turn.length > 1 || river.length > 1) return null;
+    return { mode, n, opp, players, board: [...pad(flop, 3), ...pad(turn, 1), ...pad(river, 1)] };
+  }
+
+  /* ---------- 端末の保存内容 ----------
+   * 壊れていたら null。旧形式 (mode が無く、n === 1 がランダム相手) も読める。
+   * 重複カードは dedupe() で整理し、n 人より後ろのプレイヤーは空にする。
+   */
+  function normalizeSaved(d) {
+    if (!d || typeof d !== 'object') return null;
+    let mode, n;
+    if (d.mode === 'known' || d.mode === 'random') { mode = d.mode; n = d.n; }
+    else if (d.n === 1) { mode = 'random'; n = 2; }
+    else { mode = 'known'; n = d.n; }
+    if (![2, 3, 4].includes(n)) return null;
+    const ok = (c) => Number.isInteger(c) && c >= -1 && c < 52;
+    if (!Array.isArray(d.players) || d.players.length !== 4 ||
+        !d.players.every((p) => Array.isArray(p) && p.length === 2 && p.every(ok))) return null;
+    if (!Array.isArray(d.board) || d.board.length !== 5 || !d.board.every(ok)) return null;
+    const opp = Number.isInteger(d.opp) && d.opp >= 1 && d.opp <= 4 ? d.opp : 1;
+    const players = d.players.map((p, i) => (i < n ? p : [-1, -1]));
+    const c = dedupe(d.board, players);
+    return { mode, n, opp, players: c.players, board: c.board };
+  }
+
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.DealState = api;
+})(typeof window !== 'undefined' ? window : globalThis);
