@@ -73,9 +73,10 @@ body.picking .playerGrid{padding-top:22px}
 .grp .slots{gap:6px}
 .cap{font-size:10px;color:var(--mute);text-align:center;margin-top:3px;letter-spacing:.04em}
 .cardWrap{position:relative;display:inline-flex;flex:none}
-.cardDelete{position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;border:1px solid var(--felt);
-  border-radius:50%;background:var(--ivory);color:var(--ink);font-size:15px;font-weight:700;line-height:17px;
-  display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.cardDelete{position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;border:0;
+  border-radius:50%;background:#f5c9d2;color:#a52b43;font-size:15px;font-weight:700;line-height:17px;
+  display:none;align-items:center;justify-content:center;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.cardDelete.visible{display:flex}
 .cardDelete:active{transform:scale(.94)}
 .slot{width:44px;height:60px;border-radius:7px;border:2px dashed var(--line);background:transparent;
   color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
