@@ -183,7 +183,10 @@
     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
     if (c < 0) return `<button class="slot empty${act}" ${attr} aria-label="未入力"></button>`;
     const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
-    return `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>`;
+    return `<span class="cardWrap">` +
+      `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>` +
+      `<button class="cardDelete" data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}" aria-label="${slotLabel(s)}を外す">×</button>` +
+      `</span>`;
   }
 
   function slotLabel(s) {
@@ -389,6 +392,20 @@
 
   /* ---------- イベント ---------- */
   function onSlotClick(e) {
+    const del = e.target.closest('.cardDelete');
+    if (del) {
+      e.preventDefault();
+      e.stopPropagation();
+      const s = del.dataset.t === 'p'
+        ? { t: 'p', i: +del.dataset.i, j: +del.dataset.j }
+        : { t: 'b', j: +del.dataset.j };
+      set(s, -1);
+      state.active = s;
+      state.open = true;
+      render();
+      recompute();
+      return;
+    }
     const b = e.target.closest('.slot');
     if (!b) return;
     state.active = b.dataset.t === 'p'
