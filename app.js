@@ -228,7 +228,7 @@
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></div><div class="pr" data-i="${i}"></div></div>`;
+        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span><div class="pr" data-i="${i}"></div></div>`;
       }
       ph += '</div>';
     } else {
