@@ -446,6 +446,23 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
+    // ストリート単位のボード引き直し: 対象ストリートだけを変更し、後続ストリートを保持する
+    {
+      let seed = 24681357;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs');
+      const b = cards('2c 3c 4c 5c 6c');
+      const rf = S.shuffleBoardStreet(p, b, 0, rnd);
+      const rt = S.shuffleBoardStreet(p, b, 1, rnd);
+      const rr = S.shuffleBoardStreet(p, b, 2, rnd);
+      const basePlayers = json(rf.players) === json(p) && json(rt.players) === json(p) && json(rr.players) === json(p);
+      const flopOnly = rf.board.slice(3).every((c, i) => c === b[i + 3]) && new Set(rf.board.slice(0, 3)).size === 3;
+      const turnOnly = rt.board[0] === b[0] && rt.board[1] === b[1] && rt.board[2] === b[2] && rt.board[4] === b[4] && rt.board[3] !== b[3];
+      const riverOnly = rt.board[0] === b[0] && rr.board[0] === b[0] && rr.board[1] === b[1] && rr.board[2] === b[2] && rr.board[3] === b[3] && rr.board[4] !== b[4];
+      const noOverlap = [rf.board, rt.board, rr.board].every((x) => x.every((card) => !p.flat().includes(card)));
+      const inputKeep = json(b) === json(cards('2c 3c 4c 5c 6c'));
+      check('ストリート引き直し: Flop/Turn/Riverの対象部分だけ変更し、後ろを保持する', basePlayers && flopOnly && turnOnly && riverOnly && noOverlap && inputKeep, '');
+    }
     // ボード消去: プレイヤーを変えず、Boardだけを空にする
     {
       const p = blank(); p[0] = H('As', 'Kd'); p[2] = H('Qh', 'Qs');
