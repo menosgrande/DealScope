@@ -4,7 +4,7 @@
  *   ① 役の判定: 5枚役の全分布を、公表されている件数と照合 / 別方式の評価器と勝敗を照合
  *   ② 勝率の計算: 既知ケースで 正解値 ・ Exact ・ Monte Carlo を比較
  *   ③ ランダム相手
- *   ④ 最終役の見込み: 役ごとの割合を、別方式の評価器・Monte Carlo と照合
+ *   ④ 最終役: 成立率と勝率の内訳を、別方式の評価器・Monte Carlo と照合
  *   ⑤ 入力状態の整理: 重複カードの整理・URLの往復・保存データの読み込み (state.js)
  * 「計算速度を測る」
  *   この端末での Exact の所要時間
@@ -276,7 +276,7 @@
   }
 
 
-  /* ---------- ④ 最終役の見込み ---------- */
+  /* ---------- ④ 最終役 ---------- */
   const CATNAMES = ['ハイカード', 'ワンペア', 'ツーペア', 'スリーカード', 'ストレート', 'フラッシュ', 'フルハウス', 'フォーカード', 'ストレートフラッシュ'];
   const catOf = (v) => Math.floor(v / Math.pow(13, 5)); // naiveEval の値 → 役のカテゴリ
   const catLine = (c) => c.map((v, k) => (v > 0 ? `${CATNAMES[k]} ${v.toFixed(2)}%` : null)).filter(Boolean).join(' / ');
@@ -549,7 +549,7 @@
     results.push(await testCases());
     head('③ ランダム相手(1人モード)');
     results.push(await testVsRandom());
-    head('④ 最終役の見込み');
+    head('④ 最終役');
     results.push(await testFinalHands());
     head('⑤ 入力状態の整理');
     results.push(await testStateHelpers());
