@@ -38,6 +38,22 @@
     return a;
   }
   const get = (s) => (s.t === 'p' ? state.players[s.i][s.j] : state.board[s.j]);
+  function slotEnabled(s) {
+    if (s.t !== 'b') return true;
+    if (s.j < 3) return true;
+    const flop = state.board.slice(0, 3).every((c) => c >= 0);
+    if (s.j === 3) return flop;
+    return flop && state.board[3] >= 0;
+  }
+  const nextEmptySlot = (start, dir = 1) => {
+    const list = slots();
+    const k = list.findIndex((s) => same(s, start));
+    for (let d = 1; d <= list.length; d++) {
+      const s = list[(k + dir * d + list.length * 2) % list.length];
+      if (slotEnabled(s) && get(s) < 0) return s;
+    }
+    return null;
+  };
   function set(s, v) { if (s.t === 'p') state.players[s.i][s.j] = v; else state.board[s.j] = v; }
   const same = (a, b) => a.t === b.t && a.i === b.i && a.j === b.j;
 
@@ -50,19 +66,16 @@
     return u;
   }
   function advance() {
-    const list = slots();
-    const k = list.findIndex((s) => same(s, state.active));
-    for (let d = 1; d <= list.length; d++) {
-      const s = list[(k + d + list.length) % list.length];
-      if (get(s) < 0) { state.active = s; return true; }
-    }
+    const s = nextEmptySlot(state.active, 1);
+    if (s) { state.active = s; return true; }
     return false;
   }
   const activeValid = () => slots().some((s) => same(s, state.active));
   function ensureActive() {
-    if (activeValid()) return;
+    if (activeValid() && slotEnabled(state.active)) return;
     const list = slots();
-    state.active = list.find((s) => get(s) < 0) || list[0];
+    state.active = list.find((s) => slotEnabled(s) && get(s) < 0) ||
+      list.find((s) => slotEnabled(s)) || list[0];
   }
   /* 人数・モード変更で入力中の枠が無くなったら、ピッカーを閉じて入力位置をプレイヤー側に戻す。
      (ボードへ勝手に移って、次のカードがボードに入るのを防ぐ) */
@@ -70,7 +83,8 @@
     if (activeValid()) return;
     state.open = false;
     const list = slots();
-    state.active = list.find((s) => s.t === 'p' && get(s) < 0) || list[0];
+    state.active = list.find((s) => s.t === 'p' && slotEnabled(s) && get(s) < 0) ||
+      list.find((s) => slotEnabled(s) && get(s) < 0) || list[0];
   }
   function pick(c) {
     set(state.active, c);
@@ -182,7 +196,11 @@
     document.body.classList.toggle('picking', state.open);
     $('picker').hidden = !state.open;
 
-    $('mode').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.m === state.mode));
+    $('mode').querySelectorAll('button').forEach((b) => {
+      const on = b.dataset.m === state.mode;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
     $('nlabel').textContent = isRandom() ? '相手 ' : '';
     $('nval').textContent = isRandom() ? state.opp : state.n;
     $('dec').disabled = isRandom() ? state.opp <= 1 : state.n <= 2;
@@ -365,7 +383,10 @@
   const moveActive = (d) => {
     const list = slots();
     const k = list.findIndex((s) => same(s, state.active));
-    state.active = list[(k + d + list.length) % list.length];
+    for (let step = 1; step <= list.length; step++) {
+      const s = list[(k + d * step + list.length * 2) % list.length];
+      if (slotEnabled(s)) { state.active = s; break; }
+    }
     render();
   };
   $('prev').addEventListener('click', () => moveActive(-1));
@@ -375,7 +396,10 @@
   $('open').addEventListener('click', () => {
     state.open = true;
     const list = slots();
-    if (get(state.active) >= 0) { const e = list.find((s) => get(s) < 0); if (e) state.active = e; }
+    if (!slotEnabled(state.active) || get(state.active) >= 0) {
+      const e = list.find((s) => slotEnabled(s) && get(s) < 0);
+      if (e) state.active = e;
+    }
     render();
   });
   // ランダム補充: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
