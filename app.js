@@ -218,7 +218,12 @@
     $('dec').disabled = isRandom() ? state.opp <= 1 : state.n <= 2;
     $('inc').disabled = isRandom() ? state.opp >= 4 : state.n >= 4;
 
-    let ph = '<div class="row handRow"><div class="name">Hand</div><div class="handMain"><div class="handTools" role="group" aria-label="局面操作"><button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">↻</span><span class="boardShuffleText">配る</span></button><button id="reset" class="boardClear" title="カードを全部消す" aria-label="カードを全部消す"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div>';
+    let ph = '';
+    ph += '<div class="row handRow"><div class="name">Hand</div><div class="handMain">';
+    ph += '<div class="handTools" role="group" aria-label="局面操作">';
+    ph += '<button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">配る</span></button>';
+    ph += '<button id="reset" class="boardClear" title="カードを全部消す" aria-label="カードを全部消す"><span aria-hidden="true">&times;</span><span class="boardClearText">消去</span></button>';
+    ph += '</div>';
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
@@ -238,10 +243,6 @@
     }
     ph += '</div></div>';
     $('players').innerHTML = ph;
-
-    // Hand内の操作ボタンはrender()で生成されるので、生成直後に直接イベントを付ける。
-    $('deal').addEventListener('click', (e) => { e.preventDefault(); dealCards(); });
-    $('reset').addEventListener('click', (e) => { e.preventDefault(); resetCards(); });
 
     const grp = (label, js) =>
       `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
@@ -528,7 +529,7 @@
     }
     render();
   });
-  // 配る: 空欄だけをランダムなカードで埋める(入力済みは変えない)。render()でボタンが作り直されるため、Handコンテナ側でイベント委譲する。
+  // Hand内のボタンはrender()で作り直されるため、playersコンテナ側でイベント委譲する。
   function dealCards() {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
@@ -555,6 +556,13 @@
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   }
+
+  $('players').addEventListener('click', (e) => {
+    const deal = e.target.closest('#deal');
+    if (deal) { e.preventDefault(); dealCards(); return; }
+    const reset = e.target.closest('#reset');
+    if (reset) { e.preventDefault(); resetCards(); return; }
+  });
   $('toastUndo').addEventListener('click', () => {
     if (!undo) return;
     state.players = undo.players;
