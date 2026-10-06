@@ -183,7 +183,7 @@
     const act = same(s, state.active) && state.open ? ' active' : '';
     const delVisible = state.deleteTarget && same(s, state.deleteTarget);
     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
-    if (c < 0) return `<button class="slot empty${act}" ${attr} aria-label="未入力"></button>`;
+    if (c < 0) return `<span class="cardWrap"><button class="slot empty${act}" ${attr} aria-label="未入力"></button></span>`;
     const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
     return `<span class="cardWrap">` +
       `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>` +
