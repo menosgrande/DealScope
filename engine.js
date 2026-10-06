@@ -9,10 +9,11 @@
  *   exactSync()   完全列挙 (最後まで一気に実行)
  *   monteCarlo()  検証用。ランアウト生成・試行管理・集計は exact とは別コードパス
  *
- * 最終役の分布 (cats)
- *   各計算の戻り値に cats を持つ。cats[p][k] = 「全パターン(試行)のうち、プレイヤー p の最終役が
- *   カテゴリ k だった割合(%)」。k は evaluate() のカテゴリ(0 high … 8 straight flush)。
- *   「その役で勝つ確率」ではない。勝率の計算と同じ走査の副産物として数えるだけで、勝率は変わらない。
+ * 最終役の内訳
+ *   cats[p][k] = 「全パターン(試行)のうち、プレイヤー p の最終役がカテゴリ k だった割合(%)」。
+ *   catEquity[p][k] = 「全パターン(試行)のうち、その最終役になったランアウトで p が獲得した
+ *   equity の割合(%)」。引き分けは取り分を加算する。
+ *   cats の各プレイヤー合計は100%、catEquity の各プレイヤー合計は総equityになる。
  */
 (function (root) {
   'use strict';
@@ -95,7 +96,7 @@
     return Math.round(r);
   }
 
-  // 回数の配列 (P人 × 9カテゴリ) → 割合(%)の配列
+  // 回数/点数の配列 (P人 × 9カテゴリ) → 割合(%)の配列
   function catPct(counts, P, denom) {
     const r = [];
     for (let p = 0; p < P; p++) {
@@ -108,7 +109,7 @@
 
   /* ---------- Exact (完全列挙) ----------
    * hands: [[c,c], ...]  board: 0〜5枚
-   * yield: 進捗(0〜1) / return: { equity:[%...], cats:[[9カテゴリの%]...], total }
+   * yield: 進捗(0〜1) / return: { equity:[%...], cats:[[9カテゴリの%]...], catEquity:[[9カテゴリの%]...], total }
    */
   function* exactGen(hands, board, opts) {
     const evalFn = (opts && opts.evalFn) || evaluate;
@@ -122,7 +123,8 @@
     const total = choose(n, m);
 
     const cnt = new Float64Array(P * 5); // [p*5 + w] = 「w人同点で勝った」回数
-    const cat = new Float64Array(P * 9); // [p*9 + k] = 最終役がカテゴリ k だった回数
+    const cat = new Float64Array(P * 9); // 最終役カテゴリの出現回数
+    const catEq = new Float64Array(P * 9); // 最終役カテゴリに紐づけた equity の獲得点
     const sc = new Array(P);
     const tmp = new Array(7);
     const bd = board.slice();
@@ -141,7 +143,10 @@
         cat[p * 9 + (s >>> 20)]++;
         if (s > best) { best = s; w = 1; } else if (s === best) w++;
       }
-      for (let p = 0; p < P; p++) if (sc[p] === best) cnt[p * 5 + w]++;
+      for (let p = 0; p < P; p++) if (sc[p] === best) {
+        cnt[p * 5 + w]++;
+        catEq[p * 9 + (sc[p] >>> 20)] += 1 / w;
+      }
       done++;
       if ((done & 8191) === 0) yield done / total;
 
@@ -158,7 +163,7 @@
       for (let w = 1; w <= 4; w++) e += cnt[p * 5 + w] / w;
       equity.push((e / total) * 100);
     }
-    return { equity, cats: catPct(cat, P, total), total };
+    return { equity, cats: catPct(cat, P, total), catEquity: catPct(catEq, P, total), total };
   }
 
   function exactSync(hands, board, opts) {
@@ -190,6 +195,7 @@
     const sole = new Array(P).fill(0);   // 単独勝利の回数
     const split = new Array(P).fill(0);  // 引き分け時の取り分の合計
     const cat = new Float64Array(P * 9); // 最終役のカテゴリ別の回数
+    const catEq = new Float64Array(P * 9); // 最終役カテゴリに紐づけた equity の獲得点
     const seven = new Array(7);
 
     for (let t = 0; t < trials; t++) {
@@ -213,11 +219,13 @@
       for (let p = 0; p < P; p++) if (scores[p] === best) winners++;
       for (let p = 0; p < P; p++) {
         if (scores[p] !== best) continue;
-        if (winners === 1) sole[p]++; else split[p] += 1 / winners;
+        const share = 1 / winners;
+        if (winners === 1) sole[p]++; else split[p] += share;
+        catEq[p * 9 + (scores[p] >>> 20)] += share;
       }
     }
     const equity = sole.map((w, p) => ((w + split[p]) / trials) * 100);
-    return { equity, cats: catPct(cat, P, trials), trials };
+    return { equity, cats: catPct(cat, P, trials), catEquity: catPct(catEq, P, trials), trials };
   }
 
   /* ---------- ランダム相手 (Hero 1人 vs ランダムな相手1人) ----------
@@ -237,7 +245,8 @@
     const total = choose(n, 2) * choose(rn, m);
 
     let win = 0, tie = 0, done = 0;
-    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手の最終役のカテゴリ別の回数
+    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手の最終役カテゴリ別の回数
+    const hcEq = new Float64Array(9), ocEq = new Float64Array(9); // 最終役カテゴリ別のequity獲得点
     const rest = new Array(rn);
     const hs = new Array(7), os = new Array(7);
     hs[0] = hero[0]; hs[1] = hero[1];
@@ -256,7 +265,9 @@
           for (let q = 0; q < 5; q++) { hs[2 + q] = bd[q]; os[2 + q] = bd[q]; }
           const h = evalFn(hs), o = evalFn(os);
           hc[h >>> 20]++; oc[o >>> 20]++;
-          if (h > o) win++; else if (h === o) tie++;
+          if (h > o) { win++; hcEq[h >>> 20] += 1; }
+          else if (h === o) { tie++; hcEq[h >>> 20] += 0.5; ocEq[o >>> 20] += 0.5; }
+          else { ocEq[o >>> 20] += 1; }
           done++;
           if ((done & 8191) === 0) yield done / total;
           let i = m - 1;
@@ -268,7 +279,12 @@
       }
     }
     // cats = [Hero, 相手]
-    return { equity: [((win + tie / 2) / total) * 100], cats: [catPct(hc, 1, total)[0], catPct(oc, 1, total)[0]], total };
+    return {
+      equity: [((win + tie / 2) / total) * 100],
+      cats: [catPct(hc, 1, total)[0], catPct(oc, 1, total)[0]],
+      catEquity: [catPct(hcEq, 1, total)[0], catPct(ocEq, 1, total)[0]],
+      total
+    };
   }
 
   // Monte Carlo: Hero vs ランダムな相手 opps人(1〜4)。Exact とは別コードパス
@@ -296,7 +312,8 @@
     }
 
     let sole = 0, split = 0;
-    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手(全員ぶん合計)の最終役のカテゴリ別の回数
+    const hc = new Float64Array(9), oc = new Float64Array(9); // Hero / 相手(全員ぶん合計)の最終役カテゴリ別の回数
+    const hcEq = new Float64Array(9), ocEq = new Float64Array(9); // Hero / 相手全員の最終役カテゴリ別のequity獲得点
     for (let t = 0; t < trials; t++) {
       for (let j = 0; j < draw; j++) {
         const k = j + Math.floor((next() / 4294967296) * (pool.length - j));
@@ -310,20 +327,30 @@
       }
       const h = evalFn(hs);
       hc[h >>> 20]++;
-      let beaten = false, ties = 0;
-      for (let o = 0; o < opps; o++) { // 最終役を数えるため、Heroが負けた後も全員を評価する (勝率の結果は変わらない)
+      const scores = new Array(opps);
+      let best = h, winners = 1;
+      for (let o = 0; o < opps; o++) { // 全員を評価し、役分布とequity寄与を集計する
         const s = evalFn(os[o]);
+        scores[o] = s;
         oc[s >>> 20]++;
-        if (s > h) beaten = true;
-        else if (s === h) ties++;
+        if (s > best) { best = s; winners = 1; }
+        else if (s === best) winners++;
       }
-      if (!beaten) { if (ties === 0) sole++; else split += 1 / (ties + 1); }
+      const share = 1 / winners;
+      if (best === h) {
+        if (winners === 1) sole++; else split += share;
+        hcEq[h >>> 20] += share;
+      }
+      for (let o = 0; o < opps; o++) {
+        if (scores[o] === best) ocEq[scores[o] >>> 20] += share;
+      }
       if (((t + 1) & 4095) === 0) yield (t + 1) / trials;
     }
     // cats = [Hero, 相手(1人あたり)]
     return {
       equity: [((sole + split) / trials) * 100],
       cats: [catPct(hc, 1, trials)[0], catPct(oc, 1, trials * opps)[0]],
+      catEquity: [catPct(hcEq, 1, trials)[0], catPct(ocEq, 1, trials * opps)[0]],
       trials,
     };
   }
