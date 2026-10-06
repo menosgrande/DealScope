@@ -378,7 +378,7 @@
     if (get(state.active) >= 0) { const e = list.find((s) => get(s) < 0); if (e) state.active = e; }
     render();
   });
-  // ランダム配布: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
+  // ランダム補充: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
   $('deal').addEventListener('click', () => {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
@@ -387,7 +387,7 @@
     render();
     recompute();
   });
-  // リセット: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
+  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
   $('reset').addEventListener('click', () => {
     state.players = S.emptyHands();
     state.board = S.emptyBoard();

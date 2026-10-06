@@ -428,7 +428,7 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
-    // ランダム配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
+    // ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
     {
       let seed = 777;
       const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -447,7 +447,7 @@
       const streets = pre.board.every((c) => c === -1) && pre.players.slice(0, 3).flat().every((c) => c >= 0) && pre.players[3][0] === -1 &&
         turn.board.slice(0, 4).every((c) => c >= 0) && turn.board[4] === -1 &&
         river.board.every((c) => c >= 0);
-      check('ランダム配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める(重複なし)', keep && full && range && uniq && hidden && streets, '');
+      check('ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める(重複なし)', keep && full && range && uniq && hidden && streets, '');
     }
     return allOk;
   }
