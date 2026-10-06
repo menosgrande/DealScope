@@ -238,7 +238,7 @@
 
     const grp = (label, js) =>
       `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row"><div class="name">Board</div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -429,6 +429,18 @@
   }
   $('players').addEventListener('click', onSlotClick);
   $('board').addEventListener('click', onSlotClick);
+  // ボードを引き直す: プレイヤーのカードを残し、Boardの5枚だけをランダムに再抽選する。
+  $('board').addEventListener('click', (e) => {
+    const b = e.target.closest('#boardShuffle');
+    if (!b) return;
+    e.preventDefault();
+    const r = S.shuffleBoard(state.players, state.board, Math.random);
+    state.players = r.players;
+    state.board = r.board;
+    state.deleteTarget = null;
+    render();
+    recompute();
+  });
 
   $('mode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
   const stepBy = (d) => (isRandom() ? setOpp(state.opp + d) : setCount(state.n + d));
@@ -462,7 +474,7 @@
     }
     render();
   });
-  // ランダム補充: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
+  // おまかせ配布: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
   $('deal').addEventListener('click', () => {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
