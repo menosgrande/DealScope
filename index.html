@@ -28,9 +28,11 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
   border:1px solid var(--line);background:none;color:var(--mute);font-size:13px}
 .pill.icon{width:34px;padding:0;font-weight:700}
 
-.ctl{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.seg{display:flex;border:1px solid var(--line);border-radius:19px;overflow:hidden}
-.seg button{height:36px;padding:0 12px;font-size:13px;background:none;border:0;color:var(--mute)}
+.ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;margin-bottom:12px}
+.setting{min-width:0}
+.settingLabel{font-size:10px;color:var(--mute);margin:0 0 5px 2px;letter-spacing:.04em}
+.seg{display:flex;width:100%;border:1px solid var(--line);border-radius:19px;overflow:hidden}
+.seg button{height:36px;flex:1;min-width:0;padding:0 10px;font-size:13px;background:none;border:0;color:var(--mute)}
 .seg button.on{background:var(--brass);color:var(--ink);font-weight:700}
 .stepper{display:inline-flex;align-items:center;height:36px;border:1px solid var(--line);border-radius:18px}
 .stepper button{width:34px;height:100%;border:0;background:none;color:var(--ivory);font-size:18px}
@@ -58,6 +60,17 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .slot.active::before{content:'▼';position:absolute;left:50%;top:-18px;transform:translateX(-50%);
   color:var(--cursor);font-size:14px;line-height:1;animation:bob .9s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
+@media (max-width:380px){
+  .ctl{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .seg button{padding:0 7px;font-size:12px}
+  .stepper .n{min-width:48px}
+  .acts{gap:6px}
+  .act{font-size:12px}
+  #open{width:136px}
+  .phead{gap:4px}
+  .phead button{padding:0 8px}
+  .phead .nav{width:32px}
+}
 @media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
 .slot.off.active{opacity:1}
 .slot small{display:block;font-size:17px}
@@ -82,22 +95,26 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer}
 .ctbl td.z{color:var(--line)}
 .ctbl td.top{color:var(--brass);font-weight:700}
 .note{font-size:12px;color:var(--mute);margin:6px 0 0}
-.acts{display:flex;gap:8px;margin-bottom:2px}
-.act{flex:1;height:36px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--ivory);font-size:13px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:2px}
+.act{height:40px;border-radius:9px;border:1px solid var(--line);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.act.primary{background:var(--brass);color:var(--ink);border-color:var(--brass)}
+.act.secondary{background:rgba(0,0,0,.08);color:var(--ivory)}
+.actIcon{font-size:17px;line-height:1}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
 
 #open{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));
-  width:64px;height:40px;border-radius:20px;border:0;background:var(--brass);color:var(--ink);font-size:18px}
+  width:142px;height:40px;border-radius:20px;border:0;background:var(--brass);color:var(--ink);font-size:13px;font-weight:700}
+#open span{font-size:12px;margin-left:1px}
 body.picking #open{display:none}
 #picker{position:fixed;left:0;right:0;bottom:0;background:#0a211a;border-top:1px solid var(--line);
   padding:8px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
 #picker[hidden]{display:none}
-.phead{display:flex;align-items:center;gap:8px;max-width:520px;margin:0 auto 6px}
-#pickLabel{flex:1;font-size:14px;color:var(--ivory)}
-.phead .nav{width:36px;padding:0;font-size:20px;line-height:1;color:var(--ivory)}
-.phead button{height:32px;border-radius:16px;border:1px solid var(--line);background:none;color:var(--mute);padding:0 12px;font-size:13px}
-.phead #close{width:56px;background:var(--brass);color:var(--ink);border:0;font-size:16px}
+.phead{display:flex;align-items:center;gap:6px;max-width:520px;margin:0 auto 6px}
+#pickLabel{flex:1;min-width:0;font-size:14px;color:var(--ivory);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .nav{width:34px;padding:0;font-size:20px;line-height:1;color:var(--ivory)}
+.phead button{height:32px;border-radius:16px;border:1px solid var(--line);background:none;color:var(--mute);padding:0 10px;font-size:13px}
+.phead #close{width:auto;background:var(--brass);color:var(--ink);border:0;font-size:13px;font-weight:700}
 #grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;max-width:520px;margin:0 auto}
 #grid button{height:36px;padding:0;border-radius:5px;border:0;background:var(--ivory);color:var(--ink);
   font-size:13px;font-weight:700;line-height:1}
@@ -140,24 +157,31 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div class="top">
     <h1>DealScope</h1>
     <div class="btns">
-      <button id="copy" class="pill">リンクをコピー</button>
-      <button id="helpBtn" class="pill icon" aria-label="ヘルプ">?</button>
+      <button id="copy" class="pill share">リンクをコピー</button>
+      <button id="helpBtn" class="pill icon" aria-label="使い方">?</button>
     </div>
   </div>
 
   <div class="ctl">
-    <div id="mode" class="seg" role="group" aria-label="モード">
-      <button data-m="known">既知ハンド</button><button data-m="random">ランダム相手</button>
+    <div class="setting">
+      <div class="settingLabel">モード</div>
+      <div id="mode" class="seg" role="group" aria-label="モード">
+        <button data-m="known">既知ハンド</button><button data-m="random">ランダム相手</button>
+      </div>
     </div>
-    <div class="stepper" role="group" aria-label="人数">
-      <button id="dec" aria-label="減らす">−</button>
-      <span class="n"><span id="nlabel"></span><b id="nval">2</b>人</span>
-      <button id="inc" aria-label="増やす">＋</button>
+    <div class="setting countSetting">
+      <div class="settingLabel">人数</div>
+      <div class="stepper" role="group" aria-label="人数">
+        <button id="dec" aria-label="人数を1人減らす">−</button>
+        <span class="n"><span id="nlabel"></span><b id="nval">2</b>人</span>
+        <button id="inc" aria-label="人数を1人増やす">＋</button>
+      </div>
     </div>
   </div>
 
-  <div class="acts">
-    <button id="deal" class="act">ランダム配布</button><button id="reset" class="act">リセット</button>
+  <div class="acts" role="group" aria-label="局面操作">
+    <button id="deal" class="act primary"><span class="actIcon">↻</span><span>ランダム配布</span></button>
+    <button id="reset" class="act secondary"><span class="actIcon">×</span><span>全消去</span></button>
   </div>
 
   <div id="players"></div>
@@ -167,14 +191,14 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div id="cats"></div>
 </main>
 
-<button id="open" aria-label="カードピッカーを開く">▼</button>
+<button id="open" aria-label="カードを選ぶ">カードを選ぶ <span aria-hidden="true">▲</span></button>
 
 <div id="picker" hidden>
   <div class="phead">
     <button id="prev" class="nav" aria-label="前の枠">‹</button><button id="next" class="nav" aria-label="次の枠">›</button>
     <div id="pickLabel"></div>
     <button id="clear">外す</button>
-    <button id="close" aria-label="閉じる">×</button>
+    <button id="close" aria-label="カード選択を閉じる">閉じる ×</button>
   </div>
   <div id="grid"></div>
 </div>
@@ -186,18 +210,18 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
     <h3>入力</h3>
     <ul>
-      <li>画面下の ▼ でカードを選びます。選ぶと次の枠へ自動で進みます。</li>
+      <li>画面下の「カードを選ぶ」でカードを選びます。選ぶと次の枠へ自動で進みます。</li>
       <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
       <li>ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れます。</li>
-      <li>入力中の枠は、カードの上の ▼(上下に動きます)で示します。</li>
+      <li>入力中の枠は、カードの上の水色の▼(上下に動きます)で示します。</li>
       <li>他の枠で使っているカードは選べません。</li>
     </ul>
 
     <h3>ボタン</h3>
     <ul>
       <li><b>ランダム配布</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。</li>
-      <li><b>リセット</b>: カードを全部消します。モードと人数はそのままです。</li>
-      <li class="sub">全部作り直したいときは、「リセット」→「ランダム配布」です。</li>
+      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。</li>
+      <li class="sub">全部作り直したいときは、「全消去」→「ランダム配布」です。</li>
     </ul>
 
     <h3>モード</h3>
