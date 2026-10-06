@@ -144,6 +144,8 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .catTabs button{flex:1;height:30px;padding:0;border:0;border-radius:14px;background:none;color:var(--mute);font-size:12px}
 .catTabs button.on{background:var(--brass);color:var(--ink);font-weight:700}
 .catTabs button:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+.ctbl tr.catTotal th,.ctbl tr.catTotal td{border-top:2px solid var(--line);color:var(--ivory);font-weight:700}
+.ctbl tr.catTotal th{text-align:left}
 .ctbl{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
 .ctbl th,.ctbl td{padding:4px 6px;vertical-align:middle}
 .ctbl th{font-size:12px;font-weight:600;color:var(--mute);text-align:center}
@@ -349,7 +351,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
     <ul>
       <li>引き分けは取り分を等分して計算します。</li>
       <li>プレイヤーの並びは固定です(勝率順には並べ替えません)。</li>
-      <li>勝率の左の役名は、いま作れている役です(Flop以降。Preflopや、Flopが入力途中のときは「—」)。最終的な役の見込みは、下の「最終役の見込み」を見てください。</li>
+      <li>勝率の左の役名は、いま作れている役です(Flop以降。Preflopや、Flopが入力途中のときは「—」)。最終的な役の分析は、下の「最終役」を見てください。</li>
     </ul>
 
     <h3>保存と共有</h3>
