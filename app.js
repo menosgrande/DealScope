@@ -517,26 +517,6 @@
     }
   });
 
-  // Board消去: プレイヤーのカードを残し、Boardだけを空にする。直後は全消去と同じUndoを使える。
-  $('board').addEventListener('click', (e) => {
-    const b = e.target.closest('#boardClear');
-    if (!b) return;
-    e.preventDefault();
-    if (!state.board.some((c) => c >= 0)) return;
-    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
-    const r = S.clearBoard(state.players, state.board);
-    state.players = r.players;
-    state.board = r.board;
-    state.deleteTarget = null;
-    state.open = false;
-    render();
-    recompute();
-    undo = prev;
-    $('toastMsg').textContent = 'ボードを消しました';
-    $('toast').hidden = false;
-    toastTimer = setTimeout(hideToast, 7000);
-  });
-
   $('mode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
   const stepBy = (d) => (isRandom() ? setOpp(state.opp + d) : setCount(state.n + d));
   $('dec').addEventListener('click', () => stepBy(-1));
@@ -569,7 +549,7 @@
     }
     render();
   });
-  // Hand操作。playersコンテナ側でイベント委譲する。
+  // Hand操作。playersコンテナ側でイベント委譲する。各操作は対象だけを変更し、Undoで元に戻せる。
   let undo = null, toastTimer = 0;
   function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
   function showUndo(prev, message) {
