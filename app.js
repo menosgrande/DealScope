@@ -235,8 +235,8 @@
       ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
       for (let i = 0; i < count(); i++) {
         ph += `<div class="pcol p${i}">
-          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span></div>
-          <div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div>
+          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span></div>
+          <div class="playerCardsRow"><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span></div>
           <div class="pr" data-i="${i}"></div>
         </div>`;
       }
