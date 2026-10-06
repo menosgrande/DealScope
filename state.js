@@ -131,6 +131,14 @@
     return { mode, n, opp, players: c.players, board: c.board };
   }
 
+  /* 対象ストリート以降を消去する。Flopを消すとTurn/Riverも無効になるため、後続も消す。 */
+  function clearBoardStreet(players, board, street) {
+    const b = board.slice();
+    const from = street === 0 ? 0 : street === 1 ? 3 : street === 2 ? 4 : 5;
+    for (let i = from; i < 5; i++) b[i] = -1;
+    return { players: players.map((h) => h.slice()), board: b };
+  }
+
   /* ---------- Handの引き直し / 消去 ----------
    * playerIndex: 0..3 の指定プレイヤーだけ、2枚とも新しいカードへ交換する。
    * boardと他プレイヤーのカードは固定する。
@@ -260,7 +268,7 @@
     return { players: ps, board: b };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard };
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard, clearBoardStreet };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
