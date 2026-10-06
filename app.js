@@ -235,7 +235,9 @@
       if (done) { txt = (res.approx ? '≈' : '') + res.eq[i].toFixed(1) + '%'; w = res.eq[i]; }
       const cell = $('players').querySelector(`.pr[data-i="${i}"]`);
       if (cell) {
-        cell.innerHTML = `<div class="pct${done ? '' : ' dim'}">${txt}</div>` +
+        const k = madeHand(i);
+        const mh = k < 0 ? '—' : HAND_NAMES[k].replace('ストレートフラッシュ', 'ストレート<br>フラッシュ');
+        cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span><span class="pct${done ? '' : ' dim'}">${txt}</span></div>` +
           `<div class="bar"><i style="width:${w}%"></i></div>`;
       }
     }
@@ -244,6 +246,15 @@
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
     renderCats();
+  }
+
+  /* 勝率の左に出す「いま作れている役」。Flop以降で、そのプレイヤーの2枚がそろっているときだけ(それ以外は -1 = 「—」) */
+  function madeHand(i) {
+    const board = boardCards();
+    if (!board || board.length < 3) return -1;
+    const [a, b] = state.players[i];
+    if (a < 0 || b < 0) return -1;
+    return E.evaluate(board.concat([a, b])) >> 20;
   }
 
   /* ---------- 最終役の見込み ----------
@@ -366,6 +377,15 @@
     const list = slots();
     if (get(state.active) >= 0) { const e = list.find((s) => get(s) < 0); if (e) state.active = e; }
     render();
+  });
+  // ランダム配布: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
+  $('deal').addEventListener('click', () => {
+    const r = S.fillEmpty(state.players, state.board, count(), Math.random);
+    state.players = r.players;
+    state.board = r.board;
+    if (!slots().some((s) => get(s) < 0)) state.open = false;
+    render();
+    recompute();
   });
   // リセット: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
   $('reset').addEventListener('click', () => {

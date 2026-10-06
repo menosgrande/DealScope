@@ -428,6 +428,27 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
+    // ランダム配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
+    {
+      let seed = 777;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const p = blank(); p[0] = H('As', 'Kd'); p[2] = H('2c', '3c'); p[3] = H('9h', '9d'); // P3・P4 は「隠れている」想定 (shown = 2)
+      const flop = [card('Qs'), -1, -1, -1, -1];
+      const r = S.fillEmpty(p, flop, 2, rnd);
+      const shown = r.players.slice(0, 2).flat().concat(r.board.filter((c) => c >= 0));
+      const keep = r.players[0][0] === card('As') && r.players[0][1] === card('Kd') && r.board[0] === card('Qs');
+      const full = r.players[0].concat(r.players[1]).every((c) => c >= 0) && r.board.slice(0, 3).every((c) => c >= 0);
+      const range = r.board[3] === -1 && r.board[4] === -1; // Flop までしか埋めない
+      const uniq = new Set(shown).size === shown.length;
+      const hidden = json(r.players[2]) === json(p[2]) && json(r.players[3]) === json(p[3]) && json(p[1]) === json([-1, -1]); // 隠れた分は触らない / 入力は変更しない
+      const pre = S.fillEmpty(blank(), [-1, -1, -1, -1, -1], 3, rnd);
+      const turn = S.fillEmpty(blank(), [card('2c'), card('3c'), card('4c'), card('5c'), -1], 2, rnd);
+      const river = S.fillEmpty(blank(), [-1, -1, -1, -1, card('Ah')], 2, rnd);
+      const streets = pre.board.every((c) => c === -1) && pre.players.slice(0, 3).flat().every((c) => c >= 0) && pre.players[3][0] === -1 &&
+        turn.board.slice(0, 4).every((c) => c >= 0) && turn.board[4] === -1 &&
+        river.board.every((c) => c >= 0);
+      check('ランダム配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める(重複なし)', keep && full && range && uniq && hidden && streets, '');
+    }
     return allOk;
   }
 

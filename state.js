@@ -132,7 +132,32 @@
     return { mode, n, opp, players: c.players, board: c.board };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved };
+  /* ---------- ランダム配布 ----------
+   * 空欄だけをランダムなカードで埋める。入力済みのカードは変えない。
+   *   埋める範囲: 画面に出ているプレイヤー(shown 人)のホールカード + いまのストリートまでのボード
+   *   いまのストリート: River入力済み → 5枚 / Turn入力済み → 4枚 / Flopに1枚でもある → 3枚 / 何もない → 0枚(Preflop)
+   *   使えるカード: 画面に出ている枠で使われていないカード (隠れているP2〜は含めない)
+   * rnd: 0以上1未満の乱数を返す関数 (検証では固定の乱数を渡せる)。入力は変更せず、新しい配列を返す。
+   */
+  function fillEmpty(players, board, shown, rnd) {
+    const ps = players.map((h) => h.slice());
+    const b = board.slice();
+    const used = new Set();
+    for (let i = 0; i < shown; i++) ps[i].forEach((c) => { if (c >= 0) used.add(c); });
+    b.forEach((c) => { if (c >= 0) used.add(c); });
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    const target = b[4] >= 0 ? 5 : b[3] >= 0 ? 4 : b.slice(0, 3).some((c) => c >= 0) ? 3 : 0;
+    for (let i = 0; i < shown; i++) for (let j = 0; j < 2; j++) if (ps[i][j] < 0) ps[i][j] = deck.pop();
+    for (let j = 0; j < target; j++) if (b[j] < 0) b[j] = deck.pop();
+    return { players: ps, board: b };
+  }
+
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
