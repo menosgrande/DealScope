@@ -355,8 +355,8 @@
     const maxOf = data.map((col) => Math.max(...col));
     let t = '<table class="ctbl"><thead><tr><th></th>' + heads.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
     for (let k = 0; k < 9; k++) {
-      t += `<tr><th scope="row">${HAND_NAMES[k]}</th>` + data.map((col) => {
-        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[data.indexOf(col)] ? ' class="catTop"' : '');
+      t += `<tr><th scope="row">${HAND_NAMES[k]}</th>` + data.map((col, p) => {
+        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[p] ? ' class="catTop"' : '');
         return `<td${cls}>${fmtCat(col[k])}</td>`;
       }).join('') + '</tr>';
     }
@@ -418,7 +418,7 @@
       const end = performance.now() + 12;
       do {
         const r = gen.next();
-        if (r.done) { res = { mode: 'done', eq: r.value.equity, cats: r.value.cats, approx, rand, opp }; renderResults(); return; }
+        if (r.done) { res = { mode: 'done', eq: r.value.equity, cats: r.value.cats, catEquity: r.value.catEquity, approx, rand, opp }; renderResults(); return; }
       } while (performance.now() < end);
       setTimeout(step, 0);
     })();
