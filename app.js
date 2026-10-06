@@ -218,7 +218,7 @@
     $('dec').disabled = isRandom() ? state.opp <= 1 : state.n <= 2;
     $('inc').disabled = isRandom() ? state.opp >= 4 : state.n >= 4;
 
-    let ph = '<div class="row handRow"><div class="name">Hand</div><div class="handMain"><div class="handTools" role="group" aria-label="局面操作"><button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">↻</span><span class="boardShuffleText">配る</span></button><button id="reset" class="boardClear" title="カードを全部消す" aria-label="カードを全部消す"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div>
+    let ph = '<div class="row handRow"><div class="name">Hand</div><div class="handMain"><div class="handTools" role="group" aria-label="局面操作"><button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">↻</span><span class="boardShuffleText">配る</span></button><button id="reset" class="boardClear" title="カードを全部消す" aria-label="カードを全部消す"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div>';
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
