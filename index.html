@@ -42,6 +42,14 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
 
 .row{display:flex;align-items:flex-start;gap:8px;padding:18px 0 8px;border-top:1px solid var(--line)} /* 上の余白は ▼ マーカー用 */
+.handRow{padding-top:12px}
+.handMain{min-width:0;flex:1}
+.randomHand{width:100%}
+.randomHandRow{display:flex;align-items:flex-start;gap:8px;min-width:0;padding:8px 0}
+.randomHandRow:first-child{padding-top:0}
+.randomHandRow + .randomHandRow{border-top:1px solid var(--line)}
+.randomHandName{width:56px;flex:none;font-size:12px;color:var(--ivory);padding-top:20px}
+.handMain .playerGrid{border-top:0;padding-top:0}
 /* .slots は必ず flex。block だと、入力済み(文字あり)と空(文字なし)のカードがベースライン揃えになり、入力済みだけ下にずれる */
 .slots{display:flex;gap:8px}
 .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
@@ -110,6 +118,8 @@ body.picking .playerGrid{padding-top:8px}
   .cardDelete{width:19px;height:19px;font-size:14px;line-height:16px}
 }
 @media (max-width:359px){
+  .randomHandName{width:50px}
+  .randomHandRow{gap:6px}
   .playerGrid.p4{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
   .playerGrid.p4 .slot{width:44px}
   .bslots{gap:8px}
