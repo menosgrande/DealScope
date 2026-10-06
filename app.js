@@ -218,11 +218,13 @@
     $('dec').disabled = isRandom() ? state.opp <= 1 : state.n <= 2;
     $('inc').disabled = isRandom() ? state.opp >= 4 : state.n >= 4;
 
-    let ph = '';
+    let ph = '<div class="row handRow"><div class="name">Hand</div><div class="handMain">';
     if (isRandom()) {
+      ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="row"><div class="name">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
+        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
       }
+      ph += '</div>';
     } else {
       ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
       for (let i = 0; i < count(); i++) {
@@ -234,6 +236,7 @@
       }
       ph += `</div><div id="equityBar"></div>`;
     }
+    ph += '</div></div>';
     $('players').innerHTML = ph;
 
     const grp = (label, js) =>
