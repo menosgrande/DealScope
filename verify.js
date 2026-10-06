@@ -300,10 +300,13 @@
       const hands = cs.hands.map(cards), board = cards(cs.board);
       const ex = E.exactSync(hands, board);
       const want = hands.map((h) => catOf(naiveEval(h.concat(board))));
-      const ok = ex.cats.every((c, p) => c.every((v, k) => Math.abs(v - (k === want[p] ? 100 : 0)) < 1e-9));
+      const catOk = ex.cats.every((c, p) => c.every((v, k) => Math.abs(v - (k === want[p] ? 100 : 0)) < 1e-9));
+      const eqSumOk = ex.catEquity.every((c, p) => Math.abs(c.reduce((a, b) => a + b, 0) - ex.equity[p]) < 1e-9);
+      const eqRoleOk = ex.catEquity.every((c, p) => c.every((v, k) => Math.abs(v - (k === want[p] ? ex.equity[p] : 0)) < 1e-9));
+      const ok = catOk && eqSumOk && eqRoleOk;
       if (!ok) allOk = false;
       row(ok ? 'ok' : 'ng', `最終役 ${cs.note}`,
-        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)}(別方式の判定: ${CATNAMES[want[p]]})`).join('<br>'));
+        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)}(別方式の判定: ${CATNAMES[want[p]]}) / 寄与合計 ${pct(ex.catEquity[p].reduce((a, b) => a + b, 0))} = 勝率 ${pct(ex.equity[p])}`).join('<br>'));
     }
     await tick();
 
@@ -312,14 +315,17 @@
       const hands = ['As Ks', 'Qh Qc', 'Js Ts'].map(cards), board = cards('8s 7s 2d');
       const ex = E.exactSync(hands, board);
       const sumOk = ex.cats.every((c) => Math.abs(c.reduce((a, b) => a + b, 0) - 100) < 1e-9);
+      const eqSumOk = ex.catEquity.every((c, p) => Math.abs(c.reduce((a, b) => a + b, 0) - ex.equity[p]) < 1e-9);
       const N = 100000;
       const mc = E.monteCarlo(hands, board, N, { seed: 12345 });
       const cmp = mc.cats.map((c, p) => catsClose(c, ex.cats[p], N));
-      const ok = sumOk && cmp.every((r) => r.ok);
+      const cmpEq = mc.catEquity.map((c, p) => catsClose(c, ex.catEquity[p], N));
+      const eqMcSumOk = mc.catEquity.every((c, p) => Math.abs(c.reduce((a, b) => a + b, 0) - mc.equity[p]) < 1e-9);
+      const ok = sumOk && eqSumOk && eqMcSumOk && cmp.every((r) => r.ok) && cmpEq.every((r) => r.ok);
       if (!ok) allOk = false;
-      row(ok ? 'ok' : 'ng', '最終役 フロップ3人: 各人の合計100%、Exact と Monte Carlo が一致',
-        `各人の合計 ${sumOk ? '100%' : '不一致'} / Monte Carlo ${num(N)}回との差 最大 ${Math.max(...cmp.map((r) => r.maxDiff)).toFixed(2)}pt`,
-        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)}`).join('\n'));
+      row(ok ? 'ok' : 'ng', '最終役 フロップ3人: 成立率100%、勝率寄与は勝率に一致、Exact と Monte Carlo が一致',
+        `成立率合計 ${sumOk ? '100%' : '不一致'} / 寄与合計＝勝率 ${eqSumOk && eqMcSumOk ? 'OK' : '不一致'} / 成立率差 最大 ${Math.max(...cmp.map((r) => r.maxDiff)).toFixed(2)}pt / 寄与差 最大 ${Math.max(...cmpEq.map((r) => r.maxDiff)).toFixed(2)}pt`,
+        ex.cats.map((c, p) => `P${p + 1}: ${catLine(c)} / 寄与合計 ${pct(ex.catEquity[p].reduce((a, b) => a + b, 0))}`).join('\n'));
       await tick();
     }
 
@@ -328,21 +334,33 @@
       const hero = cards('As Ks'), board = cards('8s 7s 2d');
       const g = E.exactVsRandomGen(hero, board);
       let r; while (!(r = g.next()).done) { /* 完了まで */ }
-      const ex = r.value.cats; // [Hero, 相手]
+      const ex = r.value.cats; // [Hero, 相手] 成立率
+      const gEq = E.exactVsRandomGen(hero, board);
+      let re; while (!(re = gEq.next()).done) { /* 完了まで */ }
+      const exEq = re.value.catEquity; // [Hero, 相手]
       const sumOk = ex.every((c) => Math.abs(c.reduce((a, b) => a + b, 0) - 100) < 1e-9);
+      const eqSumOk = exEq.every((c, p) => Math.abs(c.reduce((a, b) => a + b, 0) - (p === 0 ? re.value.equity[0] : 100 - re.value.equity[0])) < 1e-9);
       const N = 100000;
-      const lines = []; let ok = sumOk;
+      const lines = []; let ok = sumOk && eqSumOk;
       for (const opps of [1, 2]) {
-        const mc = E.monteCarloVsRandom(hero, board, N, { seed: 12345, opponents: opps }).cats;
-        const h = catsClose(mc[0], ex[0], N), o = catsClose(mc[1], ex[1], N * opps);
-        if (!h.ok || !o.ok) ok = false;
-        lines.push(`相手${opps}人 Monte Carlo: Hero の差 最大${h.maxDiff.toFixed(2)}pt / 相手(1人あたり)の差 最大${o.maxDiff.toFixed(2)}pt`);
+        const mc = E.monteCarloVsRandom(hero, board, N, { seed: 12345, opponents: opps });
+        const h = catsClose(mc.cats[0], ex[0], N), o = catsClose(mc.cats[1], ex[1], N * opps);
+        const hEqSum = Math.abs(mc.catEquity[0].reduce((a, b) => a + b, 0) - mc.equity[0]) < 1e-9;
+        const oEqSum = Math.abs(mc.catEquity[1].reduce((a, b) => a + b, 0) - (100 - mc.equity[0]) / opps) < 1e-9;
+        let eqDetail = `寄与合計 Hero=${pct(mc.catEquity[0].reduce((a, b) => a + b, 0))} / 相手1人=${pct(mc.catEquity[1].reduce((a, b) => a + b, 0))}`;
+        if (opps === 1) {
+          const he = catsClose(mc.catEquity[0], exEq[0], N), oe = catsClose(mc.catEquity[1], exEq[1], N);
+          if (!he.ok || !oe.ok) ok = false;
+          eqDetail += ` / 寄与差 Hero=${he.maxDiff.toFixed(2)}pt 相手=${oe.maxDiff.toFixed(2)}pt`;
+        }
+        if (!h.ok || !o.ok || !hEqSum || !oEqSum) ok = false;
+        lines.push(`相手${opps}人: 成立率差 Hero=${h.maxDiff.toFixed(2)}pt / 相手1人=${o.maxDiff.toFixed(2)}pt / ${eqDetail}`);
         await tick();
       }
       if (!ok) allOk = false;
-      row(ok ? 'ok' : 'ng', '最終役 ランダム相手: Exact と Monte Carlo(相手1人・2人)が一致',
-        '相手の人数が変わっても、Hero と相手1人あたりの分布は同じになるはず。Exact(相手1人)と比較',
-        lines.join('\n') + `\nHero: ${catLine(ex[0])}\n相手: ${catLine(ex[1])}`);
+      row(ok ? 'ok' : 'ng', '最終役 ランダム相手: 成立率と勝率寄与の整合',
+        '成立率は相手人数が変わっても相手1人あたりで同じ。勝率寄与は相手人数に応じて変わるため、各人数で合計値を確認し、相手1人ではExactとも比較',
+        lines.join('\n') + `\nHero成立率: ${catLine(ex[0])}\n相手成立率: ${catLine(ex[1])}`);
     }
     return allOk;
   }
