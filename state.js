@@ -136,14 +136,16 @@
    * 空欄だけをランダムなカードで埋める。入力済みのカードは変えない。
    *   埋める範囲: 画面に出ているプレイヤー(shown 人)のホールカード + いまのストリートまでのボード
    *   いまのストリート: River入力済み → 5枚 / Turn入力済み → 4枚 / Flopに1枚でもある → 3枚 / 何もない → 0枚(Preflop)
-   *   使えるカード: 画面に出ている枠で使われていないカード (隠れているP2〜は含めない)
+   *   使えるカード: 画面に出ている枠 + 隠れているP2〜P4で既に使われていないカード
    * rnd: 0以上1未満の乱数を返す関数 (検証では固定の乱数を渡せる)。入力は変更せず、新しい配列を返す。
    */
   function fillEmpty(players, board, shown, rnd) {
     const ps = players.map((h) => h.slice());
     const b = board.slice();
     const used = new Set();
-    for (let i = 0; i < shown; i++) ps[i].forEach((c) => { if (c >= 0) used.add(c); });
+    // 画面に出ていないP2〜P4も、すでに保存されているカードはデッキから除外する。
+    // ただし補充するのは visible な shown 人だけ。
+    ps.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
     b.forEach((c) => { if (c >= 0) used.add(c); });
     const deck = [];
     for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
