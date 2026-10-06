@@ -524,19 +524,19 @@
     }
     render();
   });
-  // おまかせ配布: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
-  $('deal').addEventListener('click', () => {
+  // 配る: 空欄だけをランダムなカードで埋める(入力済みは変えない)。render()でボタンが作り直されるため、Handコンテナ側でイベント委譲する。
+  function dealCards() {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
     state.board = r.board;
     if (!slots().some((s) => get(s) < 0)) state.open = false;
     render();
     recompute();
-  });
+  }
   // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない。直後の数秒間は「元に戻す」を出す
   let undo = null, toastTimer = 0;
   function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
-  $('reset').addEventListener('click', () => {
+  function resetCards() {
     const had = state.players.some((h) => h.some((c) => c >= 0)) || state.board.some((c) => c >= 0);
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     state.players = S.emptyHands();
@@ -550,6 +550,12 @@
     $('toastMsg').textContent = 'カードを全部消しました';
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
+  }
+  $('players').addEventListener('click', (e) => {
+    const deal = e.target.closest('#deal');
+    if (deal) { e.preventDefault(); dealCards(); return; }
+    const reset = e.target.closest('#reset');
+    if (reset) { e.preventDefault(); resetCards(); return; }
   });
   $('toastUndo').addEventListener('click', () => {
     if (!undo) return;
