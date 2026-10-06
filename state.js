@@ -164,7 +164,6 @@
     const ps = players.map((h) => h.slice());
     const b = board.slice();
     const target = street === 0 ? [0, 1, 2] : [street === 1 ? 3 : 4];
-    const targetSet = new Set(target);
     const used = new Set();
     ps.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
     b.forEach((c) => { if (c >= 0) used.add(c); });
