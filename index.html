@@ -84,7 +84,7 @@ body.picking .playerGrid{padding-top:8px}
 .grp{display:flex;flex-direction:column;align-items:flex-start}
 .grpCards{display:flex;align-items:center;gap:5px}
 .grp .slots{gap:6px}
-.streetTools{display:flex;align-items:center;gap:3px}
+.streetTools{display:flex;flex-direction:column;align-items:center;gap:2px}
 .streetShuffle,.streetClear{width:28px;height:28px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .streetShuffle{color:var(--mute);font-size:16px}
 .streetClear{color:#d9a3ad;font-size:16px}
@@ -114,7 +114,7 @@ body.picking .playerGrid{padding-top:8px}
   .boardShuffle{padding:0 8px}
   .boardShuffleText,.boardClearText{display:none}
   .playerAction{width:22px;height:24px;font-size:13px}
-  .randomHandRow>.playerTools{padding-top:17px}
+  .randomHandRow>.playerTools{padding-top:0}
   .ctl{grid-template-columns:minmax(0,1fr) auto;gap:8px}
   .seg button{padding:0 7px;font-size:12px}
   .stepper .n{min-width:48px}
@@ -166,9 +166,8 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .ctbl td.catTop{color:var(--brass);font-weight:700;text-align:center;white-space:nowrap}
 .note{font-size:12px;color:var(--mute);margin:6px 0 0}
 .handTools{height:28px;display:flex;justify-content:flex-end;align-items:flex-start;gap:5px;margin-bottom:2px}
-.playerTools{display:inline-flex;align-items:center;gap:3px}
-.pheadname{position:relative}
-.pheadname .playerTools{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.playerCardsRow{display:flex;align-items:center;justify-content:center;gap:4px}
+.playerTools{display:flex;flex-direction:column;align-items:center;gap:2px}
 .playerAction{width:24px;height:24px;padding:0;border:1px solid var(--line);border-radius:12px;background:none;color:var(--mute);font-size:14px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .playerAction:active{transform:scale(.94)}
 .playerClear{color:#d9a3ad}
