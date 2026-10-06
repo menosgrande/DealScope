@@ -84,9 +84,12 @@ body.picking .playerGrid{padding-top:8px}
 .grp{display:flex;flex-direction:column;align-items:flex-start}
 .grpCards{display:flex;align-items:center;gap:5px}
 .grp .slots{gap:6px}
-.streetShuffle{width:28px;height:28px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;color:var(--mute);font-size:16px;display:inline-flex;align-items:center;justify-content:center}
-.streetShuffle:active{transform:scale(.97)}
-.streetShuffle:disabled{opacity:.22;cursor:not-allowed}
+.streetTools{display:flex;align-items:center;gap:3px}
+.streetShuffle,.streetClear{width:28px;height:28px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.streetShuffle{color:var(--mute);font-size:16px}
+.streetClear{color:#d9a3ad;font-size:16px}
+.streetShuffle:active,.streetClear:active{transform:scale(.97)}
+.streetShuffle:disabled,.streetClear:disabled{opacity:.22;cursor:not-allowed}
 .cap{font-size:10px;color:var(--mute);text-align:center;margin-top:3px;letter-spacing:.04em}
 .cardWrap{position:relative;display:inline-flex;flex:none}
 .cardDelete{position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;border:0;
@@ -127,7 +130,7 @@ body.picking .playerGrid{padding-top:8px}
   .bslots{gap:6px}
   .grpCards{gap:3px}
   .grp .slots{gap:4px}
-  .streetShuffle{width:24px;height:28px;font-size:15px}
+  .streetShuffle,.streetClear{width:24px;height:28px;font-size:15px}
   .bslots .slot{width:38px;height:54px}
   .bslots .slot small{font-size:15px}
 }
@@ -297,11 +300,12 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>同じカードを2か所には入れられません。TurnはFlop3枚、RiverはTurnが入ってから入力できます。</li>
     </ul>
 
-    <h3>「配る」と「消去」</h3>
+    <h3>Handの操作</h3>
     <ul>
       <li><b>配る</b>: 空いている枠だけを自動で埋めます。すでに入力したカードは変わりません。</li>
-      <li><b>消去</b>: プレイヤーとボードのカードを全部消します。モードと人数は変わりません。直後なら「元に戻す」が使えます。</li>
-      <li>全部やり直すときは「消去」→「配る」。</li>
+      <li><b>↻ 全体</b>: 表示中のプレイヤーのハンド2枚をすべて引き直します。ボードは変わりません。</li>
+      <li><b>× 全消去</b>: 表示中のプレイヤーのハンドをすべて消します。ボードは変わりません。直後なら「元に戻す」が使えます。</li>
+      <li><b>各プレイヤーの↻ / ×</b>: そのプレイヤーのハンド2枚だけを引き直す / 消去します。</li>
     </ul>
 
     <h3>ボード</h3>
@@ -309,7 +313,8 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>Boardは <b>Flop → Turn → River</b> の順で入力します。</li>
       <li><b>↻ 全体</b>: プレイヤーのカードを残して、ボード5枚を新しく引き直します。入力済みのボードも置き換わります。7秒以内なら「元に戻す」で戻せます。</li>
       <li><b>各ストリートの↻</b>: Flop・Turn・Riverのカードの右にある↻で、そのストリートだけを引き直します。たとえば「Flopの↻」ならFlop3枚だけが変わり、Turn・Riverはそのままです。最初に使ったときだけ、保持する範囲をトーストでも案内します。</li>
-      <li><b>× 消去</b>: プレイヤーのカードを残して、ボードだけ全部消します。7秒以内なら「元に戻す」で戻せます。</li>
+      <li><b>× 全消去</b>: プレイヤーのカードを残して、ボードだけ全部消します。7秒以内なら「元に戻す」で戻せます。</li>
+      <li><b>Flop / Turn / Riverの×</b>: そのストリートから後ろを消します。たとえばFlopの×ならFlop・Turn・Riverを消去し、Turnの×ならTurn・Riverを消去します。</li>
       <li>勝率を計算するのは、Preflop・Flop3枚・Turn・Riverです。Flopが1〜2枚の途中では計算しません。</li>
     </ul>
 
