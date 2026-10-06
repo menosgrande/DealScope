@@ -220,21 +220,22 @@
 
     let ph = '';
     ph += '<div class="row handRow"><div class="name">Hand</div><div class="handMain">';
-    ph += '<div class="handTools" role="group" aria-label="局面操作">';
+    ph += '<div class="handTools" role="group" aria-label="Handの操作">';
     ph += '<button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">配る</span></button>';
-    ph += '<button id="reset" class="boardClear" title="カードを全部消す" aria-label="カードを全部消す"><span aria-hidden="true">&times;</span><span class="boardClearText">消去</span></button>';
+    ph += '<button id="handShuffle" class="boardShuffle" title="表示中のHand全体を引き直す" aria-label="表示中のHand全体を引き直す"><span aria-hidden="true">↻</span><span class="handActionText">全体</span></button>';
+    ph += '<button id="reset" class="boardClear" title="表示中のHandをすべて消す" aria-label="表示中のHandをすべて消す"><span aria-hidden="true">&times;</span><span class="handActionText">全消去</span></button>';
     ph += '</div>';
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
+        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></div><div class="pr" data-i="${i}"></div></div>`;
       }
       ph += '</div>';
     } else {
       ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
       for (let i = 0; i < count(); i++) {
         ph += `<div class="pcol p${i}">
-          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span></div>
+          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span></div>
           <div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div>
           <div class="pr" data-i="${i}"></div>
         </div>`;
@@ -245,8 +246,9 @@
     $('players').innerHTML = ph;
 
     const streetReady = (street) => street === 0 || (street === 1 ? state.board.slice(0, 3).every((c) => c >= 0) : state.board.slice(0, 3).every((c) => c >= 0) && state.board[3] >= 0);
+    const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
-      `<div class="grp"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button></div><div class="cap">${label}</div></div>`;
+      `<div class="grp"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
     $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全体</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
 
     if (state.open) {
