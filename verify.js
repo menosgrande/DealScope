@@ -428,6 +428,16 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
+    // 保存データ: 人数を減らして隠れているP3・P4のカードも、読み込みで消えない (リロードで戻る)
+    {
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs'); p[2] = H('2c', '3c'); p[3] = H('9d', '9h');
+      const r = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: p, board: [-1, -1, -1, -1, -1] });
+      const dupHidden = blank(); dupHidden[0] = H('As', 'Kd'); dupHidden[2] = H('As', '3c'); // 隠れたP3が P1 と重複
+      const r2 = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: dupHidden, board: [-1, -1, -1, -1, -1] });
+      const ok = r && json(r.players) === json(p) && r.n === 2 &&
+        r2 && json(r2.players[2]) === json([-1, card('3c')]);
+      check('保存データ: 人数を減らして隠れたP3・P4も保持(リロードで戻る)/ 重複だけ整理', !!ok, r ? json(r.players) : 'null');
+    }
     // ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
     {
       let seed = 777;

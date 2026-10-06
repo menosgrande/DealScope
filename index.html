@@ -41,8 +41,9 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .stepper .n{min-width:52px;text-align:center;font-size:13px;color:var(--mute);white-space:nowrap}
 .stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
 
-.row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
-body.picking .row{padding-top:8px}
+.row{display:flex;align-items:flex-start;gap:8px;padding:18px 0 8px;border-top:1px solid var(--line)} /* 上の余白は ▼ マーカー用 */
+/* .slots は必ず flex。block だと、入力済み(文字あり)と空(文字なし)のカードがベースライン揃えになり、入力済みだけ下にずれる */
+.slots{display:flex;gap:8px}
 .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
 .playerGrid{display:grid;gap:4px;border-top:1px solid var(--line);padding:8px 0 2px}
 body.picking .playerGrid{padding-top:8px}
@@ -50,7 +51,7 @@ body.picking .playerGrid{padding-top:8px}
 .playerGrid.p3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .playerGrid.p4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .pcol{min-width:0;text-align:center}
-.pheadname{display:flex;align-items:center;justify-content:center;gap:4px;height:20px;margin-bottom:4px;font-size:12px;color:var(--ivory);white-space:nowrap}
+.pheadname{display:flex;align-items:center;justify-content:center;gap:4px;height:20px;margin-bottom:16px;font-size:12px;color:var(--ivory);white-space:nowrap}
 .pdot{font-size:10px;line-height:1}
 .pcol.p0 .pdot,.p0bar{color:var(--p0)} .pcol.p1 .pdot,.p1bar{color:var(--p1)}
 .pcol.p2 .pdot,.p2bar{color:var(--p2)} .pcol.p3 .pdot,.p3bar{color:var(--p3)}
@@ -62,6 +63,8 @@ body.picking .playerGrid{padding-top:8px}
 .pcol .pct{font-size:20px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
 .pcol .pct.dim{color:var(--mute)}
 .pcol .mh{font-size:10px;line-height:1.15;color:var(--mute);white-space:normal;word-break:keep-all}
+/* 勝率が出る前から高さを確保して、結果が出たときにボードが下がらないようにする。flow-root は、中の上マージンが外にはみ出して位置をずらすのを止める */
+#equityBar{min-height:31px;display:flow-root}
 .eqbarWrap{margin:6px 0 8px;border-top:1px solid var(--line);padding-top:6px}
 .eqbar{display:flex;height:10px;width:100%;overflow:hidden;border-radius:5px;background:var(--felt2)}
 .eqbar .eqseg{height:100%;min-width:0;border:0;border-radius:0;flex:none}
@@ -85,12 +88,12 @@ body.picking .playerGrid{padding-top:8px}
 .slot.s0{color:var(--c0)} .slot.s1{color:var(--c1)} .slot.s2{color:var(--c2)} .slot.s3{color:var(--c3)}
 /* 最強5枚 = カードはそのままで、金色の細い線で囲む。それ以外の入力済みカードは暗くする。
    入力中の枠 = カードの外(上)に出す ▼ のマーカー。カード自体(線・暗転)には何も重ねないので、役割が混ざらない。
-   ▼ の位置は top:-18px(カード上端からの距離)、行の上の余白は .row の padding-top で確保している。 */
+   ▼ は .cardWrap の中にカードの兄弟として置く(カードの子にすると、暗転の opacity が ▼ にも掛かる)。
+   ▼ の位置は top:-16px(カード上端からの距離)、場所は .row の padding-top と .pheadname の margin-bottom で確保している。 */
 .slot.hit{border-color:#f2c230;box-shadow:0 0 0 1px #f2c230}
 .slot.off{opacity:.4}
-.slot.active{position:relative;z-index:2}
-.slot.active::before{content:'▼';position:absolute;left:50%;top:-18px;transform:translateX(-50%);
-  color:var(--cursor);font-size:14px;line-height:1;animation:bob .9s ease-in-out infinite}
+.cursorMark{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:3;pointer-events:none;
+  color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
 @media (max-width:380px){
   .ctl{grid-template-columns:minmax(0,1fr) auto;gap:8px}
@@ -108,8 +111,7 @@ body.picking .playerGrid{padding-top:8px}
   .playerGrid.p4{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
   .playerGrid.p4 .slot{width:44px}
 }
-@media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
-.slot.off.active{opacity:1}
+@media (prefers-reduced-motion:reduce){.cursorMark{animation:none}}
 .slot.locked{opacity:.22;cursor:not-allowed}
 .slot small{display:block;font-size:17px}
 .pr{flex:1;min-width:0;text-align:right;padding-top:9px}
@@ -137,6 +139,11 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .act.primary{background:var(--brass);color:var(--ink);border-color:var(--brass)}
 .act.secondary{background:rgba(0,0,0,.08);color:var(--ivory)}
 .actIcon{font-size:17px;line-height:1}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(66px + env(safe-area-inset-bottom));z-index:7;display:flex;align-items:center;gap:12px;
+  max-width:calc(100% - 24px);padding:8px 8px 8px 14px;border-radius:20px;background:#0a211a;border:1px solid var(--brass);color:var(--ivory);font-size:13px;white-space:nowrap}
+#toast[hidden]{display:none}
+body.picking #toast{bottom:calc(224px + env(safe-area-inset-bottom))}
+#toast button{height:28px;padding:0 12px;border-radius:14px;border:0;background:var(--brass);color:var(--ink);font-size:13px;font-weight:700}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
 
@@ -217,9 +224,11 @@ details.dev summary{font-size:12px;color:var(--mute)}
   </div>
 
   <div class="acts" role="group" aria-label="局面操作">
-    <button id="deal" class="act primary" aria-label="ランダム補充" title="ランダム補充"><span class="actIcon" aria-hidden="true">🔀</span></button>
-    <button id="reset" class="act secondary" aria-label="全消去" title="全消去"><span class="actIcon" aria-hidden="true">🗑️</span></button>
+    <button id="deal" class="act primary" title="空いている枠をランダムなカードで埋める"><span class="actIcon" aria-hidden="true">🔀</span><span>ランダム補充</span></button>
+    <button id="reset" class="act secondary" title="カードを全部消す"><span class="actIcon" aria-hidden="true">🗑️</span><span>全消去</span></button>
   </div>
+
+  <div id="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastUndo">元に戻す</button></div>
 
   <div id="players"></div>
   <div id="board"></div>
@@ -251,13 +260,13 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
       <li>ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れます。</li>
       <li>入力中の枠は、カードの上の水色の▼(上下に動きます)で示します。</li>
-      <li>他の枠で使っているカードは選べません。</li>
+      <li>他の枠で使っているカードは選べません。Flopが3枚そろう前のTurn、Turnが入る前のRiverは、薄く表示されて選べません。</li>
     </ul>
 
     <h3>ボタン</h3>
     <ul>
       <li><b>ランダム補充</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。見えていない既知ハンドのカードも重複しないよう避けます。</li>
-      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。</li>
+      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。消した直後の数秒間は「元に戻す」が出ます。</li>
       <li class="sub">全部作り直したいときは、「全消去」→「ランダム補充」です。</li>
     </ul>
 

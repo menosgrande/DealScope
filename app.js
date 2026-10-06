@@ -131,8 +131,7 @@
    * 端末(localStorage)には、隠れているP2〜P4も含めて全部保存する。
    */
   function adopt(d) {
-    const players = d.players.map((p, i) => (i < d.n ? p : [-1, -1]));
-    const c = S.dedupe(d.board, players);
+    const c = S.dedupe(d.board, d.players); // n 人より後ろ(隠れている)のカードも保持。重複だけ整理
     state.mode = d.mode;
     state.n = d.n;
     state.opp = d.opp >= 1 && d.opp <= 4 ? d.opp : 1;
@@ -180,14 +179,21 @@
   /* ---------- 描画 ---------- */
   function slotHTML(s) {
     const c = get(s);
-    const act = same(s, state.active) && state.open ? ' active' : '';
+    const isCur = same(s, state.active) && state.open;
+    const act = isCur ? ' active' : '';
+    const mark = isCur ? '<span class="cursorMark" aria-hidden="true">▼</span>' : '';
     const delVisible = state.deleteTarget && same(s, state.deleteTarget);
     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
-    if (c < 0) return `<span class="cardWrap"><button class="slot empty${act}" ${attr} aria-label="未入力"></button></span>`;
+    if (c < 0) {
+      // Flopがそろう前のTurn、Turnの前のRiver = まだ入力できない枠(薄く表示してタップしても動かない)
+      const locked = !slotEnabled(s);
+      return `<span class="cardWrap"><button class="slot empty${act}${locked ? ' locked' : ''}" ${attr}${locked ? ' aria-disabled="true"' : ''} aria-label="未入力"></button>${mark}</span>`;
+    }
     const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
     return `<span class="cardWrap">` +
       `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>` +
       `<button class="cardDelete${delVisible ? ' visible' : ''}" data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}" aria-label="${slotLabel(s)}を外す">×</button>` +
+      mark +
       `</span>`;
   }
 
@@ -359,6 +365,7 @@
   }
 
   function recompute() {
+    hideToast(); // 何か変わったら「元に戻す」は出し続けない(古い状態で上書きしてしまうため)
     save();
     const id = ++job;
     const hands = [];
@@ -411,9 +418,11 @@
     }
     const b = e.target.closest('.slot');
     if (!b) return;
-    state.active = b.dataset.t === 'p'
+    const target = b.dataset.t === 'p'
       ? { t: 'p', i: +b.dataset.i, j: +b.dataset.j }
       : { t: 'b', j: +b.dataset.j };
+    if (get(target) < 0 && !slotEnabled(target)) return; // まだ入力できない枠
+    state.active = target;
     state.deleteTarget = get(state.active) >= 0 ? state.active : null;
     state.open = true;
     render();
@@ -462,14 +471,30 @@
     render();
     recompute();
   });
-  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
+  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない。直後の数秒間は「元に戻す」を出す
+  let undo = null, toastTimer = 0;
+  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
   $('reset').addEventListener('click', () => {
+    const had = state.players.some((h) => h.some((c) => c >= 0)) || state.board.some((c) => c >= 0);
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     state.players = S.emptyHands();
     state.board = S.emptyBoard();
     state.active = { t: 'p', i: 0, j: 0 };
     state.deleteTarget = null;
     render();
     recompute();
+    if (!had) return;
+    undo = prev;
+    $('toastMsg').textContent = 'カードを全部消しました';
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 7000);
+  });
+  $('toastUndo').addEventListener('click', () => {
+    if (!undo) return;
+    state.players = undo.players;
+    state.board = undo.board;
+    render();
+    recompute(); // ここで hideToast() も呼ばれる
   });
 
   $('copy').addEventListener('click', async () => {

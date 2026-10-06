@@ -1,0 +1,303 @@
+diff --git a/README.md b/README.md
+index 5de5417..0357d7c 100644
+--- a/README.md
++++ b/README.md
+@@ -13,7 +13,7 @@ SPECTRAとは独立しており、レンジ・GTO・戦略解説などは扱い
+ - ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れる
+ - 他の枠で使用中のカードはピッカーで選べない
+ - 画面右上の `?` でヘルプを開く
+-- 画面上部の「ランダム補充」は、**空欄だけ**をランダムなカードで埋める(入力済みのカードは変わらない。範囲は今のストリートまで。隠れている既知ハンドのカードも重複しないよう避ける)。「全消去」は全カードを消す(モード・人数は維持)。全部作り直したいときは「全消去 → ランダム補充」
++- 画面上部の「ランダム補充」は、**空欄だけ**をランダムなカードで埋める(入力済みのカードは変わらない。範囲は今のストリートまで。隠れている既知ハンドのカードも重複しないよう避ける)。「全消去」は全カードを消す(モード・人数は維持。直後の数秒間は「元に戻す」が出る)。全部作り直したいときは「全消去 → ランダム補充」
+ - 入力中のカードは端末に保存され、リロードしても復元される
+ 
+ ## モード
+diff --git a/SPEC.md b/SPEC.md
+index 00111be..a035631 100644
+--- a/SPEC.md
++++ b/SPEC.md
+@@ -53,7 +53,8 @@
+ 8. 折りたたみ「最終役の見込み」(6.1)。計算が終わったときだけ表の中身を出す
+ 9. 画面下の「カードを選ぶ ▲」ボタン(カードピッカーを開く)
+ 
+-カードの行の上には、入力中マーカー(▼)を出すための余白を確保する(`.row` の `padding-top`)。
++カードの行の上には、入力中マーカー(▼)を出すための余白を確保する(ボード・Hero の行は `.row` の `padding-top`、既知ハンドの行はプレイヤー名の下の `margin-bottom`)。
++カードの並び(`.slots`)は必ず `display:flex`。`block` だと、入力済み(文字あり)と空(文字なし)のカードがベースライン揃えになり、入力済みだけ下にずれる(2026-10 に Flop で発生)。勝率が出る前も `#equityBar` の高さを確保し、結果が出たときにボードが動かないようにする。
+ 
+ 勝率を行の右側に置くのは、縦に長くならず、カードと勝率を同じ目線で見られるようにするため。
+ 
+@@ -69,6 +70,8 @@
+ - 4スート × 13ランク。並びは ♠♥♦♣ の順、各行 A K Q J T 9 … 2
+ - 現在操作中の枠を、**カードの外(上)に出す ▼ のマーカー**で示す(水色 `--cursor`)。ピッカー上部には「Player 1 — 1枚目」「Flop — 2枚目」などと表示
+   - ▼ は静かに上下に動く(約0.9秒周期、4px)。動きを減らす設定(`prefers-reduced-motion`)の端末では止める
++  - ▼ は**カードの兄弟要素**(`.cursorMark`)として置く。カードの子(`::before`)にすると、暗転(`opacity`)が ▼ にも掛かって薄くなるため。入力中のカードも暗転のまま(最強5枚との見分けを保つ)
++  - まだ入力できない枠(Flopがそろう前のTurn、Turnの前のRiver)は薄く表示し(`.locked`)、タップしても動かない
+   - カード自体(金色の線・暗転)には何も重ねない。「最強5枚 = 線と暗転」「入力位置 = カードの外の ▼」と、役割を完全に分ける
+   - 暗転しているカードが入力中のときは、そのカードだけ暗転を外して見やすくする
+   - 位置は `top:-18px`(カード上端から)。大きさ・位置は `index.html` の `.slot.active::before` で調整する
+@@ -97,6 +100,8 @@
+ 
+ 隠れているP2〜P4も含めて、全プレイヤー・ボードのカードを消去する。人数・モードは変えない。
+ 
++消した直後の7秒間は、画面の下に「カードを全部消しました [元に戻す]」を出す。押すと、消す前のカード(隠れているP2〜P4も含む)に戻る。カードの入力・補充・人数やモードの変更など、何か変わったらこの表示は消える(古い状態で上書きしないため)。消すカードが何も無いときは出さない。
++
+ ### 3.7 ランダム補充
+ 
+ **入力済みのカードは変えず、空欄だけをランダムなカードで埋める**(局面を丸ごと作り直す機能ではない)。全部作り直したいときは「全消去 → ランダム補充」。
+@@ -227,7 +232,7 @@
+ 
+ ### 7.1 保存
+ 
+-- モード・既知ハンドの人数・ランダム相手の人数・カード(P1〜P4・Flop・Turn・River)を localStorage に保存する。**ランダム相手モード中に隠れている P2〜P4 も含める**。計算結果は保存しない
++- モード・既知ハンドの人数・ランダム相手の人数・カード(P1〜P4・Flop・Turn・River)を localStorage に保存する。**隠れている P2〜P4(ランダム相手モード中、または人数を減らして非表示になったプレイヤー)も含め、読み込みでも消さない**(重複だけ整理する)。計算結果は保存しない
+ - 起動時に復元して再計算する。壊れた保存データは無視する。重複カードは Board → P1 → P2 … の順に残し、後ろを空欄にして部分復元する
+ - 旧形式(`mode` が無く、`n = 1` がランダム相手)も読み込める
+ 
+@@ -319,7 +324,8 @@ UI (Player / Board / カードピッカー / ヘルプ)   index.html, app.js
+ | 計算の分割幅 | 約12ms | `app.js` の `recompute()` |
+ | ランダム相手のMonte Carlo試行回数 | 100,000 | `app.js` の `RANDOM_TRIALS` |
+ | localStorage キー | `card-equity-state-v1`(中身は `mode` 付きの新形式。旧形式も読める) | `app.js` |
+-| 入力中マーカー(▼) | 色 `--cursor`(`#4dd0ff`) / 上下 4px・約0.9秒 / `top:-18px` | `index.html` |
++| 入力中マーカー(▼) | 色 `--cursor`(`#4dd0ff`) / 上下 4px・約0.9秒 / `top:-16px` | `index.html` |
++| 「元に戻す」の表示時間 | 7秒(別の入力があれば消える) | `app.js` |
+ | 最強5枚の線 | `#f2c230`、暗転は `opacity` 0.4 | `index.html` |
+ 
+ ---
+diff --git a/app.js b/app.js
+index db3b327..7a6600f 100644
+--- a/app.js
++++ b/app.js
+@@ -131,8 +131,7 @@
+    * 端末(localStorage)には、隠れているP2〜P4も含めて全部保存する。
+    */
+   function adopt(d) {
+-    const players = d.players.map((p, i) => (i < d.n ? p : [-1, -1]));
+-    const c = S.dedupe(d.board, players);
++    const c = S.dedupe(d.board, d.players); // n 人より後ろ(隠れている)のカードも保持。重複だけ整理
+     state.mode = d.mode;
+     state.n = d.n;
+     state.opp = d.opp >= 1 && d.opp <= 4 ? d.opp : 1;
+@@ -180,14 +179,21 @@
+   /* ---------- 描画 ---------- */
+   function slotHTML(s) {
+     const c = get(s);
+-    const act = same(s, state.active) && state.open ? ' active' : '';
++    const isCur = same(s, state.active) && state.open;
++    const act = isCur ? ' active' : '';
++    const mark = isCur ? '<span class="cursorMark" aria-hidden="true">▼</span>' : '';
+     const delVisible = state.deleteTarget && same(s, state.deleteTarget);
+     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
+-    if (c < 0) return `<span class="cardWrap"><button class="slot empty${act}" ${attr} aria-label="未入力"></button></span>`;
++    if (c < 0) {
++      // Flopがそろう前のTurn、Turnの前のRiver = まだ入力できない枠(薄く表示してタップしても動かない)
++      const locked = !slotEnabled(s);
++      return `<span class="cardWrap"><button class="slot empty${act}${locked ? ' locked' : ''}" ${attr}${locked ? ' aria-disabled="true"' : ''} aria-label="未入力"></button>${mark}</span>`;
++    }
+     const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
+     return `<span class="cardWrap">` +
+       `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>` +
+       `<button class="cardDelete${delVisible ? ' visible' : ''}" data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}" aria-label="${slotLabel(s)}を外す">×</button>` +
++      mark +
+       `</span>`;
+   }
+ 
+@@ -359,6 +365,7 @@
+   }
+ 
+   function recompute() {
++    hideToast(); // 何か変わったら「元に戻す」は出し続けない(古い状態で上書きしてしまうため)
+     save();
+     const id = ++job;
+     const hands = [];
+@@ -411,9 +418,11 @@
+     }
+     const b = e.target.closest('.slot');
+     if (!b) return;
+-    state.active = b.dataset.t === 'p'
++    const target = b.dataset.t === 'p'
+       ? { t: 'p', i: +b.dataset.i, j: +b.dataset.j }
+       : { t: 'b', j: +b.dataset.j };
++    if (get(target) < 0 && !slotEnabled(target)) return; // まだ入力できない枠
++    state.active = target;
+     state.deleteTarget = get(state.active) >= 0 ? state.active : null;
+     state.open = true;
+     render();
+@@ -462,14 +471,30 @@
+     render();
+     recompute();
+   });
+-  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
++  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない。直後の数秒間は「元に戻す」を出す
++  let undo = null, toastTimer = 0;
++  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
+   $('reset').addEventListener('click', () => {
++    const had = state.players.some((h) => h.some((c) => c >= 0)) || state.board.some((c) => c >= 0);
++    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+     state.players = S.emptyHands();
+     state.board = S.emptyBoard();
+     state.active = { t: 'p', i: 0, j: 0 };
+     state.deleteTarget = null;
+     render();
+     recompute();
++    if (!had) return;
++    undo = prev;
++    $('toastMsg').textContent = 'カードを全部消しました';
++    $('toast').hidden = false;
++    toastTimer = setTimeout(hideToast, 7000);
++  });
++  $('toastUndo').addEventListener('click', () => {
++    if (!undo) return;
++    state.players = undo.players;
++    state.board = undo.board;
++    render();
++    recompute(); // ここで hideToast() も呼ばれる
+   });
+ 
+   $('copy').addEventListener('click', async () => {
+diff --git a/index.html b/index.html
+index 706f3a6..83beec3 100644
+--- a/index.html
++++ b/index.html
+@@ -41,8 +41,9 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
+ .stepper .n{min-width:52px;text-align:center;font-size:13px;color:var(--mute);white-space:nowrap}
+ .stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
+ 
+-.row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+-body.picking .row{padding-top:8px}
++.row{display:flex;align-items:flex-start;gap:8px;padding:18px 0 8px;border-top:1px solid var(--line)} /* 上の余白は ▼ マーカー用 */
++/* .slots は必ず flex。block だと、入力済み(文字あり)と空(文字なし)のカードがベースライン揃えになり、入力済みだけ下にずれる */
++.slots{display:flex;gap:8px}
+ .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
+ .playerGrid{display:grid;gap:4px;border-top:1px solid var(--line);padding:8px 0 2px}
+ body.picking .playerGrid{padding-top:8px}
+@@ -50,7 +51,7 @@ body.picking .playerGrid{padding-top:8px}
+ .playerGrid.p3{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .playerGrid.p4{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .pcol{min-width:0;text-align:center}
+-.pheadname{display:flex;align-items:center;justify-content:center;gap:4px;height:20px;margin-bottom:4px;font-size:12px;color:var(--ivory);white-space:nowrap}
++.pheadname{display:flex;align-items:center;justify-content:center;gap:4px;height:20px;margin-bottom:16px;font-size:12px;color:var(--ivory);white-space:nowrap}
+ .pdot{font-size:10px;line-height:1}
+ .pcol.p0 .pdot,.p0bar{color:var(--p0)} .pcol.p1 .pdot,.p1bar{color:var(--p1)}
+ .pcol.p2 .pdot,.p2bar{color:var(--p2)} .pcol.p3 .pdot,.p3bar{color:var(--p3)}
+@@ -62,6 +63,8 @@ body.picking .playerGrid{padding-top:8px}
+ .pcol .pct{font-size:20px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+ .pcol .pct.dim{color:var(--mute)}
+ .pcol .mh{font-size:10px;line-height:1.15;color:var(--mute);white-space:normal;word-break:keep-all}
++/* 勝率が出る前から高さを確保して、結果が出たときにボードが下がらないようにする。flow-root は、中の上マージンが外にはみ出して位置をずらすのを止める */
++#equityBar{min-height:31px;display:flow-root}
+ .eqbarWrap{margin:6px 0 8px;border-top:1px solid var(--line);padding-top:6px}
+ .eqbar{display:flex;height:10px;width:100%;overflow:hidden;border-radius:5px;background:var(--felt2)}
+ .eqbar .eqseg{height:100%;min-width:0;border:0;border-radius:0;flex:none}
+@@ -85,12 +88,12 @@ body.picking .playerGrid{padding-top:8px}
+ .slot.s0{color:var(--c0)} .slot.s1{color:var(--c1)} .slot.s2{color:var(--c2)} .slot.s3{color:var(--c3)}
+ /* 最強5枚 = カードはそのままで、金色の細い線で囲む。それ以外の入力済みカードは暗くする。
+    入力中の枠 = カードの外(上)に出す ▼ のマーカー。カード自体(線・暗転)には何も重ねないので、役割が混ざらない。
+-   ▼ の位置は top:-18px(カード上端からの距離)、行の上の余白は .row の padding-top で確保している。 */
++   ▼ は .cardWrap の中にカードの兄弟として置く(カードの子にすると、暗転の opacity が ▼ にも掛かる)。
++   ▼ の位置は top:-16px(カード上端からの距離)、場所は .row の padding-top と .pheadname の margin-bottom で確保している。 */
+ .slot.hit{border-color:#f2c230;box-shadow:0 0 0 1px #f2c230}
+ .slot.off{opacity:.4}
+-.slot.active{position:relative;z-index:2}
+-.slot.active::before{content:'▼';position:absolute;left:50%;top:-18px;transform:translateX(-50%);
+-  color:var(--cursor);font-size:14px;line-height:1;animation:bob .9s ease-in-out infinite}
++.cursorMark{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:3;pointer-events:none;
++  color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
+ @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
+ @media (max-width:380px){
+   .ctl{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+@@ -108,8 +111,7 @@ body.picking .playerGrid{padding-top:8px}
+   .playerGrid.p4{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
+   .playerGrid.p4 .slot{width:44px}
+ }
+-@media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
+-.slot.off.active{opacity:1}
++@media (prefers-reduced-motion:reduce){.cursorMark{animation:none}}
+ .slot.locked{opacity:.22;cursor:not-allowed}
+ .slot small{display:block;font-size:17px}
+ .pr{flex:1;min-width:0;text-align:right;padding-top:9px}
+@@ -137,6 +139,11 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
+ .act.primary{background:var(--brass);color:var(--ink);border-color:var(--brass)}
+ .act.secondary{background:rgba(0,0,0,.08);color:var(--ivory)}
+ .actIcon{font-size:17px;line-height:1}
++#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(66px + env(safe-area-inset-bottom));z-index:7;display:flex;align-items:center;gap:12px;
++  max-width:calc(100% - 24px);padding:8px 8px 8px 14px;border-radius:20px;background:#0a211a;border:1px solid var(--brass);color:var(--ivory);font-size:13px;white-space:nowrap}
++#toast[hidden]{display:none}
++body.picking #toast{bottom:calc(224px + env(safe-area-inset-bottom))}
++#toast button{height:28px;padding:0 12px;border-radius:14px;border:0;background:var(--brass);color:var(--ink);font-size:13px;font-weight:700}
+ .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
+   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
+ 
+@@ -217,10 +224,12 @@ details.dev summary{font-size:12px;color:var(--mute)}
+   </div>
+ 
+   <div class="acts" role="group" aria-label="局面操作">
+-    <button id="deal" class="act primary" aria-label="ランダム補充" title="ランダム補充"><span class="actIcon" aria-hidden="true">🔀</span></button>
+-    <button id="reset" class="act secondary" aria-label="全消去" title="全消去"><span class="actIcon" aria-hidden="true">🗑️</span></button>
++    <button id="deal" class="act primary" title="空いている枠をランダムなカードで埋める"><span class="actIcon" aria-hidden="true">🔀</span><span>ランダム補充</span></button>
++    <button id="reset" class="act secondary" title="カードを全部消す"><span class="actIcon" aria-hidden="true">🗑️</span><span>全消去</span></button>
+   </div>
+ 
++  <div id="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastUndo">元に戻す</button></div>
++
+   <div id="players"></div>
+   <div id="board"></div>
+   <div id="results"></div>
+@@ -251,13 +260,13 @@ details.dev summary{font-size:12px;color:var(--mute)}
+       <li>入力済みの枠をタップすると選び直せます(「外す」で空に)。</li>
+       <li>ピッカー上部の ‹ › で、カードを選ばずに前の枠・次の枠へ移れます。</li>
+       <li>入力中の枠は、カードの上の水色の▼(上下に動きます)で示します。</li>
+-      <li>他の枠で使っているカードは選べません。</li>
++      <li>他の枠で使っているカードは選べません。Flopが3枚そろう前のTurn、Turnが入る前のRiverは、薄く表示されて選べません。</li>
+     </ul>
+ 
+     <h3>ボタン</h3>
+     <ul>
+       <li><b>ランダム補充</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。見えていない既知ハンドのカードも重複しないよう避けます。</li>
+-      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。</li>
++      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。消した直後の数秒間は「元に戻す」が出ます。</li>
+       <li class="sub">全部作り直したいときは、「全消去」→「ランダム補充」です。</li>
+     </ul>
+ 
+diff --git a/state.js b/state.js
+index 9a9d03c..60af488 100644
+--- a/state.js
++++ b/state.js
+@@ -113,7 +113,7 @@
+ 
+   /* ---------- 端末の保存内容 ----------
+    * 壊れていたら null。旧形式 (mode が無く、n === 1 がランダム相手) も読める。
+-   * 重複カードは dedupe() で整理し、n 人より後ろのプレイヤーは空にする。
++   * 重複カードは dedupe() で整理する。n 人より後ろ(隠れている)のプレイヤーのカードは保持する。
+    */
+   function normalizeSaved(d) {
+     if (!d || typeof d !== 'object') return null;
+@@ -127,8 +127,7 @@
+         !d.players.every((p) => Array.isArray(p) && p.length === 2 && p.every(ok))) return null;
+     if (!Array.isArray(d.board) || d.board.length !== 5 || !d.board.every(ok)) return null;
+     const opp = Number.isInteger(d.opp) && d.opp >= 1 && d.opp <= 4 ? d.opp : 1;
+-    const players = d.players.map((p, i) => (i < n ? p : [-1, -1]));
+-    const c = dedupe(d.board, players);
++    const c = dedupe(d.board, d.players); // 隠れているプレイヤー(n 人より後ろ)のカードも保持し、重複だけ整理する
+     return { mode, n, opp, players: c.players, board: c.board };
+   }
+ 
+diff --git a/verify.js b/verify.js
+index 3366f4e..49f1af8 100644
+--- a/verify.js
++++ b/verify.js
+@@ -428,6 +428,16 @@
+         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
+       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
+     }
++    // 保存データ: 人数を減らして隠れているP3・P4のカードも、読み込みで消えない (リロードで戻る)
++    {
++      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs'); p[2] = H('2c', '3c'); p[3] = H('9d', '9h');
++      const r = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: p, board: [-1, -1, -1, -1, -1] });
++      const dupHidden = blank(); dupHidden[0] = H('As', 'Kd'); dupHidden[2] = H('As', '3c'); // 隠れたP3が P1 と重複
++      const r2 = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: dupHidden, board: [-1, -1, -1, -1, -1] });
++      const ok = r && json(r.players) === json(p) && r.n === 2 &&
++        r2 && json(r2.players[2]) === json([-1, card('3c')]);
++      check('保存データ: 人数を減らして隠れたP3・P4も保持(リロードで戻る)/ 重複だけ整理', !!ok, r ? json(r.players) : 'null');
++    }
+     // ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
+     {
+       let seed = 777;

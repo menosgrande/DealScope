@@ -113,7 +113,7 @@
 
   /* ---------- 端末の保存内容 ----------
    * 壊れていたら null。旧形式 (mode が無く、n === 1 がランダム相手) も読める。
-   * 重複カードは dedupe() で整理し、n 人より後ろのプレイヤーは空にする。
+   * 重複カードは dedupe() で整理する。n 人より後ろ(隠れている)のプレイヤーのカードは保持する。
    */
   function normalizeSaved(d) {
     if (!d || typeof d !== 'object') return null;
@@ -127,8 +127,7 @@
         !d.players.every((p) => Array.isArray(p) && p.length === 2 && p.every(ok))) return null;
     if (!Array.isArray(d.board) || d.board.length !== 5 || !d.board.every(ok)) return null;
     const opp = Number.isInteger(d.opp) && d.opp >= 1 && d.opp <= 4 ? d.opp : 1;
-    const players = d.players.map((p, i) => (i < n ? p : [-1, -1]));
-    const c = dedupe(d.board, players);
+    const c = dedupe(d.board, d.players); // 隠れているプレイヤー(n 人より後ろ)のカードも保持し、重複だけ整理する
     return { mode, n, opp, players: c.players, board: c.board };
   }
 
