@@ -428,6 +428,19 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
+    // ボード引き直し: プレイヤーを変えず、5枚を重複なく再抽選する
+    {
+      let seed = 123456;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const p = blank(); p[0] = H('As', 'Kd'); p[2] = H('Qh', 'Qs'); p[3] = H('Jc', 'Jd');
+      const b = cards('2c 3c 4c 5c 6c');
+      const r = S.shuffleBoard(p, b, rnd);
+      const playerKeep = json(r.players) === json(p) && json(p) === json([H('As','Kd'),[-1,-1],H('Qh','Qs'),H('Jc','Jd')]);
+      const inputKeep = json(b) === JSON.stringify(cards('2c 3c 4c 5c 6c'));
+      const five = r.board.length === 5 && r.board.every((c) => c >= 0) && new Set(r.board).size === 5;
+      const noOverlap = r.board.every((c) => !p.flat().includes(c));
+      check('ボード引き直し: プレイヤーと元の入力を変えず、重複しない5枚を再抽選する', playerKeep && inputKeep && five && noOverlap, json(r.board));
+    }
     // 保存データ: 人数を減らして隠れているP3・P4のカードも、読み込みで消えない (リロードで戻る)
     {
       const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs'); p[2] = H('2c', '3c'); p[3] = H('9d', '9h');
@@ -438,7 +451,7 @@
         r2 && json(r2.players[2]) === json([-1, card('3c')]);
       check('保存データ: 人数を減らして隠れたP3・P4も保持(リロードで戻る)/ 重複だけ整理', !!ok, r ? json(r.players) : 'null');
     }
-    // ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
+    // おまかせ配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める
     {
       let seed = 777;
       const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -457,7 +470,7 @@
       const streets = pre.board.every((c) => c === -1) && pre.players.slice(0, 3).flat().every((c) => c >= 0) && pre.players[3][0] === -1 &&
         turn.board.slice(0, 4).every((c) => c >= 0) && turn.board[4] === -1 &&
         river.board.every((c) => c >= 0);
-      check('ランダム補充: 入力済みは変えず、空欄だけを、いまのストリートまで埋める(重複なし)', keep && full && range && uniq && hidden && streets, '');
+      check('おまかせ配布: 入力済みは変えず、空欄だけを、いまのストリートまで埋める(重複なし)', keep && full && range && uniq && hidden && streets, '');
     }
     return allOk;
   }
