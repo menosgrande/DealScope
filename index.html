@@ -140,6 +140,10 @@ body.picking .playerGrid{padding-top:8px}
 #results{margin-top:6px}
 details.cats{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:center}
+.catTabs{display:flex;width:100%;gap:4px;margin-top:8px;padding:2px;border:1px solid var(--line);border-radius:17px}
+.catTabs button{flex:1;height:30px;padding:0;border:0;border-radius:14px;background:none;color:var(--mute);font-size:12px}
+.catTabs button.on{background:var(--brass);color:var(--ink);font-weight:700}
+.catTabs button:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
 .ctbl{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
 .ctbl th,.ctbl td{padding:4px 6px;vertical-align:middle}
 .ctbl th{font-size:12px;font-weight:600;color:var(--mute);text-align:center}
@@ -317,11 +321,12 @@ details.dev summary{font-size:12px;color:var(--mute)}
       <li class="sub">同じ強さのプレイヤーがいるときは、その全員のカードが光ります。光る5枚は評価器が選んだ組です。</li>
     </ul>
 
-    <h3>最終役の見込み</h3>
+    <h3>最終役</h3>
     <ul>
-      <li>勝率の下の「最終役の見込み」を開くと、<b>最終的にどの役になるか</b>の割合が、プレイヤーごとに出ます。</li>
-      <li>例: 「ワンペア 30%」は、起こりうる全パターンのうち30%で、その人の最終役がワンペアになる、という意味です。<b>ワンペアで勝つ確率ではありません</b>。</li>
-      <li class="sub">勝率と同じ計算で数えています。ランダム相手が2人以上のときは、相手1人あたりの割合です。</li>
+      <li>勝率の下の「最終役」を開くと、最終役をプレイヤーごとに分析できます。</li>
+      <li><b>勝率の内訳</b>は、各ランアウトで得たequityを、そのときの最終役ごとに分けた割合です。各列の合計は、そのプレイヤーの勝率(equity)になります。</li>
+      <li><b>成立率</b>は、起こりうる全パターンのうち、その最終役になる割合です。各列の合計は100%です。</li>
+      <li class="sub">デフォルトは「勝率の内訳」です。ランダム相手が2人以上のときは、相手1人あたりの集計です。</li>
     </ul>
 
     <h3>計算のしくみ</h3>
