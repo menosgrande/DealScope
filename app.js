@@ -319,11 +319,20 @@
     return E.evaluate(board.concat([a, b])) >> 20;
   }
 
-  /* ---------- 最終役の見込み ----------
-   * 「全パターン(試行)のうち、そのプレイヤーの最終役が何%か」。その役で勝つ確率ではない。
-   * 勝率と同じ計算の副産物なので、追加の計算はしない。折りたたみ式 (開閉は再描画しても保つ)。 */
+  /* ---------- 最終役 ----------
+   * 役 × プレイヤーの2つの指標を切り替えて表示する。
+   * equity: 各ランアウトで得たequityを最終役へ割り当てた「勝率の内訳」。
+   * rate: 最終役の出現率で、各プレイヤーの列合計は100%。
+   */
   let catsOpen = false;
+  let catMetric = 'equity';
   $('cats').addEventListener('toggle', (e) => { if (e.target.id === 'catsBox') catsOpen = e.target.open; }, true);
+  $('cats').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-catmetric]');
+    if (!b) return;
+    catMetric = b.dataset.catmetric === 'rate' ? 'rate' : 'equity';
+    renderCats();
+  });
 
   const fmtCat = (v) => (v === 0 ? '–' : (v < 0.05 ? '<0.1' : v.toFixed(1)) + '%');
 
@@ -333,26 +342,39 @@
     const open = catsOpen ? ' open' : '';
     if (res.mode === 'calc') {
       box.innerHTML = catsOpen
-        ? `<details id="catsBox" class="cats"${open}><summary>最終役の見込み</summary><p class="note">計算中…</p></details>`
-        : '<details id="catsBox" class="cats"><summary>最終役の見込み</summary></details>';
+        ? `<details id="catsBox" class="cats"${open}><summary>最終役</summary><div class="catTabs" role="tablist" aria-label="最終役の指標"><button role="tab" aria-selected="${catMetric === 'equity'}" class="${catMetric === 'equity' ? 'on' : ''}">勝率の内訳</button><button role="tab" aria-selected="${catMetric === 'rate'}" class="${catMetric === 'rate' ? 'on' : ''}">成立率</button></div><p class="note">計算中…</p></details>`
+        : '<details id="catsBox" class="cats"><summary>最終役</summary></details>';
       return;
     }
-    if (!res.cats || res.rand !== isRandom() || res.cats.length !== (isRandom() ? 2 : count())) { box.innerHTML = ''; return; }
+    if (!res.cats || !res.catEquity || res.rand !== isRandom() ||
+        res.cats.length !== (isRandom() ? 2 : count()) ||
+        res.catEquity.length !== (isRandom() ? 2 : count())) { box.innerHTML = ''; return; }
 
-    const heads = isRandom() ? ['Hero', '相手'] : res.cats.map((_, i) => 'P' + (i + 1));
-    const maxOf = res.cats.map((col) => Math.max(...col));
+    const data = catMetric === 'equity' ? res.catEquity : res.cats;
+    const heads = isRandom() ? ['Hero', '相手'] : data.map((_, i) => 'P' + (i + 1));
+    const maxOf = data.map((col) => Math.max(...col));
     let t = '<table class="ctbl"><thead><tr><th></th>' + heads.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
     for (let k = 0; k < 9; k++) {
-      t += `<tr><th scope="row">${HAND_NAMES[k]}</th>` + res.cats.map((col, p) => {
-        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[p] ? ' class="catTop"' : '');
+      t += `<tr><th scope="row">${HAND_NAMES[k]}</th>` + data.map((col) => {
+        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[data.indexOf(col)] ? ' class="catTop"' : '');
         return `<td${cls}>${fmtCat(col[k])}</td>`;
       }).join('') + '</tr>';
     }
+    const totals = data.map((col) => col.reduce((a, b) => a + b, 0));
+    t += '<tr class="catTotal"><th scope="row">合計</th>' + totals.map((v) => `<td>${v.toFixed(1)}%</td>`).join('') + '</tr>';
     t += '</tbody></table>';
-    let note = '全パターンのうち、最終的にその役になる割合です(その役で勝つ確率ではありません)。';
-    if (isRandom() && res.opp > 1) note += '相手は1人あたりの割合です。';
+
+    let note;
+    if (catMetric === 'equity') {
+      note = '各ランアウトで得たequityを、そのランアウトの最終役へ割り当てた割合です。';
+      note += ' 各列の合計は、そのプレイヤーの勝率(equity)です。';
+    } else {
+      note = '全パターンのうち、最終的にその役になる割合です。各列の合計は100%です。';
+    }
+    if (isRandom() && res.opp > 1) note += ' 相手は1人あたりの割合です。';
     if (res.approx) note += ' 近似値(ランダムに配った10万回の集計)です。';
-    box.innerHTML = `<details id="catsBox" class="cats"${open}><summary>最終役の見込み</summary>${t}<p class="note">${note}</p></details>`;
+    const tabs = `<div class="catTabs" role="tablist" aria-label="最終役の指標"><button type="button" role="tab" aria-selected="${catMetric === 'equity'}" class="${catMetric === 'equity' ? 'on' : ''}" data-catmetric="equity">勝率の内訳</button><button type="button" role="tab" aria-selected="${catMetric === 'rate'}" class="${catMetric === 'rate' ? 'on' : ''}" data-catmetric="rate">成立率</button></div>`;
+    box.innerHTML = `<details id="catsBox" class="cats"${open}><summary>最終役</summary>${tabs}${t}<p class="note">${note}</p></details>`;
   }
 
   /* 計算できるボード: 0枚(Preflop) / Flop3枚 / +Turn / +River。それ以外は null */
