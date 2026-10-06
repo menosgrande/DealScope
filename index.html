@@ -10,6 +10,7 @@
   --ivory:#f3efe3; --ink:#1b1b1b;
   --brass:#d8b252; --mute:#8fb0a3;
   --cursor:#4dd0ff; /* 入力中の枠のカーソル。光るカードの金色とは別系統の色にする */
+  --p0:#6f8bd8; --p1:#d17a70; --p2:#72aa8b; --p3:#d4b765;
   --c0:#1b1b1b; --c1:#c2342f; --c2:#2457c5; --c3:#1f7a3d;
 }
 *{box-sizing:border-box}
@@ -43,7 +44,31 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 body.picking .row{padding-top:22px}
 .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
-.slots{display:flex;gap:8px}
+.playerGrid{display:grid;gap:4px;border-top:1px solid var(--line);padding:8px 0 2px}
+body.picking .playerGrid{padding-top:22px}
+.playerGrid.p2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.playerGrid.p3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.playerGrid.p4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pcol{min-width:0;text-align:center}
+.pheadname{display:flex;align-items:center;justify-content:center;gap:4px;height:20px;margin-bottom:4px;font-size:12px;color:var(--ivory);white-space:nowrap}
+.pdot{font-size:10px;line-height:1}
+.pcol.p0 .pdot,.p0bar{color:var(--p0)} .pcol.p1 .pdot,.p1bar{color:var(--p1)}
+.pcol.p2 .pdot,.p2bar{color:var(--p2)} .pcol.p3 .pdot,.p3bar{color:var(--p3)}
+.pcol .slots{display:flex;justify-content:center;gap:4px}
+.playerGrid.p2 .slot,.playerGrid.p3 .slot{width:44px}
+.playerGrid.p4 .slot{width:38px}
+.pcol .pr{padding-top:6px}
+.pcol .pline{display:flex;flex-direction:column;align-items:center;gap:2px}
+.pcol .pct{font-size:20px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+.pcol .pct.dim{color:var(--mute)}
+.pcol .mh{font-size:10px;line-height:1.15;color:var(--mute);white-space:normal;word-break:keep-all}
+.eqbarWrap{margin:6px 0 8px;border-top:1px solid var(--line);padding-top:6px}
+.eqbar{display:flex;height:10px;width:100%;overflow:hidden;border-radius:5px;background:var(--felt2)}
+.eqbar .seg{height:100%;min-width:0;border:0;border-radius:0;flex:none}
+.eqbar .seg.p0bar{background:var(--p0)} .eqbar .seg.p1bar{background:var(--p1)}
+.eqbar .seg.p2bar{background:var(--p2)} .eqbar .seg.p3bar{background:var(--p3)}
+.eqlegend{display:flex;justify-content:center;gap:12px;margin-top:5px;font-size:10px;color:var(--mute);font-variant-numeric:tabular-nums}
+.eqlegend span{white-space:nowrap}.eqlegend b{font-weight:600}
 .bslots{display:flex;gap:12px}
 .grp .slots{gap:6px}
 .cap{font-size:10px;color:var(--mute);text-align:center;margin-top:3px;letter-spacing:.04em}
@@ -70,6 +95,10 @@ body.picking .row{padding-top:22px}
   .phead{gap:4px}
   .phead button{padding:0 8px}
   .phead .nav{width:32px}
+}
+@media (max-width:359px){
+  .playerGrid.p4{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
+  .playerGrid.p4 .slot{width:44px}
 }
 @media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
 .slot.off.active{opacity:1}
