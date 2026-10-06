@@ -551,7 +551,8 @@
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   }
-  $('players').addEventListener('click', (e) => {
+  // Hand内のボタンはrender()で作り直されるため、ページ全体でイベント委譲する。
+  document.addEventListener('click', (e) => {
     const deal = e.target.closest('#deal');
     if (deal) { e.preventDefault(); dealCards(); return; }
     const reset = e.target.closest('#reset');
