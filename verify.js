@@ -428,6 +428,16 @@
         S.normalizeSaved({ mode: 'known', n: 2, players: [[1, 2]], board: b }) === null;
       check('保存データ: 旧形式を読める / 隠れたP2〜も保持 / 重複は整理 / 壊れたデータは無視', !!ok, '');
     }
+    // ボード消去: プレイヤーを変えず、Boardだけを空にする
+    {
+      const p = blank(); p[0] = H('As', 'Kd'); p[2] = H('Qh', 'Qs');
+      const b = cards('2c 3c 4c 5c 6c');
+      const r = S.clearBoard(p, b);
+      const playerKeep = json(r.players) === json(p) && json(p) === json([H('As','Kd'),[-1,-1],H('Qh','Qs'),[-1,-1]]);
+      const boardClear = json(r.board) === json([-1, -1, -1, -1, -1]);
+      const inputKeep = json(b) === json(cards('2c 3c 4c 5c 6c'));
+      check('ボード消去: プレイヤーと元の入力を変えず、Boardだけを消去する', playerKeep && boardClear && inputKeep, json(r.board));
+    }
     // ボード引き直し: プレイヤーを変えず、5枚を重複なく再抽選する
     {
       let seed = 123456;
