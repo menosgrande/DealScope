@@ -329,7 +329,7 @@
     let t = '<table class="ctbl"><thead><tr><th></th>' + heads.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
     for (let k = 0; k < 9; k++) {
       t += `<tr><td>${HAND_NAMES[k]}</td>` + res.cats.map((col, p) => {
-        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[p] ? ' class="top"' : '');
+        const cls = col[k] === 0 ? ' class="z"' : (col[k] === maxOf[p] ? ' class="catTop"' : '');
         return `<td${cls}>${fmtCat(col[k])}</td>`;
       }).join('') + '</tr>';
     }
