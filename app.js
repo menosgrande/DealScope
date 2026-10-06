@@ -477,7 +477,8 @@
     render();
     recompute();
   });
-  $('boardShuffle').addEventListener('click', () => {
+  $('board').addEventListener('click', (e) => {
+    if (!e.target.closest('#boardShuffle')) return;
     fillBoardRandom();
     render();
     recompute();
