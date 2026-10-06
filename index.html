@@ -73,6 +73,7 @@ body.picking .row{padding-top:22px}
 }
 @media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
 .slot.off.active{opacity:1}
+.slot.locked{opacity:.22;cursor:not-allowed}
 .slot small{display:block;font-size:17px}
 .pr{flex:1;min-width:0;text-align:right;padding-top:9px}
 .pr .pline{display:flex;justify-content:flex-end;align-items:center;gap:8px}
@@ -153,7 +154,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div class="top">
     <h1>DealScope</h1>
     <div class="btns">
-      <button id="copy" class="pill share">リンクをコピー</button>
+      <button id="copy" class="pill">リンクをコピー</button>
       <button id="helpBtn" class="pill icon" aria-label="使い方">?</button>
     </div>
   </div>
