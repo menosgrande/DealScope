@@ -249,7 +249,7 @@
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
       `<div class="grp"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全体</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全体</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -462,34 +462,59 @@
   }
   $('players').addEventListener('click', onSlotClick);
   $('board').addEventListener('click', onSlotClick);
-  // ボード全体の引き直し / ストリート単位の引き直し。Boardコンテナはrender()で作り直されるためイベント委譲する。
+  // ボード全体 / ストリート単位の引き直し・消去。Boardコンテナはrender()で作り直されるためイベント委譲する。
   let streetShuffleExplained = false;
   $('board').addEventListener('click', (e) => {
-    const b = e.target.closest('#boardShuffle, .streetShuffle');
-    if (!b || b.disabled) return;
-    e.preventDefault();
-    const street = b.classList.contains('streetShuffle') ? +b.dataset.street : null;
-    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
-    const r = street === null
-      ? S.shuffleBoard(state.players, state.board, Math.random)
-      : S.shuffleBoardStreet(state.players, state.board, street, Math.random);
-    state.players = r.players;
-    state.board = r.board;
-    state.deleteTarget = null;
-    state.open = false;
-    render();
-    recompute();
-    undo = prev;
-    $('toastMsg').textContent = street === null
-      ? 'ボードを引き直しました'
-      : (street === 0
-        ? (streetShuffleExplained ? 'Flopを引き直しました' : 'Flopだけ引き直しました。Turn・Riverはそのままです')
-        : street === 1
-          ? (streetShuffleExplained ? 'Turnを引き直しました' : 'Turnだけ引き直しました。Riverはそのままです')
-          : (streetShuffleExplained ? 'Riverを引き直しました' : 'Riverだけ引き直しました'));
-    if (street !== null) streetShuffleExplained = true;
-    $('toast').hidden = false;
-    toastTimer = setTimeout(hideToast, 7000);
+    const shuffle = e.target.closest('#boardShuffle, .streetShuffle');
+    const clear = e.target.closest('#boardClear, .streetClear');
+    if (shuffle && !shuffle.disabled) {
+      e.preventDefault();
+      const street = shuffle.classList.contains('streetShuffle') ? +shuffle.dataset.street : null;
+      const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+      const r = street === null
+        ? S.shuffleBoard(state.players, state.board, Math.random)
+        : S.shuffleBoardStreet(state.players, state.board, street, Math.random);
+      state.players = r.players;
+      state.board = r.board;
+      state.deleteTarget = null;
+      state.open = false;
+      render();
+      recompute();
+      undo = prev;
+      $('toastMsg').textContent = street === null
+        ? 'ボード全体を引き直しました'
+        : (street === 0
+          ? (streetShuffleExplained ? 'Flopを引き直しました' : 'Flopだけ引き直しました。Turn・Riverはそのままです')
+          : street === 1
+            ? (streetShuffleExplained ? 'Turnを引き直しました' : 'Turnだけ引き直しました。Riverはそのままです')
+            : (streetShuffleExplained ? 'Riverを引き直しました' : 'Riverだけ引き直しました'));
+      if (street !== null) streetShuffleExplained = true;
+      $('toast').hidden = false;
+      toastTimer = setTimeout(hideToast, 7000);
+      return;
+    }
+    if (clear && !clear.disabled) {
+      e.preventDefault();
+      const street = clear.classList.contains('streetClear') ? +clear.dataset.street : null;
+      const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+      if (street === null) {
+        if (!state.board.some((c) => c >= 0)) return;
+        state.board = S.clearBoard(state.players, state.board).board;
+      } else {
+        if (!state.board.some((c) => c >= 0)) return;
+        state.board = S.clearBoardStreet(state.players, state.board, street).board;
+      }
+      state.deleteTarget = null;
+      state.open = false;
+      render();
+      recompute();
+      undo = prev;
+      $('toastMsg').textContent = street === null
+        ? 'ボードをすべて消しました'
+        : (street === 0 ? 'Flopと、それ以降のボードを消しました' : street === 1 ? 'TurnとRiverを消しました' : 'Riverを消しました');
+      $('toast').hidden = false;
+      toastTimer = setTimeout(hideToast, 7000);
+    }
   });
 
   // Board消去: プレイヤーのカードを残し、Boardだけを空にする。直後は全消去と同じUndoを使える。
@@ -544,7 +569,15 @@
     }
     render();
   });
-  // Hand内のボタンはrender()で作り直されるため、playersコンテナ側でイベント委譲する。
+  // Hand操作。playersコンテナ側でイベント委譲する。
+  let undo = null, toastTimer = 0;
+  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
+  function showUndo(prev, message) {
+    undo = prev;
+    $('toastMsg').textContent = message;
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 7000);
+  }
   function dealCards() {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
@@ -553,30 +586,65 @@
     render();
     recompute();
   }
-  // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない。直後の数秒間は「元に戻す」を出す
-  let undo = null, toastTimer = 0;
-  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
-  function resetCards() {
-    const had = state.players.some((h) => h.some((c) => c >= 0)) || state.board.some((c) => c >= 0);
+  function shuffleHandCards(playerIndex) {
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
-    state.players = S.emptyHands();
-    state.board = S.emptyBoard();
-    state.active = { t: 'p', i: 0, j: 0 };
+    const r = S.shufflePlayerHand(state.players, state.board, playerIndex, Math.random);
+    state.players = r.players;
+    state.board = r.board;
     state.deleteTarget = null;
+    state.open = false;
     render();
     recompute();
-    if (!had) return;
-    undo = prev;
-    $('toastMsg').textContent = 'カードを全部消しました';
-    $('toast').hidden = false;
-    toastTimer = setTimeout(hideToast, 7000);
+    showUndo(prev, pname(playerIndex) + 'のハンドを引き直しました');
+  }
+  function shuffleAllHandCards() {
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+    const r = S.shuffleHands(state.players, state.board, count(), Math.random);
+    state.players = r.players;
+    state.board = r.board;
+    state.deleteTarget = null;
+    state.open = false;
+    render();
+    recompute();
+    showUndo(prev, 'Hand全体を引き直しました');
+  }
+  function clearHandCards(playerIndex) {
+    if (state.players[playerIndex].every((c) => c < 0)) return;
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+    state.players = S.clearPlayerHand(state.players, playerIndex).players;
+    state.deleteTarget = null;
+    state.open = false;
+    render();
+    recompute();
+    showUndo(prev, pname(playerIndex) + 'のハンドを消去しました');
+  }
+  function clearAllHandCards() {
+    const shown = count();
+    if (!state.players.slice(0, shown).some((h) => h.some((c) => c >= 0))) return;
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+    state.players = S.clearHands(state.players, shown).players;
+    state.active = { t: 'p', i: 0, j: 0 };
+    state.deleteTarget = null;
+    state.open = false;
+    render();
+    recompute();
+    showUndo(prev, 'Handをすべて消しました');
   }
 
   $('players').addEventListener('click', (e) => {
     const deal = e.target.closest('#deal');
     if (deal) { e.preventDefault(); dealCards(); return; }
-    const reset = e.target.closest('#reset');
-    if (reset) { e.preventDefault(); resetCards(); return; }
+    const allShuffle = e.target.closest('#handShuffle');
+    if (allShuffle) { e.preventDefault(); shuffleAllHandCards(); return; }
+    const allClear = e.target.closest('#reset');
+    if (allClear) { e.preventDefault(); clearAllHandCards(); return; }
+    const playerAction = e.target.closest('.playerAction');
+    if (playerAction) {
+      e.preventDefault();
+      const i = +playerAction.dataset.player;
+      if (playerAction.dataset.action === 'shuffle') shuffleHandCards(i);
+      else if (playerAction.dataset.action === 'clear') clearHandCards(i);
+    }
   });
   $('toastUndo').addEventListener('click', () => {
     if (!undo) return;
