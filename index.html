@@ -40,9 +40,9 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .stepper .n{min-width:52px;text-align:center;font-size:13px;color:var(--mute);white-space:nowrap}
 .stepper b{font-size:17px;color:var(--ivory);margin-right:1px}
 
-.row{display:flex;align-items:flex-start;gap:8px;padding:22px 0 8px;border-top:1px solid var(--line)}
+.row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+body.picking .row{padding-top:22px}
 .row .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
-.row.board .name{padding-top:20px}
 .slots{display:flex;gap:8px}
 .bslots{display:flex;gap:12px}
 .grp .slots{gap:6px}
@@ -74,10 +74,6 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 @media (prefers-reduced-motion:reduce){.slot.active::before{animation:none}}
 .slot.off.active{opacity:1}
 .slot small{display:block;font-size:17px}
-.prow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
-.prow .name{width:64px;flex:none;font-size:13px;color:var(--mute);padding-top:20px}
-.prow .name{padding-top:20px}
-
 .pr{flex:1;min-width:0;text-align:right;padding-top:9px}
 .pr .pline{display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .pr .mh{font-size:11px;line-height:1.2;color:var(--mute);text-align:right;white-space:nowrap}
@@ -206,7 +202,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
 <div id="help" hidden>
   <div class="hin">
     <div class="hhead"><h2>DealScope</h2><button id="helpClose" class="pill icon" aria-label="閉じる">×</button></div>
-    <p class="sub">カードを入力すると、今の勝率がすぐ分かります。</p>
+    <p class="sub">カードを入力すると、勝率を計算します。</p>
 
     <h3>入力</h3>
     <ul>
@@ -219,7 +215,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
     <h3>ボタン</h3>
     <ul>
-      <li><b>ランダム補充</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。</li>
+      <li><b>ランダム補充</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。見えていない既知ハンドのカードも重複しないよう避けます。</li>
       <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。</li>
       <li class="sub">全部作り直したいときは、「全消去」→「ランダム補充」です。</li>
     </ul>
@@ -234,7 +230,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
     <h3>ボード</h3>
     <ul>
-      <li>Flop(3枚) → Turn → River の順に、横一列で入力します。</li>
+      <li>Flop(3枚) → Turn → River の順に、横一列で入力します。Flopが3枚そろうまでTurn、Turnが入るまでRiverは新しく入力できません。</li>
       <li>計算するのは、ボード0枚(Preflop)・Flop3枚・Turn・River のときです。Flopが1〜2枚などの途中は「入力待ち」になります。</li>
     </ul>
 
