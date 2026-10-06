@@ -5,15 +5,15 @@
   const S = window.DealState; // state.js: URL・重複整理・保存データの検証 (純関数)
   const $ = (id) => document.getElementById(id);
   const STORE_KEY = 'card-equity-state-v1';
-  const RANDOM_TRIALS = 100000; // ランダム相手(近似)の試行回数
+  const RANDOM_TRIALS = 100000; // 相手想定(近似)の試行回数
   const HAND_NAMES = ['ハイカード', 'ワンペア', 'ツーペア', 'スリーカード', 'ストレート', 'フラッシュ', 'フルハウス', 'フォーカード', 'ストレートフラッシュ'];
 
   /* ---------- カード状態 ----------
-   * mode    : 'known'(既知ハンド) | 'random'(ランダム相手)。人数 n とは独立に持つ
-   * n       : 既知ハンドの人数(2〜4)。ランダム相手モードの間も保持する
-   * opp     : ランダム相手モードの相手の人数(1〜4)
-   * players : P1〜P4。ランダム相手モードの Hero = players[0] (既知ハンドの P1 と共有)。
-   *           ランダム相手モード中も players[1〜n-1] は画面に出さずに保持する (既知ハンドに戻すと復活)
+   * mode    : 'known'(ハンド指定) | 'random'(相手想定)。人数 n とは独立に持つ
+   * n       : ハンド指定の人数(2〜4)。相手想定モードの間も保持する
+   * opp     : 相手想定モードの相手の人数(1〜4)
+   * players : P1〜P4。相手想定モードの Hero = players[0] (ハンド指定の P1 と共有)。
+   *           相手想定モード中も players[1〜n-1] は画面に出さずに保持する (ハンド指定に戻すと復活)
    * board   : 両モード共通
    */
   const state = {
@@ -60,7 +60,7 @@
 
   // ピッカーで選べなくするカード = 画面に出ている枠のカードだけ。
   // (隠れているP2〜P4は含めない: 見えないカードのせいで選べない、という分かりにくさを避ける。
-  //  重複は、既知ハンドに戻すときに setMode() が整理する)
+  //  重複は、ハンド指定に戻すときに setMode() が整理する)
   function usedCards() {
     const u = new Set();
     slots().forEach((s) => { const c = get(s); if (c >= 0) u.add(c); });
@@ -410,7 +410,7 @@
     res = { mode: 'calc', eq: [], approx: false };
     renderResults();
 
-    // 既知ハンド: 常にExact / ランダム相手1人のFlop以降: Exact / それ以外のランダム相手: Monte Carlo(≈)
+    // ハンド指定: 常にExact / 相手想定1人のFlop以降: Exact / それ以外の相手想定: Monte Carlo(≈)
     const rand = isRandom(), opp = state.opp;
     let gen, approx = false;
     if (!rand) gen = E.exactGen(hands, board);
