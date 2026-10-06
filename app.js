@@ -462,6 +462,16 @@
   }
   $('players').addEventListener('click', onSlotClick);
   $('board').addEventListener('click', onSlotClick);
+  // ピッカーの外側をクリック／タップしたら閉じる。
+  // pointerdown を使うことで、枠をタップした場合はその後の slot click で自然に再オープンできる。
+  document.addEventListener('pointerdown', (e) => {
+    if (!state.open) return;
+    const picker = $('picker');
+    const openButton = $('open');
+    if (picker.contains(e.target) || openButton.contains(e.target)) return;
+    state.open = false;
+    render();
+  });
   // ボード全体 / ストリート単位の引き直し・消去。Boardコンテナはrender()で作り直されるためイベント委譲する。
   let streetShuffleExplained = false;
   $('board').addEventListener('click', (e) => {
