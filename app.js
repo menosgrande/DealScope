@@ -207,8 +207,20 @@
     $('inc').disabled = isRandom() ? state.opp >= 4 : state.n >= 4;
 
     let ph = '';
-    for (let i = 0; i < count(); i++) {
-      ph += `<div class="row"><div class="name">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
+    if (isRandom()) {
+      for (let i = 0; i < count(); i++) {
+        ph += `<div class="row"><div class="name">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><div class="pr" data-i="${i}"></div></div>`;
+      }
+    } else {
+      ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
+      for (let i = 0; i < count(); i++) {
+        ph += `<div class="pcol p${i}">
+          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span></div>
+          <div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div>
+          <div class="pr" data-i="${i}"></div>
+        </div>`;
+      }
+      ph += `</div><div id="equityBar"></div>`;
     }
     $('players').innerHTML = ph;
 
@@ -255,8 +267,25 @@
       if (cell) {
         const k = madeHand(i);
         const mh = k < 0 ? '—' : HAND_NAMES[k].replace('ストレートフラッシュ', 'ストレート<br>フラッシュ');
-        cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span><span class="pct${done ? '' : ' dim'}">${txt}</span></div>` +
-          `<div class="bar"><i style="width:${w}%"></i></div>`;
+        if (isRandom()) {
+          cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span><span class="pct${done ? '' : ' dim'}">${txt}</span></div>` +
+            `<div class="bar"><i style="width:${w}%"></i></div>`;
+        } else {
+          cell.innerHTML = `<div class="pline"><span class="pct${done ? '' : ' dim'}">${txt}</span><span class="mh">${mh}</span></div>`;
+        }
+      }
+    }
+    const equityBar = $('equityBar');
+    if (equityBar) {
+      if (res.mode !== 'done' || res.eq.length !== count()) {
+        equityBar.innerHTML = '';
+      } else {
+        const segs = res.eq.map((v, i) =>
+          `<span class="seg p${i}bar" style="width:${Math.max(0, v)}%" aria-hidden="true"></span>`
+        ).join('');
+        const label = res.eq.map((v, i) => `P${i + 1} ${v.toFixed(1)}%`).join(', ');
+        equityBar.innerHTML =
+          `<div class="eqbarWrap"><div class="eqbar" role="img" aria-label="勝率の合計100%。${label}">${segs}</div></div>`;
       }
     }
     let h = '';
