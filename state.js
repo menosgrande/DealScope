@@ -167,7 +167,7 @@
     const targetSet = new Set(target);
     const used = new Set();
     ps.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
-    b.forEach((c, i) => { if (c >= 0 && !targetSet.has(i)) used.add(c); });
+    b.forEach((c) => { if (c >= 0) used.add(c); });
     const deck = [];
     for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
     for (let i = deck.length - 1; i > 0; i--) {
