@@ -82,7 +82,11 @@ body.picking .playerGrid{padding-top:8px}
 .eqlegend span{white-space:nowrap}.eqlegend b{font-weight:600}
 .bslots{display:flex;align-items:flex-start;gap:12px}
 .grp{display:flex;flex-direction:column;align-items:flex-start}
+.grpCards{display:flex;align-items:center;gap:5px}
 .grp .slots{gap:6px}
+.streetShuffle{width:28px;height:28px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;color:var(--mute);font-size:16px;display:inline-flex;align-items:center;justify-content:center}
+.streetShuffle:active{transform:scale(.97)}
+.streetShuffle:disabled{opacity:.22;cursor:not-allowed}
 .cap{font-size:10px;color:var(--mute);text-align:center;margin-top:3px;letter-spacing:.04em}
 .cardWrap{position:relative;display:inline-flex;flex:none}
 .cardDelete{position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;border:0;
@@ -120,8 +124,10 @@ body.picking .playerGrid{padding-top:8px}
   .randomHandRow{gap:6px}
   .playerGrid.p4{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
   .playerGrid.p4 .slot{width:44px}
-  .bslots{gap:8px}
+  .bslots{gap:6px}
+  .grpCards{gap:3px}
   .grp .slots{gap:4px}
+  .streetShuffle{width:24px;height:28px;font-size:15px}
   .bslots .slot{width:38px;height:54px}
   .bslots .slot small{font-size:15px}
 }
