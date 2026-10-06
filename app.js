@@ -434,12 +434,17 @@
     const b = e.target.closest('#boardShuffle');
     if (!b) return;
     e.preventDefault();
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     const r = S.shuffleBoard(state.players, state.board, Math.random);
     state.players = r.players;
     state.board = r.board;
     state.deleteTarget = null;
     render();
     recompute();
+    undo = prev;
+    $('toastMsg').textContent = 'ボードを引き直しました';
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 7000);
   });
 
   $('mode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
