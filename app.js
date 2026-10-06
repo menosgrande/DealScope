@@ -232,7 +232,7 @@
 
     const grp = (label, js) =>
       `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row"><div class="name">Board <button id="boardShuffle" class="boardShuffle" aria-label="ボードをランダム補充" title="ボードをランダム補充">🔀</button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div>`;
+    $('board').innerHTML = `<div class="row"><div class="name">Board</div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -453,21 +453,6 @@
     }
     render();
   });
-  function fillBoardRandom() {
-    const used = new Set();
-    state.players.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
-    state.board.forEach((c) => { if (c >= 0) used.add(c); });
-    const deck = [];
-    for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    const target = state.board[4] >= 0 ? 5 : state.board[3] >= 0 ? 4 :
-      state.board.slice(0, 3).some((c) => c >= 0) ? 3 : 0;
-    for (let j = 0; j < target; j++) if (state.board[j] < 0) state.board[j] = deck.pop();
-  }
-
   // ランダム補充: 空欄だけをランダムなカードで埋める(入力済みは変えない)。範囲・ルールは state.js の fillEmpty
   $('deal').addEventListener('click', () => {
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
@@ -477,13 +462,6 @@
     render();
     recompute();
   });
-  $('board').addEventListener('click', (e) => {
-    if (!e.target.closest('#boardShuffle')) return;
-    fillBoardRandom();
-    render();
-    recompute();
-  });
-
   // 全消去: 隠れているP2〜P4も含めて、全カードを消す。モード・人数は変えない
   $('reset').addEventListener('click', () => {
     state.players = S.emptyHands();
