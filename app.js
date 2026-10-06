@@ -238,7 +238,7 @@
 
     const grp = (label, js) =>
       `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード5枚をランダムに引き直す" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード5枚をランダムに引き直す" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -443,6 +443,26 @@
     recompute();
     undo = prev;
     $('toastMsg').textContent = 'ボードを引き直しました';
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 7000);
+  });
+
+  // Board消去: プレイヤーのカードを残し、Boardだけを空にする。直後は全消去と同じUndoを使える。
+  $('board').addEventListener('click', (e) => {
+    const b = e.target.closest('#boardClear');
+    if (!b) return;
+    e.preventDefault();
+    if (!state.board.some((c) => c >= 0)) return;
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+    const r = S.clearBoard(state.players, state.board);
+    state.players = r.players;
+    state.board = r.board;
+    state.deleteTarget = null;
+    state.open = false;
+    render();
+    recompute();
+    undo = prev;
+    $('toastMsg').textContent = 'ボードを消しました';
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   });
