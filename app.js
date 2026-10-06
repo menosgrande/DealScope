@@ -93,13 +93,14 @@
     recompute();
   }
 
-  /* 「人数を減らす」と「モードを切り替える」は別の処理。
-     人数を減らす: いなくなったプレイヤーのカードを破棄する
-     モード切替  : 何も破棄しない (既知ハンド ⇄ ランダム相手 で、P1〜P4 は保持される) */
+  /* 人数変更は「表示人数」の変更であり、隠れたP3/P4の入力は保持する。
+     表示中のカードと隠れたカードが重複した場合だけ、dedupe() で後ろ側を空欄に整理する。 */
   function setCount(v) {
     if (isRandom() || v < 2 || v > 4 || v === state.n) return;
-    for (let i = v; i < 4; i++) state.players[i] = [-1, -1];
     state.n = v;
+    const c = S.dedupe(state.board, state.players);
+    state.board = c.board;
+    state.players = c.players;
     afterShrink();
     render();
     recompute();
