@@ -131,6 +131,13 @@
     return { mode, n, opp, players: c.players, board: c.board };
   }
 
+  /* ---------- ボード消去 ----------
+   * プレイヤーのカードは変えず、Boardだけを空にする。入力は変更せず、新しい配列を返す。
+   */
+  function clearBoard(players, board) {
+    return { players: players.map((h) => h.slice()), board: emptyBoard() };
+  }
+
   /* ---------- ボードの引き直し ----------
    * プレイヤーのカードは変えず、ボード5枚を残りデックからランダムに引き直す。
    * 隠れているP2〜P4のカードもデックから除外する。入力は変更せず、新しい配列を返す。
@@ -174,7 +181,7 @@
     return { players: ps, board: b };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard };
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, clearBoard };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
