@@ -244,9 +244,10 @@
     ph += '</div></div>';
     $('players').innerHTML = ph;
 
-    const grp = (label, js) =>
-      `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード5枚をランダムに引き直す" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div></div>`;
+    const streetReady = (street) => street === 0 || (street === 1 ? state.board.slice(0, 3).every((c) => c >= 0) : state.board.slice(0, 3).every((c) => c >= 0) && state.board[3] >= 0);
+    const grp = (label, street, js) =>
+      `<div class="grp"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button></div><div class="cap">${label}</div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード5枚をランダムに引き直す" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -459,20 +460,32 @@
   }
   $('players').addEventListener('click', onSlotClick);
   $('board').addEventListener('click', onSlotClick);
-  // ボードを引き直す: プレイヤーのカードを残し、Boardの5枚だけをランダムに再抽選する。
+  // ボード全体の引き直し / ストリート単位の引き直し。Boardコンテナはrender()で作り直されるためイベント委譲する。
+  let streetShuffleExplained = false;
   $('board').addEventListener('click', (e) => {
-    const b = e.target.closest('#boardShuffle');
-    if (!b) return;
+    const b = e.target.closest('#boardShuffle, .streetShuffle');
+    if (!b || b.disabled) return;
     e.preventDefault();
+    const street = b.classList.contains('streetShuffle') ? +b.dataset.street : null;
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
-    const r = S.shuffleBoard(state.players, state.board, Math.random);
+    const r = street === null
+      ? S.shuffleBoard(state.players, state.board, Math.random)
+      : S.shuffleBoardStreet(state.players, state.board, street, Math.random);
     state.players = r.players;
     state.board = r.board;
     state.deleteTarget = null;
+    state.open = false;
     render();
     recompute();
     undo = prev;
-    $('toastMsg').textContent = 'ボードを引き直しました';
+    $('toastMsg').textContent = street === null
+      ? 'ボードを引き直しました'
+      : (street === 0
+        ? (streetShuffleExplained ? 'Flopを引き直しました' : 'Flopだけ引き直しました。Turn・Riverはそのままです')
+        : street === 1
+          ? (streetShuffleExplained ? 'Turnを引き直しました' : 'Turnだけ引き直しました。Riverはそのままです')
+          : (streetShuffleExplained ? 'Riverを引き直しました' : 'Riverだけ引き直しました'));
+    if (street !== null) streetShuffleExplained = true;
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   });
