@@ -131,6 +131,62 @@
     return { mode, n, opp, players: c.players, board: c.board };
   }
 
+  /* ---------- Handの引き直し / 消去 ----------
+   * playerIndex: 0..3 の指定プレイヤーだけ、2枚とも新しいカードへ交換する。
+   * boardと他プレイヤーのカードは固定する。
+   */
+  function shufflePlayerHand(players, board, playerIndex, rnd) {
+    if (!Number.isInteger(playerIndex) || playerIndex < 0 || playerIndex >= players.length) {
+      return { players: players.map((h) => h.slice()), board: board.slice() };
+    }
+    const ps = players.map((h) => h.slice());
+    const b = board.slice();
+    const used = new Set();
+    b.forEach((c) => { if (c >= 0) used.add(c); });
+    ps.forEach((h, i) => h.forEach((c) => {
+      if (i !== playerIndex && c >= 0) used.add(c);
+    }));
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    ps[playerIndex] = [deck.pop(), deck.pop()];
+    return { players: ps, board: b };
+  }
+
+  /* 表示中のプレイヤー全員のHandを引き直す。相手想定で隠れているP2〜P4は保持する。 */
+  function shuffleHands(players, board, shown, rnd) {
+    const ps = players.map((h) => h.slice());
+    const b = board.slice();
+    const keep = new Set();
+    b.forEach((c) => { if (c >= 0) keep.add(c); });
+    for (let i = shown; i < ps.length; i++) {
+      ps[i].forEach((c) => { if (c >= 0) keep.add(c); });
+    }
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!keep.has(c)) deck.push(c);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    for (let i = 0; i < shown; i++) ps[i] = [deck.pop(), deck.pop()];
+    return { players: ps, board: b };
+  }
+
+  function clearPlayerHand(players, playerIndex) {
+    const ps = players.map((h) => h.slice());
+    if (Number.isInteger(playerIndex) && playerIndex >= 0 && playerIndex < ps.length) ps[playerIndex] = [-1, -1];
+    return { players: ps };
+  }
+
+  function clearHands(players, shown) {
+    const ps = players.map((h) => h.slice());
+    for (let i = 0; i < Math.min(shown, ps.length); i++) ps[i] = [-1, -1];
+    return { players: ps };
+  }
+
   /* ---------- ボード消去 ----------
    * プレイヤーのカードは変えず、Boardだけを空にする。入力は変更せず、新しい配列を返す。
    */
@@ -204,7 +260,7 @@
     return { players: ps, board: b };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, clearBoard };
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
