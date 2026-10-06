@@ -463,6 +463,25 @@
       const inputKeep = json(b) === json(cards('2c 3c 4c 5c 6c'));
       check('ストリート引き直し: Flop/Turn/Riverの対象部分だけ変更し、後ろを保持する', basePlayers && flopOnly && turnOnly && riverOnly && noOverlap && inputKeep, '');
     }
+    // Hand引き直し / 消去: 対象だけを変更し、Boardと他プレイヤーを保持する
+    {
+      let seed = 97531;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs'); p[2] = H('2c', '3c'); p[3] = H('9h', '9d');
+      const b = cards('4c 5c 6c 7c 8c');
+      const one = S.shufflePlayerHand(p, b, 1, rnd);
+      const all = S.shuffleHands(p, b, 3, rnd);
+      const cp = S.clearPlayerHand(p, 2);
+      const ca = S.clearHands(p, 2);
+      const playerKeepOne = json(one.players[0]) === json(p[0]) && json(one.players[2]) === json(p[2]) && json(one.players[3]) === json(p[3]);
+      const oneFresh = one.players[1].length === 2 && one.players[1].every((c) => c >= 0) && new Set(one.players[1]).size === 2 &&
+        one.players[1].every((c) => !p.flat().includes(c) && !b.includes(c));
+      const allKeepHidden = json(all.players[3]) === json(p[3]) && all.players.slice(0, 3).flat().every((c) => c >= 0);
+      const allUnique = new Set(all.players.slice(0, 3).flat().concat(b.filter((c) => c >= 0))).size === 6 + b.filter((c) => c >= 0).length;
+      const clearOne = json(cp.players[2]) === json([-1, -1]) && json(cp.players[0]) === json(p[0]);
+      const clearAll = json(ca.players[0]) === json([-1, -1]) && json(ca.players[1]) === json([-1, -1]) && json(ca.players[2]) === json(p[2]) && json(ca.players[3]) === json(p[3]);
+      check('Hand操作: 個別/全体の引き直し・消去が対象だけを変更する', playerKeepOne && oneFresh && allKeepHidden && allUnique && clearOne && clearAll, '');
+    }
     // ボード消去: プレイヤーを変えず、Boardだけを空にする
     {
       const p = blank(); p[0] = H('As', 'Kd'); p[2] = H('Qh', 'Qs');
@@ -472,6 +491,20 @@
       const boardClear = json(r.board) === json([-1, -1, -1, -1, -1]);
       const inputKeep = json(b) === json(cards('2c 3c 4c 5c 6c'));
       check('ボード消去: プレイヤーと元の入力を変えず、Boardだけを消去する', playerKeep && boardClear && inputKeep, json(r.board));
+    }
+    // ストリート単位のボード消去: 対象から後ろだけを消す
+    {
+      const p = blank(); p[0] = H('As', 'Kd'); p[1] = H('Qh', 'Qs');
+      const b = cards('2c 3c 4c 5c 6c');
+      const f = S.clearBoardStreet(p, b, 0);
+      const t = S.clearBoardStreet(p, b, 1);
+      const r = S.clearBoardStreet(p, b, 2);
+      const ok = json(f.players) === json(p) && json(t.players) === json(p) && json(r.players) === json(p) &&
+        json(f.board) === json([-1, -1, -1, -1, -1]) &&
+        json(t.board) === json([b[0], b[1], b[2], -1, -1]) &&
+        json(r.board) === json([b[0], b[1], b[2], b[3], -1]) &&
+        json(b) === json(cards('2c 3c 4c 5c 6c'));
+      check('Board操作: Flop/Turn/Riverの×はその位置から後ろを消去する', ok, '');
     }
     // ボード引き直し: プレイヤーを変えず、5枚を重複なく再抽選する
     {
