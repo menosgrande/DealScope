@@ -154,6 +154,30 @@
     return { players: players.map((h) => h.slice()), board: deck.slice(0, 5) };
   }
 
+  /* ---------- ストリート単位のボード引き直し ----------
+   * street: 0 = Flop(0..2), 1 = Turn(3), 2 = River(4)
+   * プレイヤーと、対象ストリート以外のボードを固定したまま、対象部分だけを残りデックから引き直す。
+   * 入力は変更せず、新しい配列を返す。
+   */
+  function shuffleBoardStreet(players, board, street, rnd) {
+    if (![0, 1, 2].includes(street)) return { players: players.map((h) => h.slice()), board: board.slice() };
+    const ps = players.map((h) => h.slice());
+    const b = board.slice();
+    const target = street === 0 ? [0, 1, 2] : [street === 1 ? 3 : 4];
+    const targetSet = new Set(target);
+    const used = new Set();
+    ps.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
+    b.forEach((c, i) => { if (c >= 0 && !targetSet.has(i)) used.add(c); });
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    target.forEach((i) => { b[i] = deck.pop(); });
+    return { players: ps, board: b };
+  }
+
   /* ---------- おまかせ配布 ----------
    * 空欄だけをランダムなカードで埋める。入力済みのカードは変えない。
    *   埋める範囲: 画面に出ているプレイヤー(shown 人)のホールカード + いまのストリートまでのボード
@@ -181,7 +205,7 @@
     return { players: ps, board: b };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, clearBoard };
+  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, clearBoard };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
