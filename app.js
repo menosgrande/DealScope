@@ -24,6 +24,7 @@
     board: S.emptyBoard(), // [0..2]=Flop, [3]=Turn, [4]=River
     active: { t: 'p', i: 0, j: 0 },
     open: false,
+    deleteTarget: null,
   };
 
   const isRandom = () => state.mode === 'random';
@@ -67,7 +68,7 @@
   }
   function advance() {
     const s = nextEmptySlot(state.active, 1);
-    if (s) { state.active = s; return true; }
+    if (s) { state.active = s; state.deleteTarget = null; return true; }
     return false;
   }
   const activeValid = () => slots().some((s) => same(s, state.active));
@@ -180,12 +181,13 @@
   function slotHTML(s) {
     const c = get(s);
     const act = same(s, state.active) && state.open ? ' active' : '';
+    const delVisible = state.deleteTarget && same(s, state.deleteTarget);
     const attr = `data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}"`;
     if (c < 0) return `<button class="slot empty${act}" ${attr} aria-label="未入力"></button>`;
     const g = glow.size ? (glow.has(c) ? ' hit' : ' off') : '';
     return `<span class="cardWrap">` +
       `<button class="slot filled s${c & 3}${g}${act}" ${attr}>${E.RANKS[c >> 2]}<small>${E.SUITS[c & 3]}</small></button>` +
-      `<button class="cardDelete" data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}" aria-label="${slotLabel(s)}を外す">×</button>` +
+      `<button class="cardDelete${delVisible ? ' visible' : ''}" data-t="${s.t}" data-i="${s.i === undefined ? '' : s.i}" data-j="${s.j}" aria-label="${slotLabel(s)}を外す">×</button>` +
       `</span>`;
   }
 
@@ -401,6 +403,7 @@
         : { t: 'b', j: +del.dataset.j };
       set(s, -1);
       state.active = s;
+      state.deleteTarget = null;
       state.open = true;
       render();
       recompute();
@@ -411,6 +414,7 @@
     state.active = b.dataset.t === 'p'
       ? { t: 'p', i: +b.dataset.i, j: +b.dataset.j }
       : { t: 'b', j: +b.dataset.j };
+    state.deleteTarget = get(state.active) >= 0 ? state.active : null;
     state.open = true;
     render();
   }
@@ -463,6 +467,7 @@
     state.players = S.emptyHands();
     state.board = S.emptyBoard();
     state.active = { t: 'p', i: 0, j: 0 };
+    state.deleteTarget = null;
     render();
     recompute();
   });
