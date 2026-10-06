@@ -254,8 +254,8 @@ details.dev summary{font-size:12px;color:var(--mute)}
   </div>
 
   <div class="acts" role="group" aria-label="局面操作">
-    <button id="deal" class="act primary" title="空いている枠をランダムなカードで埋める"><span class="actIcon" aria-hidden="true">🔀</span><span>おまかせ配布</span></button>
-    <button id="reset" class="act secondary" title="カードを全部消す"><span class="actIcon" aria-hidden="true">🗑️</span><span>全消去</span></button>
+    <button id="deal" class="act primary" title="空いている枠をランダムなカードで埋める"><span class="actIcon" aria-hidden="true">🔀</span><span>配る</span></button>
+    <button id="reset" class="act secondary" title="カードを全部消す"><span class="actIcon" aria-hidden="true">🗑️</span><span>消去</span></button>
   </div>
 
   <div id="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastUndo">元に戻す</button></div>
@@ -295,9 +295,9 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
     <h3>ボタン</h3>
     <ul>
-      <li><b>おまかせ配布</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。見えていない既知ハンドのカードも重複しないよう避けます。</li>
-      <li><b>全消去</b>: カードを全部消します。モードと人数はそのままです。消した直後の数秒間は「元に戻す」が出ます。</li>
-      <li class="sub">全部作り直したいときは、「全消去」→「おまかせ配布」です。ボードだけ作り直したいときは、Boardの「↻ 引き直す」を使います。</li>
+      <li><b>配る</b>: 空いている枠だけを、ランダムなカードで埋めます。入力済みのカードは変わりません。埋めるのは今のストリートまでです(Preflopならホールカード、Flopなら+Flop、Turn・Riverも同様)。見えていない既知ハンドのカードも重複しないよう避けます。</li>
+      <li><b>消去</b>: カードを全部消します。モードと人数はそのままです。消した直後の数秒間は「元に戻す」が出ます。</li>
+      <li class="sub">全部作り直したいときは、「消去」→「配る」です。ボードだけ作り直したいときは、Boardの「↻ 引き直す」を使います。</li>
     </ul>
 
     <h3>モード</h3>
