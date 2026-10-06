@@ -281,7 +281,7 @@
         equityBar.innerHTML = '';
       } else {
         const segs = res.eq.map((v, i) =>
-          `<span class="seg p${i}bar" style="width:${Math.max(0, v)}%" aria-hidden="true"></span>`
+          `<span class="eqseg p${i}bar" style="width:${Math.max(0, v)}%" aria-hidden="true"></span>`
         ).join('');
         const label = res.eq.map((v, i) => `P${i + 1} ${v.toFixed(1)}%`).join(', ');
         equityBar.innerHTML =
