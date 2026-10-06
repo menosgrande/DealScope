@@ -239,6 +239,10 @@
     ph += '</div></div>';
     $('players').innerHTML = ph;
 
+    // Hand内の操作ボタンはrender()で生成されるので、生成直後に直接イベントを付ける。
+    $('deal').addEventListener('click', (e) => { e.preventDefault(); dealCards(); });
+    $('reset').addEventListener('click', (e) => { e.preventDefault(); resetCards(); });
+
     const grp = (label, js) =>
       `<div class="grp"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><div class="cap">${label}</div></div>`;
     $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード5枚をランダムに引き直す" title="ボード5枚をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">引き直す</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">消去</span></button></div><div class="bslots">${grp('Flop', [0, 1, 2])}${grp('Turn', [3])}${grp('River', [4])}</div></div></div>`;
@@ -551,13 +555,6 @@
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   }
-  // Hand内のボタンはrender()で作り直されるため、ページ全体でイベント委譲する。
-  document.addEventListener('click', (e) => {
-    const deal = e.target.closest('#deal');
-    if (deal) { e.preventDefault(); dealCards(); return; }
-    const reset = e.target.closest('#reset');
-    if (reset) { e.preventDefault(); resetCards(); return; }
-  });
   $('toastUndo').addEventListener('click', () => {
     if (!undo) return;
     state.players = undo.players;
