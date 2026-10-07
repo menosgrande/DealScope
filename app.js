@@ -474,6 +474,7 @@
     const openButton = $('open');
     if (picker.contains(e.target) || openButton.contains(e.target)) return;
     state.open = false;
+    state.deleteTarget = null;
     render();
   });
   // ボード全体 / ストリート単位の引き直し・消去。Boardコンテナはrender()で作り直されるためイベント委譲する。
