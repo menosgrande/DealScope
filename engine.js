@@ -366,9 +366,10 @@
    * outs / outCards は複数ドロー間の重複カードを1枚にまとめた値。
    * deadCards は既知カード。既知ハンドの他プレイヤーもブロッカーとして除外する。
    */
-  function analyzeDraws(cards, deadCards) {
+  function analyzeDraws(cards, deadCards, holeCards) {
     const cs = Array.from(new Set((cards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52)));
     const dead = new Set((deadCards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52));
+    const hole = new Set((holeCards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52));
     cs.forEach((c) => dead.add(c));
 
     if (cs.length < 5 || cs.length > 7) {
@@ -376,12 +377,13 @@
     }
 
     const rankSet = new Set(cs.map((c) => c >> 2));
+    const holeRanks = new Set(Array.from(hole).map((c) => c >> 2));
     const currentCategory = evaluate(cs) >>> 20;
     const straightOutRanks = new Set();
     let oesd = false;
 
     const patterns = [
-      [12, 0, 1, 2, 3],
+      [12, 0, 1, 2, 3], // A2345
       [0, 1, 2, 3, 4],
       [1, 2, 3, 4, 5],
       [2, 3, 4, 5, 6],
@@ -390,37 +392,76 @@
       [5, 6, 7, 8, 9],
       [6, 7, 8, 9, 10],
       [7, 8, 9, 10, 11],
-      [8, 9, 10, 11, 12],
+      [8, 9, 10, 11, 12], // TJQKA
     ];
 
-    if (currentCategory < 4) {
+    if (currentCategory < 4 && hole.size > 0) {
       for (const pattern of patterns) {
         const missing = pattern.filter((r) => !rankSet.has(r));
         if (missing.length !== 1) continue;
+
+        const present = pattern.filter((r) => rankSet.has(r));
+        // A board-only straight possibility is not this player's draw.
+        if (!present.some((r) => holeRanks.has(r))) continue;
+
         const mr = missing[0];
         straightOutRanks.add(mr);
-        const mi = pattern.indexOf(mr);
-        if (mi === 0 || mi === 4) oesd = true;
+      }
+
+      // OESD requires one actual four-card consecutive run with two distinct
+      // completion ranks. A234 and JQKA have only one completion rank.
+      const runs = [
+        [0, 1, 2, 3],
+        [1, 2, 3, 4],
+        [2, 3, 4, 5],
+        [3, 4, 5, 6],
+        [4, 5, 6, 7],
+        [5, 6, 7, 8],
+        [6, 7, 8, 9],
+        [7, 8, 9, 10],
+        [8, 9, 10, 11],
+      ];
+      for (const run of runs) {
+        if (!run.every((r) => rankSet.has(r))) continue;
+        if (!run.some((r) => holeRanks.has(r))) continue;
+
+        const low = run[0] - 1;
+        const high = run[3] + 1;
+        const lowValid = low >= 0 || (run[0] === 0 && rankSet.has(12));
+        const highValid = high <= 12;
+        const completions = [];
+        if (lowValid) completions.push(low >= 0 ? low : 12);
+        if (highValid) completions.push(high);
+
+        const distinct = new Set(completions);
+        if (distinct.size >= 2 && Array.from(distinct).every((r) => straightOutRanks.has(r))) {
+          oesd = true;
+          break;
+        }
       }
     }
 
     const straightCards = [];
-    straightOutRanks.forEach((r) => {
+    for (const r of straightOutRanks) {
       for (let suit = 0; suit < 4; suit++) {
         const c = r * 4 + suit;
         if (!dead.has(c)) straightCards.push(c);
       }
-    });
+    }
 
     const suitCounts = [0, 0, 0, 0];
+    const holeSuitCounts = [0, 0, 0, 0];
     cs.forEach((c) => { suitCounts[c & 3]++; });
+    hole.forEach((c) => { holeSuitCounts[c & 3]++; });
+
     const flushCards = [];
     let fd = false;
     let bdfd = false;
 
     if (currentCategory < 5) {
       for (let suit = 0; suit < 4; suit++) {
-        if (suitCounts[suit] === 4) {
+        // The player must contribute at least one card to the four-flush.
+        if (suitCounts[suit] === 4 && holeSuitCounts[suit] > 0) {
           fd = true;
           for (let r = 0; r < 13; r++) {
             const c = r * 4 + suit;
@@ -431,8 +472,9 @@
       }
     }
 
+    // Backdoor flush draw is flop-only and must also belong to the player.
     if (cs.length === 5 && !fd) {
-      bdfd = suitCounts.some((n) => n === 3);
+      bdfd = suitCounts.some((n, suit) => n === 3 && holeSuitCounts[suit] > 0);
     }
 
     const tags = [];
@@ -446,9 +488,9 @@
     return {
       tags,
       outs: unique.size,
-      outCards: Array.from(unique).sort((a, b) => a - b),
-      straightCards: straightCards.sort((a, b) => a - b),
-      flushCards: flushCards.sort((a, b) => a - b),
+      outCards: Array.from(unique).sort((x, y) => x - y),
+      straightCards: straightCards.sort((x, y) => x - y),
+      flushCards: flushCards.sort((x, y) => x - y),
     };
   }
 
