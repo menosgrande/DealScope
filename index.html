@@ -24,7 +24,7 @@ button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 
 .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04em}
-.top .btns{display:flex;gap:8px}
+.top .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .pill{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:17px;
   border:1px solid var(--line);background:none;color:var(--mute);font-size:13px}
 .pill.icon{width:34px;padding:0;font-weight:700}
@@ -98,6 +98,12 @@ body.picking .playerGrid{padding-top:8px}
   display:none;align-items:center;justify-content:center;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .cardDelete.visible{display:flex}
 .cardDelete:active{transform:scale(.94)}
+.approxWrap{position:relative;display:inline-flex;align-items:center;gap:0}
+.approxMark{width:18px;height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;line-height:1;cursor:pointer}
+.approxMark:focus-visible{outline:2px solid var(--brass);outline-offset:1px;border-radius:4px}
+.approxTip{position:absolute;right:0;bottom:calc(100% + 6px);z-index:8;width:220px;max-width:calc(100vw - 28px);
+  padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#0a211a;color:var(--ivory);
+  font-size:11px;line-height:1.5;text-align:left;white-space:normal;box-shadow:0 3px 12px rgba(0,0,0,.28)}
 .slot{width:44px;height:60px;border-radius:7px;border:2px dashed var(--line);background:transparent;
   color:var(--ink);font-size:20px;font-weight:700;line-height:1.1;padding:0}
 .slot.filled{background:var(--ivory);border:2px solid var(--ivory)}
@@ -262,6 +268,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
     <h1>DealScope</h1>
     <div class="btns">
       <a class="pill" href="./minigame/" style="text-decoration:none">4人ミニゲーム β</a>
+      <button id="share" class="pill icon" aria-label="この局面を共有" title="この局面を共有">↗</button>
       <button id="copy" class="pill">リンクをコピー</button>
       <button id="helpBtn" class="pill icon" aria-label="使い方">?</button>
     </div>
@@ -299,6 +306,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div class="phead">
     <button id="prev" class="nav" aria-label="前の枠">‹</button><button id="next" class="nav" aria-label="次の枠">›</button>
     <div id="pickLabel"></div>
+    <button id="pickUndo" class="nav" aria-label="直前のカード入力を戻す" title="直前のカード入力を戻す">↶</button>
     <button id="clear">外す</button>
     <button id="close" aria-label="カード選択を閉じる">閉じる ×</button>
   </div>

@@ -90,6 +90,11 @@
       list.find((s) => slotEnabled(s) && get(s) < 0) || list[0];
   }
   function pick(c) {
+    inputUndo = {
+      players: state.players.map((h) => h.slice()),
+      board: state.board.slice(),
+      active: { ...state.active },
+    };
     set(state.active, c);
     if (!advance()) state.open = false;
     render();
@@ -99,6 +104,7 @@
   /* 人数変更は「表示人数」の変更であり、隠れたP3/P4の入力は保持する。
      表示中のカードと隠れたカードが重複した場合だけ、dedupe() で後ろ側を空欄に整理する。 */
   function setCount(v) {
+    inputUndo = null;
     if (isRandom() || v < 2 || v > 4 || v === state.n) return;
     state.n = v;
     const c = S.dedupe(state.board, state.players);
@@ -109,12 +115,14 @@
     recompute();
   }
   function setOpp(v) {
+    inputUndo = null;
     if (!isRandom() || v < 1 || v > 4) return;
     state.opp = v;
     render();
     recompute();
   }
   function setMode(m) {
+    inputUndo = null;
     if ((m !== 'known' && m !== 'random') || m === state.mode) return;
     state.mode = m;
     if (m === 'known') {
@@ -224,7 +232,7 @@
     ph += '<div class="row handRow"><div class="name">Hand</div><div class="handMain">';
     ph += '<div class="handTools" role="group" aria-label="Handの操作">';
     ph += '<button id="deal" class="boardShuffle" title="空いている枠をランダムなカードで埋める" aria-label="空いている枠をランダムなカードで埋める"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">配る</span></button>';
-    ph += '<button id="handShuffle" class="boardShuffle" title="表示中のHand全体を引き直す" aria-label="表示中のHand全体を引き直す"><span aria-hidden="true">↻</span><span class="handActionText">全体</span></button>';
+    ph += '<button id="handShuffle" class="boardShuffle" title="表示中のHand全体を引き直す" aria-label="表示中のHand全体を引き直す"><span aria-hidden="true">↻</span><span class="handActionText">全交換</span></button>';
     ph += '<button id="reset" class="boardClear" title="表示中のHandをすべて消す" aria-label="表示中のHandをすべて消す"><span aria-hidden="true">&times;</span><span class="handActionText">全消去</span></button>';
     ph += '</div>';
     if (isRandom()) {
@@ -251,7 +259,7 @@
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
       `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全体</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -263,6 +271,7 @@
         b.classList.toggle('cur', c === cur);
       });
       $('clear').style.visibility = cur >= 0 ? 'visible' : 'hidden';
+      $('pickUndo').disabled = !inputUndo;
     }
     renderResults(); // プレイヤー行を作り直すので、勝率も描き直す
   }
@@ -294,7 +303,10 @@
         const k = madeHand(i);
         const mh = k < 0 ? '—' : HAND_NAMES[k].replace('ストレートフラッシュ', 'ストレート<br>フラッシュ');
         if (isRandom()) {
-          cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span><span class="pct${done ? '' : ' dim'}">${txt}</span></div>` +
+          const pctHtml = done && res.approx
+            ? `<span class="approxWrap"><button type="button" class="approxMark" aria-label="近似値の説明" title="近似値の説明">≈</button><span class="approxNumber">${res.eq[i].toFixed(1)}%</span><span class="approxTip" hidden>近似値です。相手にランダムなカードを配って10万回シミュレーションした結果なので、実行するたびに少し変わります。</span></span>`
+            : `<span class="pct${done ? '' : ' dim'}">${txt}</span>`;
+          cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span>${pctHtml}</div>` +
             `<div class="bar"><i style="width:${w}%"></i></div>`;
         } else {
           cell.innerHTML = `<div class="pline"><span class="pct${done ? '' : ' dim'}">${txt}</span><span class="mh">${mh}</span></div>`;
@@ -539,11 +551,25 @@
       : { t: 'b', j: +b.dataset.j };
     if (get(target) < 0 && !slotEnabled(target)) return; // まだ入力できない枠
     state.active = target;
+    inputUndo = null;
     state.deleteTarget = get(state.active) >= 0 ? state.active : null;
     state.open = true;
     render();
   }
-  $('players').addEventListener('click', onSlotClick);
+  $('players').addEventListener('click', (e) => {
+    const mark = e.target.closest('.approxMark');
+    if (mark) {
+      e.preventDefault();
+      e.stopPropagation();
+      const wrap = mark.closest('.approxWrap');
+      const tip = wrap && wrap.querySelector('.approxTip');
+      if (!tip) return;
+      $('players').querySelectorAll('.approxTip').forEach((x) => { if (x !== tip) x.hidden = true; });
+      tip.hidden = !tip.hidden;
+      return;
+    }
+    onSlotClick(e);
+  });
   $('board').addEventListener('click', onSlotClick);
   // ピッカーの外側をクリック／タップしたら閉じる。
   // pointerdown を使うことで、枠をタップした場合はその後の slot click で自然に再オープンできる。
@@ -563,6 +589,7 @@
     const clear = e.target.closest('#boardClear, .streetClear');
     if (shuffle && !shuffle.disabled) {
       e.preventDefault();
+      inputUndo = null;
       const street = shuffle.classList.contains('streetShuffle') ? +shuffle.dataset.street : null;
       const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
       const r = street === null
@@ -589,6 +616,7 @@
     }
     if (clear && !clear.disabled) {
       e.preventDefault();
+      inputUndo = null;
       const street = clear.classList.contains('streetClear') ? +clear.dataset.street : null;
       const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
       if (street === null) {
@@ -630,9 +658,26 @@
     }
     render();
   };
+  function restoreInputUndo() {
+    if (!inputUndo) return;
+    state.players = inputUndo.players.map((h) => h.slice());
+    state.board = inputUndo.board.slice();
+    state.active = { ...inputUndo.active };
+    inputUndo = null;
+    state.deleteTarget = null;
+    state.open = true;
+    render();
+    recompute();
+  }
   $('prev').addEventListener('click', () => moveActive(-1));
   $('next').addEventListener('click', () => moveActive(1));
-  $('clear').addEventListener('click', () => { set(state.active, -1); render(); recompute(); });
+  $('pickUndo').addEventListener('click', restoreInputUndo);
+  $('clear').addEventListener('click', () => {
+    inputUndo = null;
+    set(state.active, -1);
+    render();
+    recompute();
+  });
   $('close').addEventListener('click', () => { state.open = false; render(); });
   $('open').addEventListener('click', () => {
     state.open = true;
@@ -645,6 +690,7 @@
   });
   // Hand操作。playersコンテナ側でイベント委譲する。各操作は対象だけを変更し、Undoで元に戻せる。
   let undo = null, toastTimer = 0;
+  let inputUndo = null;
   function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
   function showUndo(prev, message) {
     undo = prev;
@@ -653,6 +699,7 @@
     toastTimer = setTimeout(hideToast, 7000);
   }
   function dealCards() {
+    inputUndo = null;
     const r = S.fillEmpty(state.players, state.board, count(), Math.random);
     state.players = r.players;
     state.board = r.board;
@@ -661,6 +708,7 @@
     recompute();
   }
   function shuffleHandCards(playerIndex) {
+    inputUndo = null;
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     const r = S.shufflePlayerHand(state.players, state.board, playerIndex, Math.random);
     state.players = r.players;
@@ -672,6 +720,7 @@
     showUndo(prev, pname(playerIndex) + 'のハンドを引き直しました');
   }
   function shuffleAllHandCards() {
+    inputUndo = null;
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     const r = S.shuffleHands(state.players, state.board, count(), Math.random);
     state.players = r.players;
@@ -684,6 +733,7 @@
   }
   function clearHandCards(playerIndex) {
     if (state.players[playerIndex].every((c) => c < 0)) return;
+    inputUndo = null;
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
     state.players = S.clearPlayerHand(state.players, playerIndex).players;
     state.deleteTarget = null;
@@ -693,6 +743,7 @@
     showUndo(prev, pname(playerIndex) + 'のハンドを消去しました');
   }
   function clearAllHandCards() {
+    inputUndo = null;
     const shown = count();
     if (!state.players.slice(0, shown).some((h) => h.some((c) => c >= 0))) return;
     const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
@@ -727,6 +778,17 @@
     render();
     recompute(); // ここで hideToast() も呼ばれる
   });
+
+  $('share').addEventListener('click', async () => {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({ title: 'DealScope', url: location.href });
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  });
+
+  if (!navigator.share) $('share').hidden = true;
 
   $('copy').addEventListener('click', async () => {
     const url = location.href;
