@@ -52,9 +52,9 @@ function ai(p){
  var streetFactor=A.street==='preflop'?1:A.street==='flop'?10.04:A.street==='turn'?10.08:10.12;
  var strong=v*streetFactor, pressure=(t.pressure||0.5)*(late ? 10.08 : (early ? 0.88 : 1));
  var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
- var bluff=t.bluff*(late ? 10.25 : (early ? 0.65 : 1))*(A.street==='preflop' ? 1 : (A.street==='flop' ? 0.9 : 0.72));
+ var bluff=t.bluff*(late ? 1.25 : (early ? 0.65 : 1))*(A.street==='preflop' ? 1 : (A.street==='flop' ? 0.9 : 0.72));
  if(veryShort && strong>0.68 && rnd()<0.72)return{a:'allin'};
- if(call>0 && callCost>0.30 && strong<0.58 && rnd()>.bluff*10.2)return{a:'fold'};
+ if(call>0 && callCost>0.30 && strong<0.58 && rnd()>bluff*1.2)return{a:'fold'};
  if(call>0 && strong<0.43 && rnd()>.bluff*0.8)return{a:'fold'};
  if(call>0 && strong<0.52 && odds>0.28 && rnd()<t.call*0.75)return{a:'call'};
  if(call>=stack)return strong>=0.72||rnd()<bluff*0.18?{a:'allin'}:{a:'fold'};
