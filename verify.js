@@ -750,7 +750,7 @@
     await tick();
     return ok;
   }
-  /* ---------- 計算速度 ---------- */
+  /* ---------- Cache透明性 ---------- */,  async function testExactCacheTransparency() {,    // Cache実装前の契約テスト。後続のCached Exact APIに接続する。,    // 現段階では「同一局面を繰り返してもExact結果が完全一致する」ことを先に固定する。,    const cases = [,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: [] },,      { hands: ['As Ks', 'Qh Qc'].map(cards), board: cards('8s 7s 2d') },,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h') },,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h 4c') },,    ];,    let ok = true;,    for (const x of cases) {,      const r1 = E.exactSync(x.hands, x.board);,      for (let i = 0; i < 100; i++) E.exactSync(x.hands, x.board);,      const r2 = E.exactSync(x.hands, x.board);,      const same = JSON.stringify(r1) === JSON.stringify(r2);,      if (!same) ok = false;,    },    row(ok ? 'ok' : 'ng', 'Exact結果の反復透明性',,      '同一局面を100回以上再計算してもExact結果が完全一致する',,      ok ? '✓ 4局面すべて一致' : '✕ 結果が一致しない局面があります');,    await tick();,    return ok;,  },  /* ---------- 計算速度 ---------- */
   async function bench() {
     const four = ['As Ks', 'Qh Qc', 'Jd Td', '9c 9d'].map(cards);
     const two = ['As Ks', 'Qh Qd'].map(cards);
@@ -804,6 +804,7 @@
     head('⑤ 入力状態の整理');
     results.push(await testStateHelpers());
     results.push(await testCanonicalState());
+    results.push(await testExactCacheTransparency());
     const ok = results.every(Boolean);
     sum.className = 'vsum ' + (ok ? 'ok' : 'ng');
     sum.textContent = ok ? '✓ すべて合格' : '✕ 不合格の項目があります';
