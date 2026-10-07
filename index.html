@@ -111,11 +111,22 @@ body.picking .playerGrid{padding-top:8px}
 .cursorMark{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:3;pointer-events:none;
   color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
+@media (max-width:479px){
+  .row{display:block}
+  .row .name{width:auto;padding-top:0;margin-bottom:6px}
+  .handMain,.boardMain{width:100%}
+  .playerGrid.p3 .playerCardsRow,.playerGrid.p4 .playerCardsRow{flex-direction:column;gap:2px}
+  .playerGrid.p3 .playerTools,.playerGrid.p4 .playerTools{flex-direction:row;gap:3px}
+  .grpCards{flex-direction:column;gap:2px;align-items:center}
+  .streetTools{flex-direction:row;gap:3px}
+  .grp.flopGrp .grpCards{border:0;padding:0;outline:1px solid var(--line);outline-offset:3px;border-radius:8px}
+}
 @media (max-width:380px){
   .pcol .pct{font-size:23px}
   .pr .pct{font-size:24px}
   .boardShuffle{padding:0 8px}
   .boardShuffleText,.boardClearText{display:none}
+  #deal .boardShuffleText{display:inline}
   .playerAction{width:22px;height:24px;font-size:13px}
   .randomHandRow>.playerTools{padding-top:0}
   .ctl{grid-template-columns:minmax(0,1fr) auto;gap:8px}
