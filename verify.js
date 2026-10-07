@@ -121,6 +121,119 @@
     return bad === 0;
   }
 
+
+  /* ---------- Evaluator の固定順位・決定論性 ---------- */
+  async function testEvaluatorOrdering() {
+    const goldens = [
+      ['ハイカード', 'As Kd 9c 7h 2s', 0],
+      ['ワンペア', 'As Ah Kd Qc Js', 1],
+      ['ツーペア', 'As Ah Kd Kh Qs', 2],
+      ['スリーカード', 'As Ah Ad Kd Qs', 3],
+      ['A-high straight', 'As Ks Qd Jc Th', 4],
+      ['フラッシュ', 'As Js 8s 4s 2s', 5],
+      ['フルハウス', 'As Ah Ad Kd Kh', 6],
+      ['フォーカード', 'As Ah Ad Ac Kd', 7],
+      ['ストレートフラッシュ', '9s 8s 7s 6s 5s', 8],
+    ];
+
+    let ok = true;
+    const lines = [];
+    for (const [name, text, cat] of goldens) {
+      const s = E.evaluate(cards(text));
+      const got = s >>> 20;
+      if (got !== cat) ok = false;
+      lines.push(`${got === cat ? '✓' : '✕'} ${name}: category=${got} (期待 ${cat})`);
+    }
+
+    // Straight の rank encoding: A-high=12, K-high=11, Q-high=10, wheel=3
+    const straightGoldens = [
+      ['A-high', 'As Ks Qd Jc Th', 12],
+      ['K-high', 'Ks Qs Jd Tc 9h', 11],
+      ['Q-high', 'Qs Js Td 9c 8h', 10],
+      ['wheel', 'As 2s 3d 4c 5h', 3],
+    ];
+    for (const [name, text, rank] of straightGoldens) {
+      const s = E.evaluate(cards(text));
+      const got = (s >>> 16) & 0xf;
+      if ((s >>> 20) !== 4 || got !== rank) ok = false;
+      lines.push(`${((s >>> 20) === 4 && got === rank) ? '✓' : '✕'} straight ${name}: high=${got} (期待 ${rank})`);
+    }
+
+    const compareCases = [
+      ['A-high straight > K-high straight', 'As Ks Qd Jc Th', 'Ks Qs Jd Tc 9h'],
+      ['K-high straight > Q-high straight', 'Ks Qs Jd Tc 9h', 'Qs Js Td 9c 8h'],
+      ['wheel < 6-high straight', 'As 2s 3d 4c 5h', '6s 5d 4h 3c 2d'],
+      ['AA pair: K kicker > Q kicker', 'As Ah Kd Jc 9s', 'Ac Ad Qh Jd 9c'],
+      ['AAKK two pair > AAQQ two pair', 'As Ah Kd Kh Qs', 'Ac Ad Qh Qd Ks'],
+      ['AAA trips: K kicker > Q kicker', 'As Ah Ad Kd Qs', 'Ac Ad Ah Qh Js'],
+      ['A-high flush > K-high flush', 'As Js 8s 4s 2s', 'Ks Js 8s 4s 2s'],
+      ['AAA KK full house > KKK AA full house', 'As Ah Ad Kd Kh', 'Ks Kh Kd Ac Ah'],
+      ['AAAA K quads > AAAA Q quads', 'As Ah Ad Ac Kd', 'Ks Kh Kd Kc Qs'],
+    ];
+    for (const [name, a, b] of compareCases) {
+      const passed = E.evaluate(cards(a)) > E.evaluate(cards(b));
+      if (!passed) ok = false;
+      lines.push(`${passed ? '✓' : '✕'} ${name}`);
+    }
+
+    const categoryOrder = [
+      ['Straight Flush', '9s 8s 7s 6s 5s'],
+      ['Quads', 'As Ah Ad Ac Kd'],
+      ['Full House', 'Ks Kh Kd 2c 2d'],
+      ['Flush', 'As Js 8s 4s 2s'],
+      ['Straight', 'As Ks Qd Jc Th'],
+      ['Trips', 'Qs Qh Qd Kc 9s'],
+      ['Two Pair', 'Js Jh 8d 8c As'],
+      ['Pair', 'Ts Th Kd Qc 9s'],
+      ['High Card', 'As Kd 9c 7h 2s'],
+    ];
+    for (let i = 0; i + 1 < categoryOrder.length; i++) {
+      const a = E.evaluate(cards(categoryOrder[i][1]));
+      const b = E.evaluate(cards(categoryOrder[i + 1][1]));
+      const passed = a > b;
+      if (!passed) ok = false;
+      lines.push(`${passed ? '✓' : '✕'} category monotonicity: ${categoryOrder[i][0]} > ${categoryOrder[i + 1][0]}`);
+    }
+
+    // 同一入力は常に同じ score を返す。cache 導入前提の決定論性チェック。
+    const stableInput = cards('As Ks Qd Jc Th 2c 2d');
+    const stableScore = E.evaluate(stableInput);
+    let deterministic = true;
+    for (let i = 0; i < 1000; i++) {
+      if (E.evaluate(stableInput) !== stableScore) { deterministic = false; break; }
+    }
+    if (!deterministic) ok = false;
+    lines.push(`${deterministic ? '✓' : '✕'} 決定論性: 同一7枚を1000回評価して同一score`);
+
+    row(ok ? 'ok' : 'ng', 'Evaluator: Golden / 同カテゴリ順位 / カテゴリ単調性 / 決定論性', 
+      '固定ケースで役・rank encoding・比較順序を確認し、同一入力のscoreが常に一定であることを確認', lines.join('\\n'));
+    await tick();
+    return ok;
+  }
+
+  /* ---------- Equity 保存則 ---------- */
+  async function testEquityConservation() {
+    const cases = [
+      ['2人 リバー', ['Ks Kd', 'Ah Ad'], '2c 7d 9h Js Kc'],
+      ['3人 リバー', ['2d 3d', '4d 5d', '6d 7d'], 'As Ks Qs Js Ts'],
+      ['4人 リバー', ['As Kd', 'Qh Qc', 'Jd Td', '9c 9d'], '8s 7s 2d 3h 4c'],
+      ['2人 ターン', ['Ah Ad', '9s 9d'], '2c 5d 9h Js'],
+    ];
+    let ok = true;
+    const lines = [];
+    for (const [name, handText, boardText] of cases) {
+      const r = E.exactSync(handText.map(cards), cards(boardText));
+      const sum = r.equity.reduce((a, b) => a + b, 0);
+      const passed = Math.abs(sum - 100) < 1e-9;
+      if (!passed) ok = false;
+      lines.push(`${passed ? '✓' : '✕'} ${name}: equity合計=${sum.toFixed(12)}%`);
+    }
+    row(ok ? 'ok' : 'ng', 'Equity保存則: 全プレイヤーのequity合計 = 100%', 
+      'Exactの複数人数・複数streetでポット分配の総量が保存されることを確認', lines.join('\\n'));
+    await tick();
+    return ok;
+  }
+
   /* ---------- ② 勝率の計算 ---------- */
   const CASES = [
     { note: 'リバー: セット vs オーバーペア', hands: ['Ks Kd', 'Ah Ad'], board: '2c 7d 9h Js Kc', expected: [100, 0], src: 'ルールから確定(リバーは結果が決まっている)' },
@@ -595,6 +708,8 @@
     head('① 役の判定');
     results.push(await testFiveCardDistribution());
     results.push(await testEvaluatorsAgree());
+    results.push(await testEvaluatorOrdering());
+    results.push(await testEquityConservation());
     head('② 勝率の計算');
     results.push(await testCases());
     head('③ ランダム相手(1人モード)');
