@@ -75,17 +75,17 @@ Flop以降、全員のカードがそろうと、**全員の中でいちばん�
 | ファイル | 役割 |
 |---|---|
 | `index.html` | 画面・スタイル・ヘルプ |
-| `app.js` | カード入力UI / カード状態 / 結果表示 / 保存 |
-| `state.js` | 入力状態の純関数(URLの書き出し・読み込み / 重複の整理 / 保存データの検証 / 配る・Hand/Boardの引き直し・消去)。UI非依存 |
+| `app.js` | カード入力UI / カード状態 / 結果表示 / 保存 / Exact Cache接続 / Worker管理 |
+| `state.js` | 入力状態の純関数(URLの書き出し・読み込み / 重複の整理 / 保存データの検証 / 配る・Hand/Boardの引き直し・消去 / Canonical State)。UI非依存 |
 | `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚。UI非依存、外部依存なし |
-| `verify.js` | 検証コード。ヘルプの奥「開発者向け」を開いたときだけ読み込まれる |
+| `cache.js` | Canonical Key単位のExact結果Cache。セッション中のHit/Miss統計も保持 |\n| `worker.js` | Exact / 相手想定1人Exact / Monte CarloをUIスレッド外で実行 |\n| `verify.js` | ブラウザ上の詳細検証・速度測定・Cache利用状況確認。ヘルプの奥「開発者向け」を開いたときだけ読み込まれる |\n| `ci/verify.js` | Nodeで実行する回帰検証 |\n| `.github/workflows/verify.yml` | push / pull request時の自動検証 |
 
 ## 検証
 
 `?` → 一番下の「開発者向け: 計算の検証」を開く。
 
 - **計算が正しいか確認**: 5枚役の全分布の照合 / 別方式の評価器との勝敗照合 / 既知ケース(正解値・Exact・Monte Carlo) / 相手想定(別方式での数え直し、厳密値との照合) / 最終役(成立率・勝率の内訳の別方式判定・Monte Carloとの照合) / 入力状態の整理(重複の整理・URLの往復・保存データ・配る)
-- **計算速度を測る**: Exactの所要時間。スマートフォン実機で測ること
+- **計算速度を測る**: Exactの所要時間。スマートフォン実機で測ること\n- **Cache利用状況を見る**: 現在のセッションにおけるExact CacheのLookup / Hit / Miss / Hit率 / Entry数を表示する。Hit率の分母はExact Cache lookup数で、Monte Carloは含めない。
 
 既知ケースの `expected` は、ルールから確定できる値か手計算の値のみ。`expected: null` は、外部の信頼できる計算機の値を入れる枠(サイト名・URL・取得日・条件・引き分けの扱いを併記すること)。推測値は入れない。
 
@@ -99,7 +99,7 @@ Flop以降、全員のカードがそろうと、**全員の中でいちばん�
 現行仕様と今後の構想を混ぜない。以下は**未実装の計画**であり、現在の動作仕様ではない。
 
 ### Phase 0 — 仕様固定
-現行のモード名、Hand / Board 操作、最終役、UI方針、README / SPEC の同期を維持する。
+現行のモード名、Hand / Board 操作、最終役、UI方針、README / SPEC の同期を維持する。\n\n※ Canonical State / Exact Cache / Cache計測 / Web Worker / CI回帰検証は実装済みの現行機能であり、未実装計画には含めない。
 
 ### Phase 1 — UI検証
 320〜430pxを中心に、はみ出し・重なり・縦方向の増加をヘッドレスChromiumで確認し、スクリーンショットと数値で記録する。最終的な見た目の判断は実機・人間が行う。
