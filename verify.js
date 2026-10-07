@@ -211,6 +211,54 @@
     return ok;
   }
 
+  /* ---------- 7枚評価 / 列挙の固定検証 ---------- */
+  async function testSevenCardAndEnumeration() {
+    const cases = [
+      ['A-high straight', 'As Ks Qd Jc Th 2c 7d'],
+      ['quads', 'As Ah Ad Ac Kd 2c 7h'],
+      ['full house', 'As Ah Ad Kd Kh 2c 7s'],
+      ['flush', 'As Js 8s 4s 2s Kd Qc'],
+      ['two pair', 'As Ah Kd Kh Qs 2c 7d'],
+      ['pair', 'As Ah Kd Qc Js 2d 7h'],
+    ];
+    let ok = true;
+    const lines = [];
+    for (const [name, text] of cases) {
+      const cs = cards(text);
+      const direct = E.evaluate(cs);
+      const best = E.bestFive(cs);
+      const passed = direct === best.score;
+      if (!passed) ok = false;
+      lines.push(`${passed ? '✓' : '✕'} 7枚 ${name}: evaluate === bestFive.score`);
+    }
+
+    const enumerationCases = [
+      ['2人 preflop', [['As Ks', 'Qh Qd']], 0],
+    ];
+    // 2〜4人の既知ハンドでは、残りデックからriverまでの組合せ数を固定する。
+    const counts = [
+      ['2人 preflop', ['As Ks', 'Qh Qd'], 1712304],
+      ['3人 preflop', ['As Ks', 'Qh Qd', 'Jc Td'], 1370754],
+      ['4人 preflop', ['As Ks', 'Qh Qd', 'Jc Td', '9c 9d'], 1086008],
+      ['2人 flop', ['As Ks', 'Qh Qd'], '2c 7d 9h', 990],
+      ['2人 turn', ['As Ks', 'Qh Qd'], '2c 7d 9h Js', 44],
+      ['2人 river', ['As Ks', 'Qh Qd'], '2c 7d 9h Js Kc', 1],
+    ];
+    for (const item of counts) {
+      const [name, handText, boardTextOrExpected, expectedMaybe] = item;
+      const boardText = typeof boardTextOrExpected === 'string' ? boardTextOrExpected : '';
+      const expected = expectedMaybe === undefined ? boardTextOrExpected : expectedMaybe;
+      const r = E.exactSync(handText.map(cards), cards(boardText));
+      const passed = r.total === expected;
+      if (!passed) ok = false;
+      lines.push(`${passed ? '✓' : '✕'} enumeration ${name}: ${r.total} (期待 ${expected})`);
+    }
+
+    row(ok ? 'ok' : 'ng', '7枚評価 / Enumeration: 固定ケースと組合せ数',
+      '7枚の直接評価と最強5枚評価のscore一致、およびExactの列挙総数を固定値で確認', lines.join('\\n'));
+    await tick();
+    return ok;
+  }
   /* ---------- Equity 保存則 ---------- */
   async function testEquityConservation() {
     const cases = [
@@ -710,6 +758,7 @@
     results.push(await testEvaluatorsAgree());
     results.push(await testEvaluatorOrdering());
     results.push(await testEquityConservation());
+    results.push(await testSevenCardAndEnumeration());
     head('② 勝率の計算');
     results.push(await testCases());
     head('③ ランダム相手(1人モード)');
