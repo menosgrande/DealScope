@@ -268,7 +268,29 @@
     return { players: ps, board: b };
   }
 
-  const api = { RANKS, emptyHands, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard, clearBoardStreet };
+  /* ---------- Canonical State ----------
+   * 結果に影響する情報だけを残し、表現上の順序差を正規化する。
+   * Player order は出力配列に対応するため保持する。各player内の2枚とboardはソートする。
+   * deadCardsは現在のUIでは未使用だが、将来エンジンが受け取る場合に備えて状態モデル上は明示的に扱う。
+   */
+  function buildCanonicalState(input) {
+    const players = (input.players || []).map((h) => h.slice().sort((a, b) => a - b));
+    const board = (input.board || []).filter((c) => c >= 0).slice().sort((a, b) => a - b);
+    const deadCards = (input.deadCards || []).filter((c) => c >= 0).slice().sort((a, b) => a - b);
+    return {
+      playerCount: players.length,
+      players,
+      board,
+      deadCards,
+      calculationMode: input.calculationMode || 'exact',
+      opponentCount: input.opponentCount == null ? null : input.opponentCount,
+    };
+  }
+
+  function canonicalKey(canonicalState) {
+    return JSON.stringify(canonicalState);
+  }
+  const api = { RANKS, emptyHands, buildCanonicalState, canonicalKey, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard, clearBoardStreet };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);
