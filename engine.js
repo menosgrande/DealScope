@@ -360,6 +360,98 @@
     for (;;) { const r = g.next(); if (r.done) return r.value; }
   }
 
+  /* ---------- ドロー分析 ----------
+   * 現在のハンドから、次の1枚で完成しうる代表的なドローを抽出する。
+   * tags: OESD / DGS / GS / FD / BDFD
+   * outs / outCards は複数ドロー間の重複カードを1枚にまとめた値。
+   * deadCards は既知カード。既知ハンドの他プレイヤーもブロッカーとして除外する。
+   */
+  function analyzeDraws(cards, deadCards) {
+    const cs = Array.from(new Set((cards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52)));
+    const dead = new Set((deadCards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52));
+    cs.forEach((c) => dead.add(c));
+
+    if (cs.length < 5 || cs.length > 7) {
+      return { tags: [], outs: 0, outCards: [], straightCards: [], flushCards: [] };
+    }
+
+    const rankSet = new Set(cs.map((c) => c >> 2));
+    const currentCategory = evaluate(cs) >>> 20;
+    const straightOutRanks = new Set();
+    let oesd = false;
+
+    const patterns = [
+      [12, 0, 1, 2, 3],
+      [0, 1, 2, 3, 4],
+      [1, 2, 3, 4, 5],
+      [2, 3, 4, 5, 6],
+      [3, 4, 5, 6, 7],
+      [4, 5, 6, 7, 8],
+      [5, 6, 7, 8, 9],
+      [6, 7, 8, 9, 10],
+      [7, 8, 9, 10, 11],
+      [8, 9, 10, 11, 12],
+    ];
+
+    if (currentCategory < 4) {
+      for (const pattern of patterns) {
+        const missing = pattern.filter((r) => !rankSet.has(r));
+        if (missing.length !== 1) continue;
+        const mr = missing[0];
+        straightOutRanks.add(mr);
+        const mi = pattern.indexOf(mr);
+        if (mi === 0 || mi === 4) oesd = true;
+      }
+    }
+
+    const straightCards = [];
+    straightOutRanks.forEach((r) => {
+      for (let suit = 0; suit < 4; suit++) {
+        const c = r * 4 + suit;
+        if (!dead.has(c)) straightCards.push(c);
+      }
+    });
+
+    const suitCounts = [0, 0, 0, 0];
+    cs.forEach((c) => { suitCounts[c & 3]++; });
+    const flushCards = [];
+    let fd = false;
+    let bdfd = false;
+
+    if (currentCategory < 5) {
+      for (let suit = 0; suit < 4; suit++) {
+        if (suitCounts[suit] === 4) {
+          fd = true;
+          for (let r = 0; r < 13; r++) {
+            const c = r * 4 + suit;
+            if (!dead.has(c)) flushCards.push(c);
+          }
+          break;
+        }
+      }
+    }
+
+    if (cs.length === 5 && !fd) {
+      bdfd = suitCounts.some((n) => n === 3);
+    }
+
+    const tags = [];
+    if (oesd) tags.push('OESD');
+    else if (straightOutRanks.size >= 2) tags.push('DGS');
+    else if (straightOutRanks.size === 1) tags.push('GS');
+    if (fd) tags.push('FD');
+    if (bdfd) tags.push('BDFD');
+
+    const unique = new Set([...straightCards, ...flushCards]);
+    return {
+      tags,
+      outs: unique.size,
+      outCards: Array.from(unique).sort((a, b) => a - b),
+      straightCards: straightCards.sort((a, b) => a - b),
+      flushCards: flushCards.sort((a, b) => a - b),
+    };
+  }
+
   /* ---------- 最強の5枚 ----------
    * cards(5〜7枚)から最強の5枚組を返す。同点の組は配列の前方のカードを優先する
    * (呼び出し側は「ボード → ホールカード」の順で渡す。ボードだけで成立する役ではホールカードを光らせないため)。
@@ -382,7 +474,7 @@
     return { score: best, cards: bestCards };
   }
 
-  const api = { RANKS, SUITS, cardName, evaluate, exactGen, exactSync, monteCarlo, exactVsRandomGen, monteCarloVsRandomGen, monteCarloVsRandom, bestFive };
+  const api = { RANKS, SUITS, cardName, evaluate, analyzeDraws, exactGen, exactSync, monteCarlo, exactVsRandomGen, monteCarloVsRandomGen, monteCarloVsRandom, bestFive };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PokerEq = api;
 })(typeof window !== 'undefined' ? window : globalThis);

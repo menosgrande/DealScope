@@ -93,6 +93,40 @@ function testEquityConservation() {
   console.log('✓ equity conservation');
 }
 
+function testDrawAnalyzer() {
+  let r = E.analyzeDraws(hand('5s 6s 7h 8d 2c'), hand('5s 6s 7h 8d 2c'));
+  assert(r.tags.includes('OESD'));
+  assert.equal(r.outs, 8);
+
+  r = E.analyzeDraws(hand('5s 7h 8d Tc 2c'), hand('5s 7h 8d Tc 2c'));
+  assert(r.tags.includes('DGS'));
+  assert.equal(r.outs, 8);
+
+  r = E.analyzeDraws(hand('6s 5h 7d 9c 2c'), hand('6s 5h 7d 9c 2c'));
+  assert(r.tags.includes('GS'));
+  assert.equal(r.outs, 4);
+
+  r = E.analyzeDraws(hand('As Ks 2s 7s Qd'), hand('As Ks 2s 7s Qd'));
+  assert(r.tags.includes('FD'));
+  assert.equal(r.outs, 9);
+
+  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd'));
+  assert(r.tags.includes('BDFD'));
+  assert.equal(r.outs, 0);
+
+  r = E.analyzeDraws(
+    hand('5s 6s 7h 8d 2c'),
+    hand('5s 6s 7h 8d 2c 4h 4d 4s 4c')
+  );
+  assert(r.tags.includes('OESD'));
+  assert.equal(r.outs, 4);
+
+  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd 3s'));
+  assert(!r.tags.includes('BDFD'));
+
+  console.log('✓ draw analyzer: OESD / DGS / GS / FD / BDFD / blockers');
+}
+
 function testCanonicalAndCache() {
   C.clear();
   const a={players:[hand('Ah Ad'),hand('Ks Kd')],board:[card('Qc'),card('Jc'),card('2h')],deadCards:[],calculationMode:'exact',opponentCount:null};
@@ -114,6 +148,7 @@ function main() {
   testEvaluatorOrdering();
   testSevenCardAndEnumeration();
   testEquityConservation();
+  testDrawAnalyzer();
   testCanonicalAndCache();
   console.log('All CI checks passed.');
 }

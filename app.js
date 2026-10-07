@@ -26,12 +26,53 @@
     active: { t: 'p', i: 0, j: 0 },
     open: false,
     deleteTarget: null,
+    analysisPlayer: 0,
   };
 
   const isRandom = () => state.mode === 'random';
   const count = () => (isRandom() ? 1 : state.n); // 画面に出ているプレイヤー数
   const pname = (i) => (isRandom() ? 'Hero' : 'Player ' + (i + 1));
   const displayPname = (i) => (!isRandom() && count() === 4) ? 'P' + (i + 1) : pname(i);
+  const analysisLabel = (code) => ({
+    OESD: 'Open-ended straight draw',
+    DGS: 'Double gutshot straight draw',
+    GS: 'Gutshot straight draw',
+    FD: 'Flush draw',
+    BDFD: 'Backdoor flush draw',
+  }[code] || code);
+
+  function ensureAnalysisPlayer() {
+    if (isRandom()) state.analysisPlayer = 0;
+    else if (state.analysisPlayer < 0 || state.analysisPlayer >= count()) state.analysisPlayer = 0;
+  }
+
+  function analysisCards() {
+    ensureAnalysisPlayer();
+    const [a, b] = state.players[state.analysisPlayer] || [-1, -1];
+    const board = boardCards();
+    if (a < 0 || b < 0 || !board || board.length < 3 || board.length >= 5) return null;
+    const allKnown = [];
+    state.players.slice(0, count()).forEach((h) => h.forEach((c) => {
+      if (c >= 0) allKnown.push(c);
+    }));
+    return E.analyzeDraws([a, b, ...board], allKnown);
+  }
+
+  function renderDrawInsight() {
+    ensureAnalysisPlayer();
+    const box = $('drawInsight');
+    if (!box) return;
+    const d = analysisCards();
+    if (!d || d.tags.length === 0) {
+      box.innerHTML = '';
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    const tags = d.tags.map((code) => '<span class="drawTag" title="' + analysisLabel(code) + '" aria-label="' + analysisLabel(code) + '">' + code + '</span>').join('');
+    box.innerHTML = '<div class="drawInsightInner"><div class="drawTags">' + tags + '</div><span class="drawOuts">' + d.outs + ' outs</span></div>';
+  }
+
   const snapshot = () => ({ mode: state.mode, n: state.n, opp: state.opp, players: state.players, board: state.board });
 
   function slots() {
@@ -107,6 +148,7 @@
     inputUndo = null;
     if (isRandom() || v < 2 || v > 4 || v === state.n) return;
     state.n = v;
+    ensureAnalysisPlayer();
     const c = S.dedupe(state.board, state.players);
     state.board = c.board;
     state.players = c.players;
@@ -125,6 +167,7 @@
     inputUndo = null;
     if ((m !== 'known' && m !== 'random') || m === state.mode) return;
     state.mode = m;
+    ensureAnalysisPlayer();
     if (m === 'known') {
       // 隠れていた P2〜 が戻る。Board と Hero(P1) は画面に出ていたので優先し、重複した側(P2〜)を空欄にする
       const c = S.dedupe(state.board, state.players);
@@ -238,14 +281,14 @@
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span><div class="pr" data-i="${i}"></div></div>`;
+        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span><div class="pr" data-i="${i}" data-analysis-player="${i}"></div></div>`;
       }
       ph += '</div>';
     } else {
       ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="pcol p${i}">
-          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${displayPname(i)}</span></div>
+        ph += `<div class="pcol p${i}${state.analysisPlayer === i ? ' analysisTarget' : '}">
+          <div class="pheadname" data-analysis-player="${i}" role="button" tabindex="0"><span class="pdot" aria-hidden="true">●</span><span>${displayPname(i)}</span></div>
           <div class="playerCardsRow"><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span></div>
           <div class="pr" data-i="${i}"></div>
         </div>`;
@@ -260,6 +303,7 @@
     const grp = (label, street, js) =>
       `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
     $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
+    renderDrawInsight();
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -334,6 +378,7 @@
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
     renderCats();
+    renderDrawInsight();
   }
 
   /* 勝率の左に出す「いま作れている役」。Flop以降で、そのプレイヤーの2枚がそろっているときだけ(それ以外は -1 = 「—」) */
@@ -556,7 +601,27 @@
     state.open = true;
     render();
   }
+  $('players').addEventListener('keydown', (e) => {
+    const pick = e.target.closest('[data-analysis-player]');
+    if (!pick || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    const i = Number(pick.dataset.analysisPlayer);
+    if (Number.isInteger(i) && i >= 0 && i < count()) {
+      state.analysisPlayer = i;
+      render();
+    }
+  });
+
   $('players').addEventListener('click', (e) => {
+    const targetPick = e.target.closest('[data-analysis-player]');
+    if (targetPick && !e.target.closest('.slot') && !e.target.closest('.playerAction') && !e.target.closest('.cardDelete') && !e.target.closest('.approxMark')) {
+      const i = Number(targetPick.dataset.analysisPlayer);
+      if (Number.isInteger(i) && i >= 0 && i < count()) {
+        state.analysisPlayer = i;
+        render();
+      }
+      return;
+    }
     const mark = e.target.closest('.approxMark');
     if (mark) {
       e.preventDefault();
