@@ -110,10 +110,25 @@ function foldWin(){
  var c=contenders();if(c.length!==1)return false;var p=c[0];p.stack+=A.pot;A.message=p.name+' が '+money(A.pot)+' を獲得';A.pot=0;endHand();return true
 }
 function showdown(){
- var c=contenders(),b=A.board,scores=c.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}}),best=Math.max.apply(null,scores.map(function(x){return x.s})),w=scores.filter(function(x){return x.s===best}).map(function(x){return x.p});
- var base=Math.floor(A.pot/w.length),rem=A.pot%w.length;w.forEach(function(p,i){p.stack+=base+(i<rem?1:0)});
+ var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
  A.players.forEach(function(p){var z=scores.find(function(x){return x.p===p});p.showdownScore=z?z.s:0});
- A.message=w.length===1?w[0].name+' が '+money(A.pot)+' を獲得（'+scoreLabel(best)+'）':w.map(function(p){return p.name}).join(' / ')+' が '+money(A.pot)+' を分割';
+ var levels=[].concat(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
+ var prev=0,winners=[];
+ levels.forEach(function(level){
+   var participants=all.filter(function(p){return (p.contrib||0)>=level});
+   var pot=(level-prev)*participants.length;
+   if(pot<=0)return;
+   var eligible=participants.filter(function(p){return !p.fold});
+   if(!eligible.length)return;
+   var best=Math.max.apply(null,eligible.map(function(p){var z=scores.find(function(x){return x.p===p});return z.s}));
+   var w=eligible.filter(function(p){var z=scores.find(function(x){return x.p===p});return z.s===best});
+   var base=Math.floor(pot/w.length),rem=pot%w.length;
+   w.forEach(function(p,i){p.stack+=base+(i<rem?1:0)});
+   winners=winners.concat(w);
+   prev=level
+ });
+ var unique=[];winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
+ A.message=unique.length===1?unique[0].name+' がポットを獲得（'+money(A.players.reduce(function(s,p){return s+(p.contrib||0)},0))+'）':'ショーダウン完了。勝者：'+unique.map(function(p){return p.name}).join(' / ');
  A.pot=0;endHand()
 }
 function endHand(){
