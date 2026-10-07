@@ -711,6 +711,45 @@
     return allOk;
   }
 
+  /* ---------- Canonical State / Key ---------- */
+  async function testCanonicalState() {
+    const a = {
+      players: [['Ah', 'Ad'].map(card), ['Ks', 'Kd'].map(card)],
+      board: cards('Qc Jc 2h'),
+      deadCards: [],
+      calculationMode: 'exact',
+      opponentCount: null,
+    };
+    const b = {
+      players: [['Ad', 'Ah'].map(card), ['Kd', 'Ks'].map(card)],
+      board: cards('2h Qc Jc'),
+      deadCards: [],
+      calculationMode: 'exact',
+      opponentCount: null,
+    };
+    const ka = S.canonicalKey(S.buildCanonicalState(a));
+    const kb = S.canonicalKey(S.buildCanonicalState(b));
+    const swapped = { ...a, players: [a.players[1], a.players[0]] };
+    const differentHand = { ...a, players: [a.players[0], ['Qs', 'Qd'].map(card)] };
+    const differentStreet = { ...a, board: cards('Qc Js 2h 9d') };
+    const dead = { ...a, deadCards: cards('Ac') };
+    const differentMode = { ...a, calculationMode: 'monteCarlo', opponentCount: 1 };
+    const checks = [
+      ['hole card order is normalized', ka === kb],
+      ['board order is normalized', ka === kb],
+      ['player order is preserved', ka !== S.canonicalKey(S.buildCanonicalState(swapped))],
+      ['different hole cards are different', ka !== S.canonicalKey(S.buildCanonicalState(differentHand))],
+      ['different street is different', ka !== S.canonicalKey(S.buildCanonicalState(differentStreet))],
+      ['known dead card is represented', ka !== S.canonicalKey(S.buildCanonicalState(dead))],
+      ['calculation mode is represented', ka !== S.canonicalKey(S.buildCanonicalState(differentMode))],
+    ];
+    const ok = checks.every((x) => x[1]);
+    row(ok ? 'ok' : 'ng', 'Canonical State / Key',
+      '結果に影響する状態を保持し、表現上の順序差だけを正規化する',
+      checks.map((x) => `${x[1] ? '✓' : '✕'} ${x[0]}`).join('\\n'));
+    await tick();
+    return ok;
+  }
   /* ---------- 計算速度 ---------- */
   async function bench() {
     const four = ['As Ks', 'Qh Qc', 'Jd Td', '9c 9d'].map(cards);
@@ -764,6 +803,7 @@
     results.push(await testFinalHands());
     head('⑤ 入力状態の整理');
     results.push(await testStateHelpers());
+    results.push(await testCanonicalState());
     const ok = results.every(Boolean);
     sum.className = 'vsum ' + (ok ? 'ok' : 'ng');
     sum.textContent = ok ? '✓ すべて合格' : '✕ 不合格の項目があります';
