@@ -50,9 +50,9 @@ function ai(p){
  var t=TYPES[p.type],eq=equity(p),pre=preStrength(p.hand),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],spr=stack/Math.max(A.blinds[1],A.pot),odds=call>0?call/(A.pot+call):0,tex=texture();
  var pos=p.position,late=(pos==='BTN'||pos==='CO'),early=(pos==='UTG'),v=clamp(eq*.62+pre*.38+(rnd()-.5)*.10,0,1);
  var streetFactor=A.street==='preflop'?1:A.street==='flop'?1.04:A.street==='turn'?1.08:1.12;
- var strong=v*streetFactor, pressure=(t.pressure||.5)*(late?1.08:early?.88:1);
+ var strong=v*streetFactor, pressure=(t.pressure||.5)*(late ? 1.08 : (early ? .88 : 1));
  var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
- var bluff=t.bluff*(late?1.25:early?.65:1)*(A.street==='preflop'?1:A.street==='flop' ? .9 : .72);
+ var bluff=t.bluff*(late ? 1.25 : (early ? .65 : 1))*(A.street==='preflop' ? 1 : (A.street==='flop' ? .9 : .72));
  if(veryShort && strong>.68 && rnd()<.72)return{a:'allin'};
  if(call>0 && callCost>.30 && strong<.58 && rnd()>.bluff*1.2)return{a:'fold'};
  if(call>0 && strong<.43 && rnd()>.bluff*.8)return{a:'fold'};
