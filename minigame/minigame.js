@@ -13,7 +13,7 @@ var TYPES={
 };
 var NAMES=['あなた','冷静なプロ','攻める狂犬','慎重派'];
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[10,20],street:'preflop',currentBet:0,lastRaise:20,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:20,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false};
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
@@ -47,27 +47,36 @@ function equity(p){
 function minRaise(){return A.currentBet===0?A.blinds[1]:A.currentBet+Math.max(A.blinds[1],A.lastRaise||A.blinds[1])}
 function amount(p,n){var max=p.stack+A.roundBet[p.seat];return Math.min(max,Math.max(0,Math.floor(n/A.blinds[1])*A.blinds[1]))}
 function ai(p){
- var t=TYPES[p.type],eq=equity(p),v=clamp(eq*.72+preStrength(p.hand)*.28+(rnd()-.5)*.12,0,1),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],odds=call>0?call/(A.pot+call):0,tex=texture();
- if(call>=stack)return v>=clamp(.55+t.pressure*.18-tex*.1,.45,.85)||rnd()<t.bluff*.25?{a:'allin'}:{a:'fold'};
+ var t=TYPES[p.type],eq=equity(p),pre=preStrength(p.hand),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],spr=stack/Math.max(A.blinds[1],A.pot),odds=call>0?call/(A.pot+call):0,tex=texture();
+ var pos=p.position,late=(pos==='BTN'||pos==='CO'),early=(pos==='UTG'),v=clamp(eq*.62+pre*.38+(rnd()-.5)*.10,0,1);
+ var streetFactor=A.street==='preflop'?1:A.street==='flop'?1.04:A.street==='turn'?1.08:1.12;
+ var strong=v*streetFactor, pressure=(t.pressure||.5)*(late?1.08:early?.88:1);
+ var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
+ var bluff=t.bluff*(late?1.25:early?.65:1)*(A.street==='preflop'?1:A.street==='flop'?.9:.72);
+ if(veryShort && strong>.68 && rnd()<.72)return{a:'allin'};
+ if(call>0 && callCost>.30 && strong<.58 && rnd()>.bluff*1.2)return{a:'fold'};
+ if(call>0 && strong<.43 && rnd()>.bluff*.8)return{a:'fold'};
+ if(call>0 && strong<.52 && odds>.28 && rnd()<t.call*.75)return{a:'call'};
+ if(call>=stack)return strong>=.72||rnd()<bluff*.18?{a:'allin'}:{a:'fold'};
  if(!call){
    if(A.street==='preflop'&&p.position==='BB'&&rnd()<.35&&v<.38)return{a:'check'};
    if(v<.25&&rnd()>t.bluff)return{a:'check'};
    if(rnd()<clamp(t.post*(v-.32)*1.5,0,.8)){
-     var openSize=Math.max(A.blinds[1]*2.2,A.pot*clamp(.45+v*.45+tex*.15,.4,.9));
-     openSize=Math.min(openSize,stack*.35);
+     var openSize=Math.max(A.blinds[1]*2.2,A.blinds[1]*clamp(2.1+strong*.9+(late?.25:0),2.1,3.4));
+     openSize=Math.min(openSize,Math.max(A.blinds[1]*2.2,stack*.18));
      return{a:'bet',n:amount(p,openSize)};
    }
    return{a:'check'}
  }
  if(v<odds-.08&&rnd()>t.bluff*.35)return{a:'fold'};
  if(v>.70&&rnd()<t.raise*.55){
-   var min=minRaise(),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*clamp(.9+v*.5,1,1.5));
-   target=Math.min(target,stack*.65);
-   if(target> A.currentBet && target>=stack*.9 && v>.84 && rnd()<.22)return{a:'allin'};
+   var min=minRaise(),raiseMult=clamp(.9+strong*.65+(pressure-.5)*.25,0.9,1.65),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*raiseMult);
+   target=Math.min(target,Math.max(min,stack*.35));
+   if(target> A.currentBet && strong>.84 && rnd()<.10)return{a:'allin'};
    if(target>A.currentBet)return{a:'raise',n:amount(p,target)};
  }
  if(v>.52&&rnd()<t.bluff*.12){
-   var bluffTarget=Math.min(stack*.5,Math.max(minRaise(),A.currentBet+A.blinds[1]*2));
+   var bluffTarget=Math.min(stack*.28,Math.max(minRaise(),A.currentBet+A.blinds[1]*2));
    return{a:'raise',n:amount(p,bluffTarget)};
  }
  return rnd()<t.call||v>odds?{a:'call'}:{a:'fold'}
@@ -79,7 +88,7 @@ function contribute(p,n){n=Math.max(0,Math.min(n,p.stack));p.stack-=n;A.roundBet
 function resetHand(){
  if(alive().length<=1){finish();return}
  A.handNo++;
- if(A.handNo>1&&A.handNo%6===1){var next=[10,15,20,30,40,60,80,120,160,240,320,480],i=Math.min(Math.floor((A.handNo-1)/6),next.length-1);A.blinds=[Math.max(5,next[i]/2),next[i]]}
+ if(A.handNo>1&&A.handNo%8===1){var next=[200,300,400,600,800,1200,1600,2400,3200,4800,6400],i=Math.min(Math.floor((A.handNo-1)/8),next.length-1);A.blinds=[next[i]/2,next[i]]}
  A.dealer=nextSeat(A.dealer);A.board=[];A.street='preflop';A.currentBet=0;A.lastRaise=A.blinds[1];A.pot=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.history=[];A.handOver=false;initDeck();
  A.players.forEach(function(p){p.hand=[];p.fold=false;p.allin=false;p.contrib=0;p.showdownScore=0});
  for(var k=0;k<2;k++)for(var j=0;j<4;j++){var p=A.players[(A.dealer+j)%4];if(!p.out)p.hand.push(deal())}
@@ -164,8 +173,8 @@ function human(a){
  A.awaiting=false;advance()
 }
 function restart(){
- A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;
- ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:2000,out:false,hand:[],fold:false,allin:false})});
+ A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;
+ ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:20000,out:false,hand:[],fold:false,allin:false})});
  resetHand()
 }
 function card(c){return '<span class="card '+((c&3)===0||((c&3)===1)?'red':'')+'">'+R[c>>2]+S[c&3]+'</span>'}
