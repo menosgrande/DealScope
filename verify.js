@@ -784,6 +784,22 @@
     await tick();
     return ok;
   }
+  /* ---------- Exact Cache実測 ---------- */
+  function showCacheStats() {
+    const C = window.DealCache;
+    const s = C.stats();
+    const box = document.getElementById('cacheStats');
+    const exactLookups = s.hits + s.misses;
+    box.innerHTML =
+      '<div class="vsum">Exact Cache セッション統計</div>' +
+      '<div class="d">Lookup ' + exactLookups +
+      ' / Hit ' + s.hits +
+      ' / Miss ' + s.misses +
+      ' / Hit率 ' + (s.hitRate * 100).toFixed(1) +
+      '% / Entry ' + s.size + '</div>' +
+      '<div class="d">※ Hit率 = Exact Cache lookup に対するHit率。Monte Carloはlookup対象外。</div>';
+  }
+
   /* ---------- 計算速度 ---------- */
   async function bench() {
     const four = ['As Ks', 'Qh Qc', 'Jd Td', '9c 9d'].map(cards);
@@ -844,6 +860,7 @@
     sum.textContent = ok ? '✓ すべて合格' : '✕ 不合格の項目があります';
     setBusy(false);
   };
+  document.getElementById('showCache').onclick = () => showCacheStats();
   document.getElementById('runBench').onclick = async () => {
     setBusy(true); out.innerHTML = '';
     await bench();
