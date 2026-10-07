@@ -2,6 +2,24 @@
 
 > 1〜12章は現行コードの動作を記載する。未実装の計画は「13. 開発ロードマップ」に分離する。実機での確認が必要な項目は「11. 未確認・実機で判断すること」に記載。
 
+### 7.6 Canonical State Invariants
+
+- Invariant 1: 同じ計算結果を返すべき表現差は、同一Canonical State / Canonical Keyになる
+- Invariant 2: 異なる結果を返しうる状態は、Canonical Keyで区別される
+- Invariant 3: Player順は保持する
+- Invariant 4: Boardの内部順序は保持しない
+- Invariant 5: Hole cardの内部順序は保持しない
+
+### 7.7 Cache Invariants
+
+- Invariant 1: Cache Hit時の結果は、Cache Miss時に計算した結果と完全一致する
+- Invariant 2: Canonical Keyが異なる状態を同一Cache Entryとして扱わない
+- Invariant 3: Cacheは計算結果そのものを変更しない
+- Invariant 4: Cacheは性能最適化層であり、正当性検証の前提にしない
+- Invariant 5: 現段階ではExact計算のみをCache対象とし、Monte Carloは対象外とする
+
+Cacheの初期実装はインメモリ `Map` とし、TTL、LRU、localStorage、IndexedDB、永続化、サイズ制限は導入しない。
+
 ---
 
 ## 1. 目的
