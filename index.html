@@ -17,7 +17,7 @@
 html,body{margin:0;background:var(--felt);color:var(--ivory);
   font-family:"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
   -webkit-tap-highlight-color:transparent}
-main{max-width:520px;margin:0 auto;padding:16px 14px calc(88px + env(safe-area-inset-bottom));}
+main{max-width:560px;margin:0 auto;padding:16px 14px calc(88px + env(safe-area-inset-bottom));}
 body.picking main{padding-bottom:calc(250px + env(safe-area-inset-bottom));}
 button{font-family:inherit}
 button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
@@ -220,12 +220,12 @@ body.picking #open{display:none}
 #picker{position:fixed;left:0;right:0;bottom:0;background:#0a211a;border-top:1px solid var(--line);
   padding:8px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
 #picker[hidden]{display:none}
-.phead{display:flex;align-items:center;gap:6px;max-width:520px;margin:0 auto 6px}
+.phead{display:flex;align-items:center;gap:6px;max-width:560px;margin:0 auto 6px}
 #pickLabel{flex:1;min-width:0;font-size:14px;color:var(--ivory);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .phead .nav{width:34px;padding:0;font-size:20px;line-height:1;color:var(--ivory)}
 .phead button{height:32px;border-radius:16px;border:1px solid var(--line);background:none;color:var(--mute);padding:0 10px;font-size:13px}
 .phead #close{width:auto;background:var(--brass);color:var(--ink);border:0;font-size:13px;font-weight:700}
-#grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;max-width:520px;margin:0 auto}
+#grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;max-width:560px;margin:0 auto}
 #grid button{height:36px;padding:0;border-radius:5px;border:0;background:var(--ivory);color:var(--ink);
   font-size:13px;font-weight:700;line-height:1}
 #grid button.s0{color:var(--c0)} #grid button.s1{color:var(--c1)} #grid button.s2{color:var(--c2)} #grid button.s3{color:var(--c3)}
@@ -236,7 +236,7 @@ body.picking #open{display:none}
 #help{position:fixed;inset:0;background:var(--felt);z-index:10;overflow:auto;
   padding:16px 14px calc(28px + env(safe-area-inset-bottom))}
 #help[hidden]{display:none}
-.hin{max-width:520px;margin:0 auto}
+.hin{max-width:560px;margin:0 auto}
 .hhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .hhead h2{font-size:16px;margin:0}
 .hin h3{font-size:13px;color:var(--brass);margin:18px 0 4px;letter-spacing:.04em}
