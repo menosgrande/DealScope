@@ -98,7 +98,7 @@ function testDrawAnalyzer() {
   assert(r.tags.includes('OESD'));
   assert.equal(r.outs, 8);
 
-  r = E.analyzeDraws(hand('5s 7h 8d Tc 2c'), hand('5s 7h 8d Tc 2c'));
+  r = E.analyzeDraws(hand('2s 4h 5d 6c 8s'), hand('2s 4h 5d 6c 8s'));
   assert(r.tags.includes('DGS'));
   assert.equal(r.outs, 8);
 
