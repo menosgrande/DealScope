@@ -713,6 +713,7 @@
 
   /* ---------- Canonical State / Key ---------- */
   async function testCanonicalState() {
+    const S = window.DealState;
     const a = {
       players: [['Ah', 'Ad'].map(card), ['Ks', 'Kd'].map(card)],
       board: cards('Qc Jc 2h'),
