@@ -3,6 +3,7 @@
   'use strict';
   const E = window.PokerEq;
   const S = window.DealState; // state.js: URL・重複整理・保存データの検証 (純関数)
+  const C = window.DealCache; // cache.js: Canonical Key単位のExact結果Cache
   const $ = (id) => document.getElementById(id);
   const STORE_KEY = 'card-equity-state-v1';
   const RANDOM_TRIALS = 100000; // 相手想定(近似)の試行回数
@@ -420,6 +421,25 @@
     // ハンド指定: 常にExact / 相手想定1人のFlop以降: Exact / それ以外の相手想定: Monte Carlo(≈)
     const rand = isRandom(), opp = state.opp;
     let gen, approx = false;
+    const exact = !rand || (opp === 1 && board.length >= 3);
+    let cacheKey = null;
+    // ExactだけCanonical Keyに接続する。Monte Carloは乱数性を維持するためCacheしない。
+    if (exact) {
+      const canonical = S.buildCanonicalState({
+        players: hands,
+        board,
+        deadCards: [],
+        calculationMode: 'exact',
+        opponentCount: rand ? opp : null,
+      });
+      cacheKey = S.canonicalKey(canonical);
+      const cached = C.get(cacheKey);
+      if (cached) {
+        res = { mode: 'done', eq: cached.equity, cats: cached.cats, catEquity: cached.catEquity, approx: false, rand, opp };
+        renderResults();
+        return;
+      }
+    }
     if (!rand) gen = E.exactGen(hands, board);
     else if (opp === 1 && board.length >= 3) gen = E.exactVsRandomGen(hands[0], board);
     else { gen = E.monteCarloVsRandomGen(hands[0], board, opp, RANDOM_TRIALS); approx = true; }
@@ -430,7 +450,12 @@
       const end = performance.now() + 12;
       do {
         const r = gen.next();
-        if (r.done) { res = { mode: 'done', eq: r.value.equity, cats: r.value.cats, catEquity: r.value.catEquity, approx, rand, opp }; renderResults(); return; }
+        if (r.done) {
+          if (cacheKey && !approx) C.set(cacheKey, r.value);
+          res = { mode: 'done', eq: r.value.equity, cats: r.value.cats, catEquity: r.value.catEquity, approx, rand, opp };
+          renderResults();
+          return;
+        }
       } while (performance.now() < end);
       setTimeout(step, 0);
     })();

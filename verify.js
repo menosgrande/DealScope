@@ -750,7 +750,41 @@
     await tick();
     return ok;
   }
-  /* ---------- Cache透明性 ---------- */,  async function testExactCacheTransparency() {,    // Cache実装前の契約テスト。後続のCached Exact APIに接続する。,    // 現段階では「同一局面を繰り返してもExact結果が完全一致する」ことを先に固定する。,    const cases = [,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: [] },,      { hands: ['As Ks', 'Qh Qc'].map(cards), board: cards('8s 7s 2d') },,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h') },,      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h 4c') },,    ];,    let ok = true;,    for (const x of cases) {,      const r1 = E.exactSync(x.hands, x.board);,      for (let i = 0; i < 100; i++) E.exactSync(x.hands, x.board);,      const r2 = E.exactSync(x.hands, x.board);,      const same = JSON.stringify(r1) === JSON.stringify(r2);,      if (!same) ok = false;,    },    row(ok ? 'ok' : 'ng', 'Exact結果の反復透明性',,      '同一局面を100回以上再計算してもExact結果が完全一致する',,      ok ? '✓ 4局面すべて一致' : '✕ 結果が一致しない局面があります');,    await tick();,    return ok;,  },  /* ---------- 計算速度 ---------- */
+  /* ---------- Cache透明性 ---------- */
+  async function testExactCacheTransparency() {
+    const C = window.DealCache;
+    C.clear();
+    const cases = [
+      { hands: ['As Ah', 'Kd Kc'].map(cards), board: [] },
+      { hands: ['As Ks', 'Qh Qc'].map(cards), board: cards('8s 7s 2d') },
+      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h') },
+      { hands: ['As Ah', 'Kd Kc'].map(cards), board: cards('8s 7s 2d 3h 4c') },
+    ];
+    let ok = true;
+    for (const x of cases) {
+      const input = { players: x.hands, board: x.board, deadCards: [], calculationMode: 'exact', opponentCount: null };
+      const key = S.canonicalKey(S.buildCanonicalState(input));
+      if (C.get(key) !== null) ok = false;
+      const expected = E.exactSync(x.hands, x.board);
+      C.set(key, expected);
+      if (JSON.stringify(C.get(key)) !== JSON.stringify(expected)) ok = false;
+      const reordered = { players: x.hands.map((h) => h.slice().reverse()), board: x.board.slice().reverse(), deadCards: [], calculationMode: 'exact', opponentCount: null };
+      const reorderedKey = S.canonicalKey(S.buildCanonicalState(reordered));
+      if (reorderedKey !== key || C.get(reorderedKey) !== expected) ok = false;
+    }
+    const differentKey = S.canonicalKey(S.buildCanonicalState({
+      players: [cards('As Ah'), cards('Kd Kh')], board: cards('8s 7s 2d'), deadCards: [], calculationMode: 'exact', opponentCount: null,
+    }));
+    if (C.get(differentKey) !== null) ok = false;
+    const st = C.stats();
+    const statsOk = st.hits === 8 && st.misses === 5 && st.size === 4 && st.hitRate === 8 / 13;
+    ok = ok && statsOk;
+    row(ok ? 'ok' : 'ng', 'Exact Cache透明性', 'Miss → Exact計算 → 保存 → Hit が同一結果になり、Canonical Keyの正規化も保たれる',
+      ok ? `✓ 4局面 / Hit ${st.hits} / Miss ${st.misses} / Hit率 ${(st.hitRate * 100).toFixed(1)}%` : `✕ Hit ${st.hits} / Miss ${st.misses} / size ${st.size}`);
+    await tick();
+    return ok;
+  }
+  /* ---------- 計算速度 ---------- */
   async function bench() {
     const four = ['As Ks', 'Qh Qc', 'Jd Td', '9c 9d'].map(cards);
     const two = ['As Ks', 'Qh Qd'].map(cards);
