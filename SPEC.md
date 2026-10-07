@@ -361,6 +361,8 @@ Canonical State/Keyに接続したExact専用のインメモリCacheを実装済
 - TTL / LRU / localStorage / IndexedDB / 永続化 / サイズ制限は持たない。
 - Cacheは正しさを担保する仕組みではなく、同一Canonical Keyの再計算を省く性能最適化である。
 - cache.js はHit数、Miss数、Hit率、Entry数を取得できる。
+- 開発者向け画面からセッション中のExact Cache利用状況を確認できる。Hit率の分母はExact Cache lookup数(`hits + misses`)とし、Monte Carloは含めない。
+- Hit率は永続化せず、ページを再読み込みすると0に戻る。実測値を保存するためのtelemetry機構はまだ持たない。
 - verify.js では Miss → Exact計算 → 保存 → Hit の結果一致、カード順序の正規化、異なる局面の分離、Hit/Miss統計を確認する。
 
 Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含めて別途仕様化する。
@@ -374,28 +376,32 @@ UI (Player / Board / カードピッカー / ヘルプ)   index.html, app.js
 カード状態 (mode / n / opp / P1〜P4 / Board)     app.js
   └ URL・重複の整理・保存データの検証・配る (純関数)  state.js
         ↓
-勝率エンジン (Exact / Monte Carlo / 最強の5枚 / 最終役の集計)  engine.js
+Canonical State → Canonical Key
         ↓
 Exact Cache (Canonical Key / インメモリMap)              cache.js
         ↓
+計算要求 → Web Worker (worker.js) → Engine (engine.js)
+        ↓
 結果表示 (勝率 / 最終役)
 
-検証 (本番UIとは分離)                            verify.js  ← ヘルプの「開発者向け」を開いたときだけ読み込む
+検証 (本番UIとは分離)                            verify.js
+CI回帰検証 (Node)                                ci/verify.js
 ```
 
 | ファイル | 役割 |
 |---|---|
 | `index.html` | 画面・スタイル・ヘルプ |
-| `app.js` | 入力UI・カード状態・結果表示・保存 |
-| `state.js` | URLの書き出し/読み込み・重複の整理・保存データの検証・配る。DOMに触らない純関数 |
-| `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚・最終役(成立率/勝率の内訳)の集計。UI非依存、外部依存なし |
+| `app.js` | 入力UI・カード状態・結果表示・保存・Cache接続・Worker管理 |
+| `state.js` | URLの書き出し/読み込み・重複の整理・保存データの検証・配る・Canonical State。DOMに触らない純関数 |
+| `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚・最終役の集計。UI非依存、外部依存なし |
 | `cache.js` | Canonical Key単位のExact結果Cache。インメモリMap、Hit/Miss統計。Monte Carloは対象外 |
-| `verify.js` | 検証コード。「開発者向け」を開いたときだけ読み込む |
+| `worker.js` | Exact / 相手想定1人Exact / Monte Carloの計算をUIスレッド外で実行し、完了結果を返す。入力変更時は旧Workerをterminateして打ち切る |
+| `verify.js` | ブラウザ上の詳細検証と速度測定。「開発者向け」を開いたときだけ読み込む |
+| `ci/verify.js` | Nodeで実行する回帰検証。Evaluator・Exact列挙・Equity・Canonical Cacheを自動確認 |
+| `.github/workflows/verify.yml` | push / pull request時にNode回帰検証を実行 |
 | `README.md` / `SPEC.md` | 簡易説明 / この仕様書 |
 
-静的ファイルのみ。ビルド不要、外部ライブラリなし。
-
----
+静的ファイルのみ。ビルド不要、外部ライブラリなし。Web Workerも同じリポジトリ内の静的ファイルとして直接読み込む。
 
 ## 9. 検証
 
@@ -430,7 +436,7 @@ Exact Cache (Canonical Key / インメモリMap)              cache.js
 
 | 項目 | 値 | 場所 |
 |---|---|---|
-| 計算の分割幅 | 約12ms | `app.js` の `recompute()` |
+| Worker計算の分割幅 | 約12ms | `worker.js` |
 | 相手想定のMonte Carlo試行回数 | 100,000 | `app.js` の `RANDOM_TRIALS` |
 | localStorage キー | `card-equity-state-v1`(中身は `mode` 付きの新形式。旧形式も読める) | `app.js` |
 | 入力中マーカー(▼) | 色 `--cursor`(`#4dd0ff`) / 上下 4px・約0.9秒 / `top:-16px` | `index.html` |
