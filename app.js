@@ -30,6 +30,7 @@
   const isRandom = () => state.mode === 'random';
   const count = () => (isRandom() ? 1 : state.n); // 画面に出ているプレイヤー数
   const pname = (i) => (isRandom() ? 'Hero' : 'Player ' + (i + 1));
+  const displayPname = (i) => (!isRandom() && count() === 4) ? 'P' + (i + 1) : pname(i);
   const snapshot = () => ({ mode: state.mode, n: state.n, opp: state.opp, players: state.players, board: state.board });
 
   function slots() {
@@ -235,7 +236,7 @@
       ph += `<div class="playerGrid p${count()}" style="--players:${count()}" aria-label="プレイヤー">`;
       for (let i = 0; i < count(); i++) {
         ph += `<div class="pcol p${i}">
-          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${pname(i)}</span></div>
+          <div class="pheadname"><span class="pdot" aria-hidden="true">●</span><span>${displayPname(i)}</span></div>
           <div class="playerCardsRow"><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span></div>
           <div class="pr" data-i="${i}"></div>
         </div>`;
@@ -248,7 +249,7 @@
     const streetReady = (street) => street === 0 || (street === 1 ? state.board.slice(0, 3).every((c) => c >= 0) : state.board.slice(0, 3).every((c) => c >= 0) && state.board[3] >= 0);
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
-      `<div class="grp"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
+      `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
     $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全体</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div></div></div>`;
 
     if (state.open) {
@@ -307,8 +308,11 @@
           `<span class="eqseg p${i}bar" style="width:${Math.max(0, v)}%" aria-hidden="true"></span>`
         ).join('');
         const label = res.eq.map((v, i) => `P${i + 1} ${v.toFixed(1)}%`).join(', ');
+        const legend = res.eq.map((v, i) =>
+          `<span class="p${i}bar"><b>P${i + 1}</b> ${v.toFixed(1)}%</span>`
+        ).join('');
         equityBar.innerHTML =
-          `<div class="eqbarWrap"><div class="eqbar" role="img" aria-label="勝率の合計100%。${label}">${segs}</div></div>`;
+          `<div class="eqbarWrap"><div class="eqbar" role="img" aria-label="勝率の合計100%。${label}">${segs}</div><div class="eqlegend">${legend}</div></div>`;
       }
     }
     let h = '';
