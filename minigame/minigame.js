@@ -52,12 +52,24 @@ function ai(p){
  if(!call){
    if(A.street==='preflop'&&p.position==='BB'&&rnd()<.35&&v<.38)return{a:'check'};
    if(v<.25&&rnd()>t.bluff)return{a:'check'};
-   if(rnd()<clamp(t.post*(v-.32)*1.5,0,.8))return{a:'bet',n:amount(p,Math.max(A.blinds[1],A.pot*clamp(.45+v*.55+tex*.2,.45,1.15)))};
+   if(rnd()<clamp(t.post*(v-.32)*1.5,0,.8)){
+     var openSize=Math.max(A.blinds[1]*2.2,A.pot*clamp(.45+v*.45+tex*.15,.4,.9));
+     openSize=Math.min(openSize,stack*.35);
+     return{a:'bet',n:amount(p,openSize)};
+   }
    return{a:'check'}
  }
  if(v<odds-.08&&rnd()>t.bluff*.35)return{a:'fold'};
- if(v>.70&&rnd()<t.raise*.72){var min=minRaise(),target=clamp(A.pot*(.65+v),min,stack);return target>=stack?{a:'allin'}:{a:'raise',n:amount(p,target)}}
- if(v>.52&&rnd()<t.bluff*.18)return{a:'raise',n:amount(p,Math.max(minRaise(),A.pot*.6))};
+ if(v>.70&&rnd()<t.raise*.55){
+   var min=minRaise(),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*clamp(.9+v*.5,1,1.5));
+   target=Math.min(target,stack*.65);
+   if(target> A.currentBet && target>=stack*.9 && v>.84 && rnd()<.22)return{a:'allin'};
+   if(target>A.currentBet)return{a:'raise',n:amount(p,target)};
+ }
+ if(v>.52&&rnd()<t.bluff*.12){
+   var bluffTarget=Math.min(stack*.5,Math.max(minRaise(),A.currentBet+A.blinds[1]*2));
+   return{a:'raise',n:amount(p,bluffTarget)};
+ }
  return rnd()<t.call||v>odds?{a:'call'}:{a:'fold'}
 }
 function initDeck(){A.deck=shuffle(Array.from({length:52},function(_,i){return i}))}
@@ -67,7 +79,7 @@ function contribute(p,n){n=Math.max(0,Math.min(n,p.stack));p.stack-=n;A.roundBet
 function resetHand(){
  if(alive().length<=1){finish();return}
  A.handNo++;
- if(A.handNo>1&&A.handNo%4===1){A.blinds[0]*=2;A.blinds[1]*=2}
+ if(A.handNo>1&&A.handNo%6===1){var next=[10,15,20,30,40,60,80,120,160,240,320,480],i=Math.min(Math.floor((A.handNo-1)/6),next.length-1);A.blinds=[Math.max(5,next[i]/2),next[i]]}
  A.dealer=nextSeat(A.dealer);A.board=[];A.street='preflop';A.currentBet=0;A.lastRaise=A.blinds[1];A.pot=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.history=[];A.handOver=false;initDeck();
  A.players.forEach(function(p){p.hand=[];p.fold=false;p.allin=false;p.contrib=0;p.showdownScore=0});
  for(var k=0;k<2;k++)for(var j=0;j<4;j++){var p=A.players[(A.dealer+j)%4];if(!p.out)p.hand.push(deal())}
@@ -153,7 +165,7 @@ function human(a){
 }
 function restart(){
  A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;
- ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:1000,out:false,hand:[],fold:false,allin:false})});
+ ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:2000,out:false,hand:[],fold:false,allin:false})});
  resetHand()
 }
 function card(c){return '<span class="card '+((c&3)===0||((c&3)===1)?'red':'')+'">'+R[c>>2]+S[c&3]+'</span>'}
@@ -163,7 +175,7 @@ function render(){
  $('players').innerHTML=A.players.map(function(p){
    var st=p.out?'脱落':p.fold?'Fold':p.allin?'All-in':p.seat===A.actor&&!A.handOver?'行動中':'';
    var hide=p.seat!==0&&!A.handOver;
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b><small>'+p.position+' '+st+'</small></div><div class="cards">'+(hide?'<span class="back">◆</span><span class="back">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div>'+(p.showdownScore?'<div class="made">'+scoreLabel(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b><small>'+p.position+' '+st+'</small></div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div>'+(p.showdownScore?'<div class="made">'+scoreLabel(p.showdownScore)+'</div>':'')+'</section>'
  }).join('');
  $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
  var p=A.players[0],call=p?Math.max(0,A.currentBet-A.roundBet[0]):0;
