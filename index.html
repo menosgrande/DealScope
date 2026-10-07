@@ -68,9 +68,9 @@ body.picking .playerGrid{padding-top:8px}
 .playerGrid.p4 .slot{width:38px}
 .pcol .pr{padding-top:6px}
 .pcol .pline{display:flex;flex-direction:column;align-items:center;gap:2px}
-.pcol .pct{font-size:20px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+.pcol .pct{font-size:25px;font-weight:700;line-height:1.08;font-variant-numeric:tabular-nums}
 .pcol .pct.dim{color:var(--mute)}
-.pcol .mh{font-size:10px;line-height:1.15;color:var(--mute);white-space:normal;word-break:keep-all}
+.pcol .mh{font-size:9px;line-height:1.15;color:var(--mute);white-space:normal;word-break:keep-all}
 /* 勝率が出る前から高さを確保して、結果が出たときにボードが下がらないようにする。flow-root は、中の上マージンが外にはみ出して位置をずらすのを止める */
 #equityBar{min-height:31px;display:flow-root}
 .eqbarWrap{margin:6px 0 8px;border-top:1px solid var(--line);padding-top:6px}
@@ -82,6 +82,7 @@ body.picking .playerGrid{padding-top:8px}
 .eqlegend span{white-space:nowrap}.eqlegend b{font-weight:600}
 .bslots{display:flex;align-items:flex-start;gap:12px}
 .grp{display:flex;flex-direction:column;align-items:flex-start}
+.grp.flopGrp .grpCards{border:1px solid var(--line);border-radius:8px;padding:4px 5px 3px}
 .grpCards{display:flex;align-items:center;gap:5px}
 .grp .slots{gap:6px}
 .streetTools{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -111,6 +112,8 @@ body.picking .playerGrid{padding-top:8px}
   color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
 @media (max-width:380px){
+  .pcol .pct{font-size:23px}
+  .pr .pct{font-size:24px}
   .boardShuffle{padding:0 8px}
   .boardShuffleText,.boardClearText{display:none}
   .playerAction{width:22px;height:24px;font-size:13px}
@@ -141,8 +144,8 @@ body.picking .playerGrid{padding-top:8px}
 .slot small{display:block;font-size:17px}
 .pr{flex:1;min-width:0;text-align:right;padding-top:9px}
 .pr .pline{display:flex;justify-content:flex-end;align-items:center;gap:8px}
-.pr .mh{font-size:11px;line-height:1.2;color:var(--mute);text-align:right;white-space:nowrap}
-.pr .pct{font-size:22px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.pr .mh{font-size:9px;line-height:1.2;color:var(--mute);text-align:right;white-space:nowrap}
+.pr .pct{font-size:26px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
 .pr .pct.dim{color:var(--mute)}
 .pr .bar{height:6px;margin-top:7px;background:var(--felt2);border-radius:3px;overflow:hidden}
 .pr .bar i{display:block;height:100%;background:var(--brass);width:0}
