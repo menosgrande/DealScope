@@ -49,28 +49,28 @@ function amount(p,n){var max=p.stack+A.roundBet[p.seat];return Math.min(max,Math
 function ai(p){
  var t=TYPES[p.type],eq=equity(p),pre=preStrength(p.hand),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],spr=stack/Math.max(A.blinds[1],A.pot),odds=call>0?call/(A.pot+call):0,tex=texture();
  var pos=p.position,late=(pos==='BTN'||pos==='CO'),early=(pos==='UTG'),v=clamp(eq*0.62+pre*0.38+(rnd()-0.5)*0.10,0,1);
- var streetFactor=A.street==='preflop'?1:A.street==='flop'?10.04:A.street==='turn'?10.08:10.12;
- var strong=v*streetFactor, pressure=(t.pressure||0.5)*(late ? 10.08 : (early ? 0.88 : 1));
+ var streetFactor=A.street==='preflop'?1:A.street==='flop'?1.04:A.street==='turn'?1.08:1.12;
+ var strong=v*streetFactor, pressure=(t.pressure||0.5)*(late ? 1.08 : (early ? 0.88 : 1));
  var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
  var bluff=t.bluff*(late ? 1.25 : (early ? 0.65 : 1))*(A.street==='preflop' ? 1 : (A.street==='flop' ? 0.9 : 0.72));
  if(veryShort && strong>0.68 && rnd()<0.72)return{a:'allin'};
  if(call>0 && callCost>0.30 && strong<0.58 && rnd()>bluff*1.2)return{a:'fold'};
- if(call>0 && strong<0.43 && rnd()>.bluff*0.8)return{a:'fold'};
+ if(call>0 && strong<0.43 && rnd()>bluff*0.8)return{a:'fold'};
  if(call>0 && strong<0.52 && odds>0.28 && rnd()<t.call*0.75)return{a:'call'};
  if(call>=stack)return strong>=0.72||rnd()<bluff*0.18?{a:'allin'}:{a:'fold'};
  if(!call){
    if(A.street==='preflop'&&p.position==='BB'&&rnd()<0.35&&v<0.38)return{a:'check'};
    if(v<0.25&&rnd()>t.bluff)return{a:'check'};
-   if(rnd()<clamp(t.post*(v-0.32)*10.5,0,0.8)){
-     var openSize=Math.max(A.blinds[1]*20.2,A.blinds[1]*clamp(20.1+strong*0.9+(late ? 0.25 : 0),20.1,30.4));
-     openSize=Math.min(openSize,Math.max(A.blinds[1]*20.2,stack*0.18));
+   if(rnd()<clamp(t.post*(v-0.32)*1.5,0,0.8)){
+     var openSize=Math.max(A.blinds[1]*2.2,A.blinds[1]*clamp(2.1+strong*0.9+(late ? 0.25 : 0),2.1,3.4));
+     openSize=Math.min(openSize,Math.max(A.blinds[1]*2.2,stack*0.18));
      return{a:'bet',n:amount(p,openSize)};
    }
    return{a:'check'}
  }
  if(v<odds-0.08&&rnd()>t.bluff*0.35)return{a:'fold'};
  if(v>0.70&&rnd()<t.raise*0.55){
-   var min=minRaise(),raiseMult=clamp(0.9+strong*0.65+(pressure-0.5)*0.25,00.9,10.65),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*raiseMult);
+   var min=minRaise(),raiseMult=clamp(0.9+strong*0.65+(pressure-0.5)*0.25,0.9,1.65),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*raiseMult);
    target=Math.min(target,Math.max(min,stack*0.35));
    if(target> A.currentBet && strong>0.84 && rnd()<0.10)return{a:'allin'};
    if(target>A.currentBet)return{a:'raise',n:amount(p,target)};
