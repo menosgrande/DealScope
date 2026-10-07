@@ -232,9 +232,6 @@
       lines.push(`${passed ? '✓' : '✕'} 7枚 ${name}: evaluate === bestFive.score`);
     }
 
-    const enumerationCases = [
-      ['2人 preflop', [['As Ks', 'Qh Qd']], 0],
-    ];
     // 2〜4人の既知ハンドでは、残りデックからriverまでの組合せ数を固定する。
     const counts = [
       ['2人 preflop', ['As Ks', 'Qh Qd'], 1712304],
