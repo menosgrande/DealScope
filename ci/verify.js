@@ -94,37 +94,63 @@ function testEquityConservation() {
 }
 
 function testDrawAnalyzer() {
-  let r = E.analyzeDraws(hand('5s 6s 7h 8d 2c'), hand('5s 6s 7h 8d 2c'));
+  let r = E.analyzeDraws(hand('5s 6s 7h 8d 2c'), hand('5s 6s 7h 8d 2c'), hand('5s 6s'));
   assert(r.tags.includes('OESD'));
   assert.equal(r.outs, 8);
 
-  r = E.analyzeDraws(hand('2s 4h 5d 6c 8s'), hand('2s 4h 5d 6c 8s'));
+  r = E.analyzeDraws(hand('2s 4h 5d 6c 8s'), hand('2s 4h 5d 6c 8s'), hand('2s 4h'));
   assert(r.tags.includes('DGS'));
   assert.equal(r.outs, 8);
 
-  r = E.analyzeDraws(hand('6s 5h 7d 9c 2c'), hand('6s 5h 7d 9c 2c'));
+  r = E.analyzeDraws(hand('6s 5h 7d 9c 2c'), hand('6s 5h 7d 9c 2c'), hand('6s 5h'));
   assert(r.tags.includes('GS'));
   assert.equal(r.outs, 4);
 
-  r = E.analyzeDraws(hand('As Ks 2s 7s Qd'), hand('As Ks 2s 7s Qd'));
+  r = E.analyzeDraws(hand('As Ks 2s 7s Qd'), hand('As Ks 2s 7s Qd'), hand('As Ks'));
   assert(r.tags.includes('FD'));
   assert.equal(r.outs, 9);
 
-  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd'));
+  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd'), hand('As Kd'));
   assert(r.tags.includes('BDFD'));
   assert.equal(r.outs, 0);
 
+  // A234 / JQKA are one-ended straight draws, not OESD.
+  r = E.analyzeDraws(hand('As 2d 3h 4c 9s'), hand('As 2d 3h 4c 9s'), hand('As 2d'));
+  assert(r.tags.includes('GS'));
+  assert(!r.tags.includes('OESD'));
+  assert.equal(r.outs, 4);
+
+  r = E.analyzeDraws(hand('As Kd Qh Jc 2s'), hand('As Kd Qh Jc 2s'), hand('As Kd'));
+  assert(r.tags.includes('GS'));
+  assert(!r.tags.includes('OESD'));
+  assert.equal(r.outs, 4);
+
+  // Board-only draws must not be attributed to Hero.
+  r = E.analyzeDraws(hand('Ac Kd 5h 6c 7s 8d'), hand('Ac Kd 5h 6c 7s 8d'), hand('Ac Kd'));
+  assert(!r.tags.includes('OESD'));
+  assert(!r.tags.includes('DGS'));
+  assert(!r.tags.includes('GS'));
+
+  r = E.analyzeDraws(hand('Ac Kd 2h 7h 9h Jh'), hand('Ac Kd 2h 7h 9h Jh'), hand('Ac Kd'));
+  assert(!r.tags.includes('FD'));
+  assert(!r.tags.includes('BDFD'));
+
+  // Blockers reduce the actual next-card outs.
   r = E.analyzeDraws(
     hand('5s 6s 7h 8d 2c'),
-    hand('5s 6s 7h 8d 2c 4h 4d 4s 4c')
+    hand('5s 6s 7h 8d 2c 4h 4d 4s 4c'),
+    hand('5s 6s')
   );
   assert(r.tags.includes('OESD'));
   assert.equal(r.outs, 4);
 
-  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd 3s'));
+  // A backdoor flush draw disappears once the fourth suited card arrives.
+  r = E.analyzeDraws(hand('As Kd 2s 7s Qs'), hand('As Kd 2s 7s Qs'), hand('As Kd'));
+  assert(r.tags.includes('FD'));
   assert(!r.tags.includes('BDFD'));
+  assert.equal(r.outs, 9);
 
-  console.log('✓ draw analyzer: OESD / DGS / GS / FD / BDFD / blockers');
+  console.log('✓ draw analyzer: hole-card aware OESD / DGS / GS / FD / BDFD / blockers');
 }
 
 function testCanonicalAndCache() {
