@@ -280,6 +280,7 @@
   /* ---------- 結果 ---------- */
   let res = { mode: 'none', eq: [], approx: false };
   let job = 0;
+  let calcWorker = null;
 
   // 勝率は各プレイヤー行の右側(.pr)に表示。ボード下(#results)には補足の注記だけ出す
   function renderResults() {
@@ -402,10 +403,19 @@
     return null;
   }
 
+  function stopWorker() {
+    if (calcWorker) {
+      calcWorker.terminate();
+      calcWorker = null;
+    }
+  }
+
   function recompute() {
-    hideToast(); // 何か変わったら「元に戻す」は出し続けない(古い状態で上書きしてしまうため)
+    hideToast();
     save();
     const id = ++job;
+    stopWorker();
+
     const hands = [];
     for (let i = 0; i < count(); i++) {
       const [a, b] = state.players[i];
@@ -418,11 +428,9 @@
     res = { mode: 'calc', eq: [], approx: false };
     renderResults();
 
-    // ハンド指定: 常にExact / 相手想定1人のFlop以降: Exact / それ以外の相手想定: Monte Carlo(≈)
     const rand = isRandom(), opp = state.opp;
-    let gen, approx = false;
     const exact = !rand || (opp === 1 && board.length >= 3);
-    let cacheKey = null;
+
     // ExactだけCanonical Keyに接続する。Monte Carloは乱数性を維持するためCacheしない。
     if (exact) {
       const canonical = S.buildCanonicalState({
@@ -432,33 +440,79 @@
         calculationMode: 'exact',
         opponentCount: rand ? opp : null,
       });
-      cacheKey = S.canonicalKey(canonical);
+      const cacheKey = S.canonicalKey(canonical);
       const cached = C.get(cacheKey);
       if (cached) {
         res = { mode: 'done', eq: cached.equity, cats: cached.cats, catEquity: cached.catEquity, approx: false, rand, opp };
         renderResults();
         return;
       }
-    }
-    if (!rand) gen = E.exactGen(hands, board);
-    else if (opp === 1 && board.length >= 3) gen = E.exactVsRandomGen(hands[0], board);
-    else { gen = E.monteCarloVsRandomGen(hands[0], board, opp, RANDOM_TRIALS); approx = true; }
 
-    // 約12msずつに分けて実行し、UIを止めない。入力が変わったら前の計算は打ち切る
-    (function step() {
-      if (id !== job) return;
-      const end = performance.now() + 12;
-      do {
-        const r = gen.next();
-        if (r.done) {
-          if (cacheKey && !approx) C.set(cacheKey, r.value);
-          res = { mode: 'done', eq: r.value.equity, cats: r.value.cats, catEquity: r.value.catEquity, approx, rand, opp };
+      calcWorker = new Worker('worker.js');
+      const worker = calcWorker;
+      worker.onmessage = (e) => {
+        const m = e.data || {};
+        if (id !== job || worker !== calcWorker) return;
+        if (m.type === 'done') {
+          calcWorker = null;
+          worker.terminate();
+          C.set(cacheKey, m.value);
+          res = { mode: 'done', eq: m.value.equity, cats: m.value.cats, catEquity: m.value.catEquity, approx: false, rand, opp };
           renderResults();
-          return;
+        } else if (m.type === 'error') {
+          calcWorker = null;
+          worker.terminate();
+          res = { mode: 'none', eq: [], approx: false };
+          renderResults();
+          console.error('DealScope worker:', m.message);
         }
-      } while (performance.now() < end);
-      setTimeout(step, 0);
-    })();
+      };
+      worker.onerror = (e) => {
+        if (id !== job || worker !== calcWorker) return;
+        calcWorker = null;
+        worker.terminate();
+        res = { mode: 'none', eq: [], approx: false };
+        renderResults();
+        console.error('DealScope worker error:', e.message || e);
+      };
+      worker.postMessage({ type: 'start', kind: rand ? 'exactVsRandom' : 'exact', hands, board });
+      return;
+    }
+
+    calcWorker = new Worker('worker.js');
+    const worker = calcWorker;
+    worker.onmessage = (e) => {
+      const m = e.data || {};
+      if (id !== job || worker !== calcWorker) return;
+      if (m.type === 'done') {
+        calcWorker = null;
+        worker.terminate();
+        res = { mode: 'done', eq: m.value.equity, cats: m.value.cats, catEquity: m.value.catEquity, approx: true, rand, opp };
+        renderResults();
+      } else if (m.type === 'error') {
+        calcWorker = null;
+        worker.terminate();
+        res = { mode: 'none', eq: [], approx: false };
+        renderResults();
+        console.error('DealScope worker:', m.message);
+      }
+    };
+    worker.onerror = (e) => {
+      if (id !== job || worker !== calcWorker) return;
+      calcWorker = null;
+      worker.terminate();
+      res = { mode: 'none', eq: [], approx: false };
+      renderResults();
+      console.error('DealScope worker error:', e.message || e);
+    };
+    worker.postMessage({
+      type: 'start',
+      kind: 'monteCarloVsRandom',
+      hands,
+      board,
+      opponents: opp,
+      trials: RANDOM_TRIALS,
+    });
   }
 
   /* ---------- イベント ---------- */
