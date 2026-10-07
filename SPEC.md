@@ -351,9 +351,19 @@ canonicalKey(canonicalState)
 
 ### 7.5 Canonical Cacheの現在方針
 
-Canonical CacheはCanonical State/Keyの仕様確定後に実装する。最初は正答性を優先し、過剰な正規化を行わない。
+Canonical State/Keyに接続したExact専用のインメモリCacheを実装済み。
 
-特にMonte Carloは乱数seedによって結果が変化するため、現行の100,000試行の結果を単純に局面だけでキャッシュすると「同じ局面＝同じ結果」という決定論的関係を壊す。したがって、Cacheの初期対象はExact計算を基本とし、Monte Carloをキャッシュ対象にする場合はseed・試行条件まで含めて別途仕様化する。
+- Cacheは cache.js の Map で保持する。
+- Cache Keyは state.js の buildCanonicalState() → canonicalKey() で生成する。
+- 対象はExact計算のみ。ハンド指定のExactと、相手想定1人のFlop以降のExactをCacheする。
+- Monte Carloは毎回乱数を引く現在の仕様を維持するためCacheしない。
+- Hit時は保存済みのExact結果を返し、Miss時だけ通常のExact列挙を実行して完了結果を保存する。
+- TTL / LRU / localStorage / IndexedDB / 永続化 / サイズ制限は持たない。
+- Cacheは正しさを担保する仕組みではなく、同一Canonical Keyの再計算を省く性能最適化である。
+- cache.js はHit数、Miss数、Hit率、Entry数を取得できる。
+- verify.js では Miss → Exact計算 → 保存 → Hit の結果一致、カード順序の正規化、異なる局面の分離、Hit/Miss統計を確認する。
+
+Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含めて別途仕様化する。
 
 ---
 ## 8. 構成
@@ -366,6 +376,8 @@ UI (Player / Board / カードピッカー / ヘルプ)   index.html, app.js
         ↓
 勝率エンジン (Exact / Monte Carlo / 最強の5枚 / 最終役の集計)  engine.js
         ↓
+Exact Cache (Canonical Key / インメモリMap)              cache.js
+        ↓
 結果表示 (勝率 / 最終役)
 
 検証 (本番UIとは分離)                            verify.js  ← ヘルプの「開発者向け」を開いたときだけ読み込む
@@ -377,6 +389,7 @@ UI (Player / Board / カードピッカー / ヘルプ)   index.html, app.js
 | `app.js` | 入力UI・カード状態・結果表示・保存 |
 | `state.js` | URLの書き出し/読み込み・重複の整理・保存データの検証・配る。DOMに触らない純関数 |
 | `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚・最終役(成立率/勝率の内訳)の集計。UI非依存、外部依存なし |
+| `cache.js` | Canonical Key単位のExact結果Cache。インメモリMap、Hit/Miss統計。Monte Carloは対象外 |
 | `verify.js` | 検証コード。「開発者向け」を開いたときだけ読み込む |
 | `README.md` / `SPEC.md` | 簡易説明 / この仕様書 |
 
