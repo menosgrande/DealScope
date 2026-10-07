@@ -272,6 +272,38 @@ Boardの「× 全消去」は、**プレイヤーのカードを変更せず、B
 
 ---
 
+## 7.3 Evaluatorのスコア仕様
+
+`evaluate(cards)` は5〜7枚を直接集計して、最強の5枚の強さを1つの整数 `score` で表す。7枚を21通りの5枚に分解して比較する方式ではない。内部では rank の出現数(`rc`)、rank bit mask、suitごとのrank mask/countを使い、役カテゴリを上位20bit、役内のrank情報を下位側へ配置する。scoreは大きいほど強い。
+
+カテゴリは次の順で強くなる: High Card(0) < Pair(1) < Two Pair(2) < Trips(3) < Straight(4) < Flush(5) < Full House(6) < Quads(7) < Straight Flush(8)。
+
+比較に使うrank情報は次の順序で固定する。
+
+- High Card: 高いrankから5枚
+- Pair: pair rank → kicker 3枚
+- Two Pair: high pair → low pair → kicker
+- Trips: trips rank → kicker 2枚
+- Straight: straight high rankのみ。A2345は5-high
+- Flush: 高いrankから5枚
+- Full House: trips rank → pair rank
+- Quads: quads rank → kicker
+- Straight Flush: straight high rankのみ。A2345は5-high
+
+rank encodingは `23456789TJQKA` の順で、2=0、3=1、…、K=11、A=12。したがって、A-high straightのhigh rankは12、K-highは11、wheel(A2345)は3となる。
+
+scoreの固定フィールドは以下のとおり。
+
+- category: `score >>> 20`
+- straight / straight flushのhigh rank: `(score >>> 16) & 0xF`
+- pair/trips/quads/full house等の主要rankも16bit位置を起点に格納し、後続のrank情報を12/8/4bit単位で比較できる形にする
+- high card / flushは5つのrank nibbleを上位から連結する
+
+このscore表現により、同じカテゴリでは上記の比較順序がそのまま整数比較の大小関係になる。役カテゴリ間でもcategoryの大小がそのまま強弱になる。
+
+7枚から実際に使われている5枚を取得する必要があるUI用途では、別関数 `bestFive(cards)` が21通りの5枚組を列挙し、evaluateのscoreが最大の組を返す。これは役の強さを計算する本体ではなく、最強5枚の表示用である。
+
+---
 ## 8. 構成
 
 ```
