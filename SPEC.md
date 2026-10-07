@@ -304,6 +304,40 @@ scoreの固定フィールドは以下のとおり。
 7枚から実際に使われている5枚を取得する必要があるUI用途では、別関数 `bestFive(cards)` が21通りの5枚組を列挙し、evaluateのscoreが最大の組を返す。これは役の強さを計算する本体ではなく、最強5枚の表示用である。
 
 ---
+## 7.4 Canonical State
+
+Canonical Stateは「キャッシュのためのキー」ではなく、**計算結果に影響する局面の数学的表現**とする。原則は「結果に影響する情報のみ保持し、結果に影響しない表現差を除去する」。
+
+現行DealScopeでは次を保持する。
+
+- `playerCount`: プレイヤー数
+- `players`: プレイヤーごとのホールカード2枚。**プレイヤー順は保持する**。各プレイヤー内の2枚の順序は意味を持たないためソートする
+- `board`: 公開ボード。カードの入力順は意味を持たないためソートする
+- `deadCards`: 既知dead card。現行UIには入力欄がなく、現在は空配列だが、エンジンが将来これを計算に使用する場合は状態の一部とする
+- `calculationMode`: 計算方式。ExactとMonte Carloでは同じ局面でも返る結果の性質が異なるため区別する
+- `opponentCount`: 相手想定モードでの相手人数。結果に影響するため保持する。ハンド指定モードでは `null`
+
+保持しないものはUI状態、選択中タブ、開閉状態、テーマ、URL上のカード位置、計算進捗、Loading状態など。これらは計算結果を変えない。
+
+Canonical StateとKey生成は分離する。
+
+```
+buildCanonicalState(state)
+        ↓
+Canonical State
+        ↓
+canonicalKey(canonicalState)
+```
+
+`buildCanonicalState()` は状態を正規化する責務、`canonicalKey()` は正規化済み状態を一意なキーへ変換する責務を持つ。
+
+### 7.5 Canonical Cacheの現在方針
+
+Canonical CacheはCanonical State/Keyの仕様確定後に実装する。最初は正答性を優先し、過剰な正規化を行わない。
+
+特にMonte Carloは乱数seedによって結果が変化するため、現行の100,000試行の結果を単純に局面だけでキャッシュすると「同じ局面＝同じ結果」という決定論的関係を壊す。したがって、Cacheの初期対象はExact計算を基本とし、Monte Carloをキャッシュ対象にする場合はseed・試行条件まで含めて別途仕様化する。
+
+---
 ## 8. 構成
 
 ```
