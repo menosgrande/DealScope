@@ -55,7 +55,7 @@
     state.players.slice(0, count()).forEach((h) => h.forEach((c) => {
       if (c >= 0) allKnown.push(c);
     }));
-    return E.analyzeDraws([a, b, ...board], allKnown);
+    return E.analyzeDraws([a, b, ...board], allKnown, [a, b]);
   }
 
   function renderDrawInsight() {
