@@ -13,7 +13,7 @@ var TYPES={
 };
 var NAMES=['あなた','冷静なプロ','攻める狂犬','慎重派'];
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:20,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false};
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
@@ -52,7 +52,7 @@ function ai(p){
  var streetFactor=A.street==='preflop'?1:A.street==='flop'?1.04:A.street==='turn'?1.08:1.12;
  var strong=v*streetFactor, pressure=(t.pressure||.5)*(late?1.08:early?.88:1);
  var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
- var bluff=t.bluff*(late?1.25:early?.65:1)*(A.street==='preflop'?1:A.street==='flop'?.9:.72);
+ var bluff=t.bluff*(late?1.25:early?.65:1)*(A.street==='preflop'?1:A.street==='flop' ? .9 : .72);
  if(veryShort && strong>.68 && rnd()<.72)return{a:'allin'};
  if(call>0 && callCost>.30 && strong<.58 && rnd()>.bluff*1.2)return{a:'fold'};
  if(call>0 && strong<.43 && rnd()>.bluff*.8)return{a:'fold'};
@@ -62,7 +62,7 @@ function ai(p){
    if(A.street==='preflop'&&p.position==='BB'&&rnd()<.35&&v<.38)return{a:'check'};
    if(v<.25&&rnd()>t.bluff)return{a:'check'};
    if(rnd()<clamp(t.post*(v-.32)*1.5,0,.8)){
-     var openSize=Math.max(A.blinds[1]*2.2,A.blinds[1]*clamp(2.1+strong*.9+(late?.25:0),2.1,3.4));
+     var openSize=Math.max(A.blinds[1]*2.2,A.blinds[1]*clamp(2.1+strong*.9+(late ? .25 : 0),2.1,3.4));
      openSize=Math.min(openSize,Math.max(A.blinds[1]*2.2,stack*.18));
      return{a:'bet',n:amount(p,openSize)};
    }
