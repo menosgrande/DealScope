@@ -591,42 +591,7 @@
     state.open = true;
     render();
   }
-  $('players').addEventListener('keydown', (e) => {
-    const pick = e.target.closest('[data-analysis-player]');
-    if (!pick || (e.key !== 'Enter' && e.key !== ' ')) return;
-    e.preventDefault();
-    const i = Number(pick.dataset.analysisPlayer);
-    if (Number.isInteger(i) && i >= 0 && i < count()) {
-      if(state.analysisPlayer!==i) observation.analysisSelections++;
-      state.analysisPlayer=i;
-      render();
-    }
-  });
 
-  $('players').addEventListener('click', (e) => {
-    const targetPick = e.target.closest('[data-analysis-player]');
-    if (targetPick && !e.target.closest('.slot') && !e.target.closest('.playerAction') && !e.target.closest('.cardDelete') && !e.target.closest('.approxMark')) {
-      const i = Number(targetPick.dataset.analysisPlayer);
-      if (Number.isInteger(i) && i >= 0 && i < count()) {
-        if(state.analysisPlayer!==i) observation.analysisSelections++;
-        state.analysisPlayer=i;
-        render();
-      }
-      return;
-    }
-    const mark = e.target.closest('.approxMark');
-    if (mark) {
-      e.preventDefault();
-      e.stopPropagation();
-      const wrap = mark.closest('.approxWrap');
-      const tip = wrap && wrap.querySelector('.approxTip');
-      if (!tip) return;
-      $('players').querySelectorAll('.approxTip').forEach((x) => { if (x !== tip) x.hidden = true; });
-      tip.hidden = !tip.hidden;
-      return;
-    }
-    onSlotClick(e);
-  });
   $('board').addEventListener('click', onSlotClick);
   // ピッカーの外側をクリック／タップしたら閉じる。
   // pointerdown を使うことで、枠をタップした場合はその後の slot click で自然に再オープンできる。
