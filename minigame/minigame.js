@@ -184,6 +184,12 @@ function advance(){
  }
  var p=A.players[seat];
  if(!p||p.out||p.fold||p.allin){A.actor=nextActionSeat(A.players,seat);advance();return}
+ /* 同じベット額まで既に投入済みで行動済みの席には、同一ラウンドで再度ターンを渡さない。 */
+ if(A.acted[p.seat]&&A.roundBet[p.seat]===A.currentBet){
+   A.actor=nextActionSeat(A.players,seat);
+   if(A.actor!==-1)advance();
+   return;
+ }
  if(p.seat===0){A.awaiting=true;A.pending=false;render();return}
  A.awaiting=false;
  if(A.pending)return;
