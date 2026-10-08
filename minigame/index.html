@@ -34,6 +34,7 @@ h1{font-size:16px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 <div class="panel">
   <div class="metaRow"><div id="street" class="street"></div><div id="info" class="info"></div></div>
   <div id="msg" class="msg"></div>
+  <div class="potArea" aria-label="現在のポット"><div class="potStack" id="potChips"></div><div class="potTotal"><span>POT</span><b id="potValue">0</b></div></div>
   <div id="board" class="board"></div>
   <div id="players" class="players"></div>
 </div>
@@ -47,6 +48,7 @@ h1{font-size:16px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
     <button id="betBtn" class="primary">ベット</button>
     <button id="allinBtn">オールイン</button>
   </div>
+  <button id="nextBtn" class="actions primary" style="display:none;width:100%;margin-top:6px;height:42px">次のHandへ</button>
   <button id="newBtn" class="new">最初からやり直す</button>
 </div>
 <details class="panel logBox"><summary>アクション履歴</summary><div class="log" id="log"></div></details>
@@ -56,6 +58,6 @@ h1{font-size:16px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261008-poker5"></script>
+<script src="./minigame.js?v=20261008-poker6"></script>
 </body>
 </html>
