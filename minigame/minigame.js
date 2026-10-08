@@ -4,7 +4,7 @@
  */
 (function(){
 'use strict';
-var E=window.PokerEq, R=E.RANKS, S=E.SUITS;
+var E=window.PokerEq, R=E.RANKS, S=E.SUITS, Rules=window.DealMiniGameRules;
 var TYPES={
  tag:{name:'冷静なプロ',short:'TAG',vpip:0.20,raise:0.62,call:0.22,bluff:0.08,pressure:0.55,post:0.72},
  lag:{name:'攻める狂犬',short:'LAG',vpip:0.42,raise:0.70,call:0.18,bluff:0.25,pressure:0.78,post:0.82},
@@ -21,8 +21,8 @@ function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function money(n){return Math.round(n).toLocaleString('ja-JP')}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function alive(){return A.players.filter(function(p){return !p.out})}
-function active(){return A.players.filter(function(p){return !p.out&&!p.fold&&!p.allin})}
-function contenders(){return A.players.filter(function(p){return !p.out&&!p.fold})}
+function active(){return Rules.active(A.players)}
+function contenders(){return Rules.contenders(A.players)}
 function nextSeat(i){for(var k=1;k<=4;k++){var j=(i+k)%4;if(!A.players[j].out)return j}return i}
 function cardName(c){return R[c>>2]+S[c&3]}
 function scoreLabel(s){return ['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'][s>>>20]||''}
@@ -108,10 +108,7 @@ function resetHand(){
  A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':p.seat===sb?'SB':p.seat===bb?'BB':'UTG'});
  A.actor=nextSeat(bb);A.message='Hand #'+A.handNo+' / Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);render();advance()
 }
-function roundDone(){
- var c=contenders();if(c.length<=1)return true;
- return c.filter(function(p){return !p.allin}).every(function(p){return A.acted[p.seat]&&A.roundBet[p.seat]===A.currentBet})
-}
+function roundDone(){return Rules.roundComplete(A)}
 function act(seat,a,n){
  var p=A.players[seat];if(p.out||p.fold||p.allin)return false;
  var call=Math.max(0,A.currentBet-A.roundBet[seat]),text='';
