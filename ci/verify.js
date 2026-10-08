@@ -236,7 +236,9 @@ function testMiniGameStateTransitions() {
   assert(!Rules.shouldShowdown(allIn));
 
   const river={...allIn,street:'river'};
-  assert(Rules.shouldShowdown(river));
+  assert(Rules.shouldShowdown(river));  assert(Rules.allInRunout(allIn));
+  assert.equal(Rules.nextActionSeat(allIn.players,0),-1);
+
 
   const bbCheck={
     players:[
