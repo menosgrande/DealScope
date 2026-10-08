@@ -196,7 +196,7 @@ function render(){
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
   var turnLabel=A.finished?'優勝！':A.handOver?(A.awards.some(function(a){return a.seat===0})?'このHandで勝利！':'このHandは終了'):A.awaiting?'あなたの番':'CPUが考えています…';
-  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?'勝因：'+handDetail(A.players[0].showdownScore):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(call):'　Check'):'');
+  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(call):'　Check'):'');
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
   $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
