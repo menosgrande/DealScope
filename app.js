@@ -345,8 +345,8 @@
       '<summary>Pot Odds</summary>' +
       '<div class="potOddsPanel">' +
         '<div class="potOddsInputs">' +
-          '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
-          '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
+          '<label><span>Pot</span><span class="potOddsControl"><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span><span class="potOddsAdjust"><button type="button" data-pot-key="pot" data-pot-step="-10" aria-label="Potを10下げる">−10</button><button type="button" data-pot-key="pot" data-pot-step="10" aria-label="Potを10上げる">＋10</button></span></span></label>' +
+          '<label><span>Call</span><span class="potOddsControl"><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span><span class="potOddsAdjust"><button type="button" data-pot-key="call" data-pot-step="-10" aria-label="Callを10下げる">−10</button><button type="button" data-pot-key="call" data-pot-step="10" aria-label="Callを10上げる">＋10</button></span></span></label>' +
         '</div>' +
         '<div class="potOddsResult">' +
           '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
@@ -849,6 +849,23 @@
   }
 
   $('players').addEventListener('click', (e) => {
+    const potAdjust = e.target.closest('.potOddsAdjust button');
+    if (potAdjust) {
+      e.preventDefault();
+      const key = potAdjust.dataset.potKey;
+      const step = Number(potAdjust.dataset.potStep);
+      if (key === 'pot' || key === 'call') {
+        const current = Number(potOddsState[key]);
+        const base = Number.isFinite(current) ? current : 0;
+        const next = Math.max(0, Math.round((base + step) * 100) / 100);
+        potOddsState[key] = String(next);
+        try { localStorage.setItem(POT_ODDS_KEY, JSON.stringify(potOddsState)); } catch (err) { /* 無視 */ }
+        const input = $('players').querySelector(key === 'pot' ? '#potInput' : '#callInput');
+        if (input) input.value = potOddsState[key];
+        updatePotOddsDisplay();
+      }
+      return;
+    }
     const deal = e.target.closest('#deal');
     if (deal) { e.preventDefault(); dealCards(); return; }
     const allShuffle = e.target.closest('#handShuffle');

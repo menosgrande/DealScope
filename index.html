@@ -200,9 +200,14 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .potOddsPanel{padding-top:8px}
 .potOddsInputs{display:flex;gap:7px}
 .potOddsInputs label{flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:10px;color:var(--mute)}
-.moneyInput{display:flex;align-items:center;min-width:0;height:36px;border:1px solid var(--line);border-radius:7px;background:var(--felt2)}
+.potOddsControl{display:flex;align-items:center;gap:4px}
+.moneyInput{display:flex;align-items:center;min-width:0;flex:1;height:36px;border:1px solid var(--line);border-radius:7px;background:var(--felt2)}
 .moneyInput .currency{padding-left:8px;color:var(--mute);font-size:11px}
 .potOddsInputs input{width:100%;min-width:0;height:34px;padding:0 8px;border:0;background:none;color:var(--ivory);font:inherit;font-size:16px;font-variant-numeric:tabular-nums;text-align:right}
+.potOddsAdjust{display:flex;gap:2px}
+.potOddsAdjust button{height:30px;min-width:34px;padding:0 4px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--mute);font:inherit;font-size:10px;font-variant-numeric:tabular-nums}
+.potOddsAdjust button:active{background:var(--felt2);color:var(--ivory)}
+.potOddsAdjust button:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
 .potOddsInputs input:focus{outline:none}
 .moneyInput:focus-within{outline:2px solid var(--brass);outline-offset:1px}
 .potOddsResult{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;text-align:center;font-variant-numeric:tabular-nums}
