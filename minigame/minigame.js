@@ -28,6 +28,8 @@ function nextSeat(i){return Rules.nextSeat(A.players,i)}
 function nextActionSeat(i){return Rules.nextActionSeat(A.players,i)}
 function cardName(c){return R[c>>2]+S[c&3]}
 function scoreLabel(s){return ['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'][s>>>20]||''}
+function rankLabel(r){return R[r]||''}
+function handDetail(s){var cat=s>>>20,a=(s>>>16)&15,b=(s>>>12)&15;switch(cat){case 8:return rankLabel(a)+'ハイ・ストレートフラッシュ';case 7:return rankLabel(a)+'のフォーカード';case 6:return rankLabel(a)+'のフルハウス（'+rankLabel(b)+'のペア）';case 5:return rankLabel(a)+'ハイ・フラッシュ';case 4:return rankLabel(a)+'ハイ・ストレート';case 3:return rankLabel(a)+'のスリーカード';case 2:return rankLabel(a)+'と'+rankLabel(b)+'のツーペア';case 1:return rankLabel(a)+'のワンペア';default:return rankLabel(a)+'ハイ'}}
 function rank(c){return c>>2}
 function preStrength(h){
  var a=rank(h[0]),b=rank(h[1]),hi=Math.max(a,b),lo=Math.min(a,b),pair=a===b,g=hi-lo,x;
@@ -140,7 +142,7 @@ function street(){
 function foldWin(){
  var c=contenders();if(c.length!==1)return false;var p=c[0],won=A.pot;
  p.stack+=won;A.awards=[{seat:p.seat,amount:won}];
- A.message=p.name+' が '+money(won)+' を獲得';A.pot=0;endHand();return true
+ A.message=p.name+' が勝利（他のプレイヤーがフォールド）・'+money(won)+'獲得';A.pot=0;endHand();return true
 }
 function showdown(){
  var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
@@ -150,12 +152,12 @@ function showdown(){
  var awardMap={};settlement.awards.forEach(function(a){awardMap[a.player.seat]=(awardMap[a.player.seat]||0)+a.amount});
  A.awards=Object.keys(awardMap).map(function(seat){return{seat:Number(seat),amount:awardMap[seat]}});
  var unique=[];settlement.winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
- var total=all.reduce(function(s,p){return s+(p.contrib||0)},0),winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+' '+scoreLabel(z.s)}).join(' / ');A.message=unique.length===1?winnerText+' が '+money(total)+' を獲得':'ショーダウン：'+winnerText+'（'+money(total)+'）';
+ var total=all.reduce(function(s,p){return s+(p.contrib||0)},0),winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z.s)+'」'}).join(' / ');A.message=unique.length===1?'勝者：'+winnerText+'・'+money(total)+'獲得':'引き分け：'+winnerText+'・'+money(total)+'を分配';
  A.pot=0;endHand()
 }
 function endHand(){
  A.players.forEach(function(p){p.contrib=0;p.roundBet=0;p.allin=false});A.handOver=true;render();
- setTimeout(function(){A.handOver=false;A.players.forEach(function(p){if(p.stack<=0)p.out=true});if(alive().length<=1)finish();else resetHand()},900)
+ setTimeout(function(){A.handOver=false;A.players.forEach(function(p){if(p.stack<=0)p.out=true});if(alive().length<=1)finish();else resetHand()},2200)
 }
 function finish(){A.finished=true;var w=alive()[0];A.message=w?w.name+' の優勝！':'ゲーム終了';render()}
 function advance(){
@@ -164,7 +166,7 @@ function advance(){
  if(roundDone()){if(A.street==='river')showdown();else street();return}
  var p=A.players[A.actor];if(!p||p.out||p.fold||p.allin){A.actor=nextActionSeat(A.actor);if(A.actor<0){if(Rules.allInRunout(A)){if(A.street==='river')showdown();else street();}return}}
  if(p.seat===0){A.awaiting=true;render();return}
- A.awaiting=false;setTimeout(function(){var d=ai(p);if(d.a==='raise'&&A.raiseLocked[p.seat])d={a:(A.currentBet>A.roundBet[p.seat]?'call':'check')};if(!act(p.seat,d.a,d.n)){var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);if(call>0)act(p.seat,'call');else act(p.seat,'check')}advance()},320)
+ A.awaiting=false;setTimeout(function(){var d=ai(p);if(d.a==='raise'&&A.raiseLocked[p.seat])d={a:(A.currentBet>A.roundBet[p.seat]?'call':'check')};if(!act(p.seat,d.a,d.n)){var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);if(call>0)act(p.seat,'call');else act(p.seat,'check')}advance()},460)
 }
 function human(a){
  if(!A.awaiting||A.actor!==0||A.finished)return;
@@ -189,16 +191,16 @@ function render(){
    var award=A.awards.find(function(a){return a.seat===p.seat});
    var tone=p.seat===0?'':('<span class="typeTag">'+(TYPE_TONES[p.type]||'')+'</span>');
    var badge=award?'<span class="resultBadge">+'+money(award.amount)+'</span>':'';
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div><div class="betline">in pot <b>'+money(A.roundBet[p.seat]||0)+'</b></div>'+(p.showdownScore?'<div class="made">'+scoreLabel(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div><div class="betline">in pot <b>'+money(A.roundBet[p.seat]||0)+'</b></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
   }).join('');
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
   var turnLabel=A.finished?'優勝！':A.handOver?(A.awards.some(function(a){return a.seat===0})?'このHandで勝利！':'このHandは終了'):A.awaiting?'あなたの番':'CPUが考えています…';
-  var turnMeta=A.finished?'ゲーム終了':A.handOver?'次のHandへ…':'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(call):'　Check'):'');
+  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?'勝因：'+handDetail(A.players[0].showdownScore):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(call):'　Check'):'');
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
-  $('hint').textContent=A.awaiting?(call?'Call額を確認して、フォールド / コール / レイズを選びます。':'Checkするか、ベット額を決めてベットします。'):(A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
-  $('toCall').textContent=A.awaiting?(call?'Call '+money(call):'Check'):' ';
+  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
+  $('toCall').textContent=A.awaiting?(call?'Call '+money(call):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
