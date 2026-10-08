@@ -114,18 +114,41 @@ function testAnalysisLayer() {
   r = Draw.analyzeDraws(hand('Ac Kd'), hand('5h 6c 7s'));
   assert.equal(r.draws.length, 0);
 
+  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qs 3d'));
+  assert(r.draws.some(d => d.type === 'FD'));
+
+  r = Draw.analyzeDraws(hand('As Kd'), hand('2s 7s Qs 3s'));
+  assert.equal(r.draws.length, 0);
+
+  r = Draw.analyzeDraws(hand('5s 6h'), hand('7d 8c 2s 3h'));
+  assert(r.draws.some(d => d.type === 'OESD'));
+
+  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qd 3h 4c'));
+  assert.equal(r.draws.length, 0);
+
   let t = Texture.analyzeBoardTexture(hand('As Kd 7c'));
   assert(t.tags.includes('RAINBOW'));
+  assert(!t.tags.includes('MONOTONE'));
+  assert(!t.tags.includes('PAIRED'));
   assert(!t.tags.includes('CONNECTED'));
 
   t = Texture.analyzeBoardTexture(hand('8s 9d Tc'));
   assert(t.tags.includes('RAINBOW'));
   assert(t.tags.includes('CONNECTED'));
 
+  t = Texture.analyzeBoardTexture(hand('As 7s 3s'));
+  assert(t.tags.includes('MONOTONE'));
+
   t = Texture.analyzeBoardTexture(hand('Ah Ad 7c'));
   assert(t.tags.includes('PAIRED'));
 
-  console.log('✓ Analysis Layer: player draws / board texture');
+  t = Texture.analyzeBoardTexture(hand('8s 9d Tc 2h'));
+  assert(t.tags.includes('CONNECTED'));
+  assert(t.tags.includes('RAINBOW'));
+
+  assert.deepEqual(Draw.analyzeDraws([], hand('As Kd 7c')), {draws: []});
+
+  console.log('✓ Analysis Layer: player draws / board texture / input contract');
 }
 
 function testCanonicalAndCache() {
