@@ -23,7 +23,7 @@ function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),
 function alive(){return A.players.filter(function(p){return !p.out})}
 function active(){return Rules.active(A.players)}
 function contenders(){return Rules.contenders(A.players)}
-function nextSeat(i){for(var k=1;k<=4;k++){var j=(i+k)%4;if(!A.players[j].out)return j}return i}
+function nextSeat(i){return Rules.nextSeat(A.players,i)}
 function cardName(c){return R[c>>2]+S[c&3]}
 function scoreLabel(s){return ['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'][s>>>20]||''}
 function rank(c){return c>>2}
