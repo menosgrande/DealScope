@@ -64,9 +64,13 @@
     const reload = new Promise(resolve => frame.addEventListener('load', resolve, {once:true}));
     frame.contentWindow.location.reload();
     await reload;
-    await waitFor(() => frame.contentDocument && frame.contentDocument.querySelector('#potInput'));
-
     const after = frame.contentDocument;
+    await waitFor(() => after && after.querySelector('.potOddsToggle'));
+    const afterToggle = after.querySelector('.potOddsToggle');
+    if (!afterToggle || afterToggle.getAttribute('aria-expanded') !== 'false') throw new Error('Pot Odds should reload collapsed');
+    afterToggle.click();
+    await waitFor(() => after.querySelector('#potInput'));
+
     const potAfter = after.querySelector('#potInput');
     const callAfter = after.querySelector('#callInput');
     const requiredAfter = after.querySelector('[data-pot-result="required"]');
