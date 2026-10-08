@@ -93,7 +93,7 @@ function resetHand(){
  A.players.forEach(function(p){p.hand=[];p.fold=false;p.allin=false;p.contrib=0;p.showdownScore=0});
  for(var k=0;k<2;k++)for(var j=0;j<4;j++){var p=A.players[(A.dealer+j)%4];if(!p.out)p.hand.push(deal())}
  var sb=nextSeat(A.dealer),bb=nextSeat(sb);
- blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.blinds[1];
+ blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.roundBet[bb];
  A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':p.seat===sb?'SB':p.seat===bb?'BB':'UTG'});
  A.actor=nextSeat(bb);A.message='Hand #'+A.handNo+' / Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);render();advance()
 }
@@ -115,7 +115,7 @@ function act(seat,a,n){
  }else if(a==='allin'){
    var target2=A.roundBet[seat]+p.stack,before=A.currentBet;contribute(p,p.stack);
    if(target2>before){A.lastRaise=Math.max(A.blinds[1],target2-before);A.currentBet=target2;A.acted=A.players.map(function(q){return q.out||q.fold||q.allin});A.acted[seat]=true}
-   text='オールイン'
+   text=target2>A.currentBet?'オールイン':'オールイン（コール）'
  }
  if(!text)return false;
  A.acted[seat]=true;A.history.push({seat:seat,text:text});A.actor=nextSeat(seat);render();return true
@@ -163,7 +163,7 @@ function advance(){
  if(roundDone()){if(A.street==='river')showdown();else street();return}
  var p=A.players[A.actor];if(!p||p.out||p.fold||p.allin){A.actor=nextSeat(A.actor);advance();return}
  if(p.seat===0){A.awaiting=true;render();return}
- A.awaiting=false;setTimeout(function(){var d=ai(p);if(!act(p.seat,d.a,d.n))act(p.seat,'fold');advance()},230)
+ A.awaiting=false;setTimeout(function(){var d=ai(p);if(!act(p.seat,d.a,d.n)){var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);if(call>0)act(p.seat,'call');else act(p.seat,'check')}advance()},320)
 }
 function human(a){
  if(!A.awaiting||A.actor!==0||A.finished)return;
@@ -183,7 +183,7 @@ function render(){
  $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
  $('players').innerHTML=A.players.map(function(p){
    var st=p.out?'脱落':p.fold?'Fold':p.allin?'All-in':p.seat===A.actor&&!A.handOver?'行動中':'';
-   var hide=p.seat!==0&&!A.handOver;
+   var hide=p.seat!==0&&(!A.handOver||p.fold);
    return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b><small>'+p.position+' '+st+'</small></div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div>'+(p.showdownScore?'<div class="made">'+scoreLabel(p.showdownScore)+'</div>':'')+'</section>'
  }).join('');
  $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
