@@ -7,9 +7,9 @@
 <style>
 :root{--felt:#0e2f26;--felt2:#143d32;--line:#2a5a4b;--ivory:#f3efe3;--mute:#8fb0a3;--brass:#d8b252;--red:#d55b63}
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--felt);color:var(--ivory);font-family:system-ui,"Yu Gothic UI","Noto Sans JP",sans-serif}
+html,body{margin:0;width:100%;min-height:100%;height:auto;overflow-x:hidden;overflow-y:auto;background:var(--felt);color:var(--ivory);font-family:system-ui,"Yu Gothic UI","Noto Sans JP",sans-serif}
 button,input{font:inherit}
-main{width:min(620px,100%);height:100dvh;margin:auto;padding:8px 10px;display:grid;grid-template-rows:24px minmax(350px,1fr) auto 24px;gap:6px;overflow:hidden}
+main{width:min(620px,100%);min-height:100dvh;height:auto;margin:auto;padding:8px 10px;display:grid;grid-template-rows:24px minmax(350px,auto) auto auto;gap:6px;overflow:visible}
 .top{display:flex;justify-content:space-between;align-items:center}
 h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;font-size:11px}
 .panel{border:1px solid var(--line);border-radius:10px;background:var(--felt2);padding:7px}
@@ -49,13 +49,13 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:5px}.actions button{height:38px;border:1px solid var(--line);border-radius:8px;background:#173e32;color:var(--ivory);font-weight:700;font-size:11px}.actions button:disabled{opacity:.3}.actions .fold{color:#e29ba2}.actions .primary{background:var(--brass);color:#17140d;border-color:var(--brass)}
 #nextBtn{grid-column:1 / -1;width:100%;margin-top:1px;height:38px}
 .new{width:100%;height:20px;border:0;background:none;color:var(--mute);font-size:9px;margin-top:3px}
-.bottomDetails{display:grid;grid-template-columns:1fr 1fr;gap:6px;height:24px}
-.logBox,.helpBox{margin:0;padding:0;overflow:hidden}.logBox summary,.helpBox summary{height:22px;padding:5px 8px;color:var(--mute);font-size:9px;cursor:pointer;list-style:none}.logBox summary::-webkit-details-marker,.helpBox summary::-webkit-details-marker{display:none}
+.bottomDetails{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-height:24px;height:auto;align-items:start}
+.logBox,.helpBox{margin:0;padding:0;overflow:visible}.logBox summary,.helpBox summary{height:22px;padding:5px 8px;color:var(--mute);font-size:9px;cursor:pointer;list-style:none}.logBox summary::-webkit-details-marker,.helpBox summary::-webkit-details-marker{display:none}
 .log{max-height:90px;overflow:auto;padding:0 8px 6px;font-size:9px;color:var(--mute);line-height:1.5}.log b{color:var(--ivory)}
 .helpBody{font-size:9px;color:var(--mute);line-height:1.4;padding:0 8px 6px}.helpBody strong{color:var(--ivory)}.helpGrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.helpGrid>div{padding:6px;border:1px solid var(--line);border-radius:7px;background:#102f27}.helpBody p{margin:0 0 4px}.helpBody p:last-child{margin-bottom:0}
 .note{display:none}
 @media(max-width:390px){
- main{padding:6px 7px;grid-template-rows:22px minmax(340px,1fr) auto 23px;gap:5px}
+ main{padding:6px 7px;grid-template-rows:22px minmax(340px,auto) auto auto;gap:5px}
  h1{font-size:14px}a.backLink{font-size:10px}
  .panel{padding:6px}.metaRow{flex-basis:17px}.street{font-size:9px}.info{font-size:9px}
  .msg{font-size:12px;height:24px}.potArea{height:39px;flex-basis:39px}.board{height:57px;flex-basis:57px}
@@ -65,7 +65,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .amount{height:36px}.amount input{height:34px}.presets button{height:26px}.actions button{height:38px}
 }
 @media(max-height:700px){
- main{padding-top:4px;padding-bottom:4px;grid-template-rows:21px minmax(320px,1fr) auto 20px}
+ main{padding-top:4px;padding-bottom:4px;grid-template-rows:21px minmax(320px,auto) auto auto}
  .msg{height:22px}.potArea{height:35px;flex-basis:35px}.board{height:52px;flex-basis:52px}
  .card,.cardBack{width:33px;height:47px;font-size:17px}.cards{height:44px}
  .player{padding:4px 5px}.phead{height:17px}.stack{font-size:11px}
