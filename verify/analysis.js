@@ -16,7 +16,7 @@ V.tests.testAnalysis=async function(){
   cases.push(result(r.draws.length===0,'Completed draw is hidden','Straight is made; no OESD badge'));
   r=D.analyzeDraws(V.cards('Ac Kd'),V.cards('5h 6c 7s'));
   cases.push(result(r.draws.length===0,'Board-only draw is hidden','Hero gets no draw from a board-only pattern'));
-  r=D.analyzeDraws(V.cards('As Ks'),V.cards('2s 7s Qs 3d'));
+  r=D.analyzeDraws(V.cards('As Ks'),V.cards('2s 7s Qd 3d'));
   cases.push(result(r.draws.some(d=>d.type==='FD'),'Turn flush draw','A♠K♠ + 2♠7♠Q♠3♦'));
   r=D.analyzeDraws(V.cards('As Kd'),V.cards('2s 7s Qs 3s'));
   cases.push(result(r.draws.length===0,'Board-only flush draw is hidden','A♠K♦ + 2♠7♠Q♠3♠'));
