@@ -99,14 +99,15 @@ Cacheの初期実装はインメモリ `Map` とし、TTL、LRU、localStorage�
 - スートは4色固定: ♠黒 / ♥赤 / ♦青 / ♣緑
 - 4人時のP4操作ボタン(`↻` / `×`)はカードの下に横並びで表示し、カード入力領域の横幅を圧迫しない。切り替え設定は無い
 
-### 3.3.1 ドローインサイト
+### 3.3.1 Analysis Layer
 
-- Flop〜Turnで、選択中プレイヤーに代表的なドローがある場合、Boardの下に1行のインサイトを表示する。
-- 表示タグは OESD (Open-ended straight draw)、DGS (Double gutshot)、GS (Gutshot)、FD (Flush draw)、BDFD (Backdoor flush draw)。長い名称は通常表示しない。
-- outs は複数ドロー間の重複カードを除いた「次の1枚で該当ドローを完成させる未使用カード」の枚数。Riverでは次のカードがないため表示しない。
-- ハンド指定では、選択中プレイヤー以外の既知ホールカードとBoardをブロッカーとしてouts候補から除外する。相手想定ではHeroのカードとBoardのみを既知カードとして除外する。
-- P1〜P4の名前または勝率部分を選択すると、分析対象プレイヤーが切り替わる。相手想定ではHeroのみ。
-- ドローインサイトは戦略判断や勝利保証を意味せず、現在のカードから見たドロー状態を示す補助情報とする。
+- Flop〜Turnで、各プレイヤーに代表的な未完成ドローがある場合、そのプレイヤーの勝率の下に小さなバッジを表示する。
+- v1のDraw Analyzerは OESD (Open-ended straight draw)、GS (Gutshot)、FD (Flush draw) のみを対象とする。
+- 完成済みのストレート / フラッシュはDrawとして表示しない。Riverでは次のカードがないため表示しない。
+- Draw Analyzerはプレイヤーのホールカード + Boardから判定する。v1ではoutsを表示しない。
+- Drawは勝率計算や役評価の結果に含めず、Analysis LayerからUIへ独立して提供する補助情報とする。
+- Board Textureは全プレイヤー共通のBoard AnalysisとしてBoard下に表示する。v1は Rainbow / Monotone / Paired / Connected。
+- 分析情報は戦略判断や勝利保証を意味しない。
 
 ### 3.4 入力の流れ
 
@@ -245,7 +246,7 @@ Boardの「× 全消去」は、**プレイヤーのカードを変更せず、B
 | 完了 | `63.4%`(近似は `≈63.4%`) |
 | ボードが計算できない状態 | `—` +「入力待ち — ボードはFlopの3枚がそろうと計算します」 |
 
-- 表示しないもの: GTO、推奨アクション、レンジ、アウト、ボード分析、戦術コメント、計算過程、Monte Carloの詳細
+- 表示しないもの: GTO、推奨アクション、レンジ、outs、戦術コメント、計算過程、Monte Carloの詳細
 
 ### 6.0 勝率の左の役名(いま作れている役)
 
@@ -378,9 +379,15 @@ Canonical State/Keyに接続したExact専用のインメモリCacheを実装済
 Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含めて別途仕様化する。
 
 ---
-### 7.3.1 Draw Analyzer
+### 7.3.1 Analysis Layer
 
-ドロー判定はUIから独立した engine.js の analyzeDraws(cards, deadCards) で行う。代表的なストレートパターン(A2345〜TJQKA)を調べ、1枚欠けのパターンからOESD / DGS / GSを分類する。4枚同スートからFD、Flopの3枚同スートからBDFDを判定する。outsは既知カードを除き、複数ドローの候補をSetで統合して求める。
+Analysis Layerは勝率エンジンから独立した補助分析層。現在のv1では `analysis/drawAnalyzer.js` と `analysis/textureAnalyzer.js` を持つ。
+
+- Draw Analyzer: `analyzeDraws(holeCards, board, deadCards)` → `{ draws: [{ type: 'OESD' | 'GS' | 'FD' }] }`
+- Texture Analyzer: `analyzeBoardTexture(board)` → `{ tags: ['RAINBOW' | 'MONOTONE' | 'PAIRED' | 'CONNECTED'] }`
+- Draw AnalyzerはUIやEquity Engineに依存しない。Equityの計算結果を変更しない。
+- v1ではouts、Backdoor Draw、Double Gutshot、Combo Draw、Nut Drawは扱わない。
+- 将来拡張時もAnalysis Layer内に閉じ込め、Equity Engineへ責務を戻さない。
 
 ## 8. 構成
 
@@ -388,38 +395,37 @@ Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含
 UI (Player / Board / カードピッカー / ヘルプ)   index.html, app.js
         ↓
 カード状態 (mode / n / opp / P1〜P4 / Board)     app.js
-  └ URL・重複の整理・保存データの検証・配る (純関数)  state.js
         ↓
-Canonical State → Canonical Key
-        ↓
-Exact Cache (Canonical Key / インメモリMap)              cache.js
-        ↓
-計算要求 → Web Worker (worker.js) → Engine (engine.js)
-        ↓
-結果表示 (勝率 / 最終役)
-
-検証 (本番UIとは分離)                            verify.js + verify/
-CI回帰検証 (Node)                                ci/verify.js
+┌──────────────────┬─────────────────────┐
+│ Hand Evaluator   │ Equity Engine       │
+│ engine.js        │ engine.js / worker  │
+└────────┬─────────┴──────────┬──────────┘
+         │                    │
+         └──────────┬─────────┘
+                    ↓
+             Analysis Layer
+             ├─ Draw Analyzer
+             └─ Texture Analyzer
+                    ↓
+                   UI
 ```
 
 | ファイル | 役割 |
 |---|---|
 | `index.html` | 画面・スタイル・ヘルプ |
-| `app.js` | 入力UI・カード状態・結果表示・保存・Cache接続・Worker管理 |
-| `state.js` | URLの書き出し/読み込み・重複の整理・保存データの検証・配る・Canonical State。DOMに触らない純関数 |
-| `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚・最終役の集計。UI非依存、外部依存なし |
-| `cache.js` | Canonical Key単位のExact結果Cache。インメモリMap、Hit/Miss統計。Monte Carloは対象外 |
-| `worker.js` | Exact / 相手想定1人Exact / Monte Carloの計算をUIスレッド外で実行し、完了結果を返す。入力変更時は旧Workerをterminateして打ち切る |
-| `verify.js` | 開発者向け検証のローダーと画面制御。「開発者向け」を開いたときだけ読み込む |
-| `verify/evaluator.js` | Evaluator・7枚評価・列挙のブラウザ検証 |
-| `verify/equity.js` | Equity・ランダム相手・最終役のブラウザ検証 |
-| `verify/state.js` | State / Canonical State / URL / 保存データのブラウザ検証 |
-| `verify/cache.js` | Cache透明性・Cache統計・実機速度測定 |
-| `ci/verify.js` | Nodeで実行する回帰検証。Evaluator・Exact列挙・Equity・Canonical Cacheを自動確認 |
-| `.github/workflows/verify.yml` | push / pull request時にNode回帰検証を実行 |
-| `README.md` / `SPEC.md` | 簡易説明 / この仕様書 |
+| `app.js` | 入力UI・カード状態・結果表示・Analysis LayerのUI合成 |
+| `state.js` | URL・重複整理・保存データ・Canonical State |
+| `engine.js` | 役評価・Exact・Monte Carlo・最強5枚。Draw / Texture判定は持たない |
+| `analysis/drawAnalyzer.js` | プレイヤーごとのDraw判定 |
+| `analysis/textureAnalyzer.js` | Board共通のTexture判定 |
+| `cache.js` | Exact結果Cache |
+| `worker.js` | Exact / 相手想定Exact / Monte CarloをUIスレッド外で実行 |
+| `verify.js` | 開発者向け検証のローダーと画面制御 |
+| `verify/analysis.js` | Analysis Layerのブラウザ検証 |
+| `ci/verify.js` | Node回帰検証。Evaluator・Equity・Canonical Cache・Analysis Layerを確認 |
+| `README.md` / `SPEC.md` | 簡易説明 / 仕様書 |
 
-静的ファイルのみ。ビルド不要、外部ライブラリなし。Web Workerも同じリポジトリ内の静的ファイルとして直接読み込む。
+静的ファイルのみ。ビルド不要、外部ライブラリなし。
 
 ## 9. 検証
 
@@ -448,9 +454,9 @@ CI回帰検証 (Node)                                ci/verify.js
 
 2〜4人・Preflop〜Riverの代表局面を、**通常のUIと同じWeb Worker経路**で測定する。1秒未満=快適 / 3秒未満=実用的 / 6秒以上=遅い、を開発者向けの目安とする。メインスレッド直計算も一部を参考値として表示する。性能保証ではなく、最終判断はPC/スマホ実機で行う。
 
-### 9.3 Draw Insight セッション観測
+### 9.3 Analysis Layer セッション観測
 
-開発者向けパネルから、このタブ内のメモリ上だけで、分析対象の切替回数・Draw Insightの表示状態変化・遭遇したタグを確認できる。外部送信・永続保存はしない。これは利用者全体の利用率を測るAnalyticsではなく、**実際の局面でどの程度Draw Insightが出現するかを見るための開発用観測**とする。
+開発者向けパネルから、このタブ内のメモリ上だけで、分析対象の切替回数・Drawの表示状態変化・遭遇したタグを確認できる。外部送信・永続保存はしない。これは利用者全体の利用率を測るAnalyticsではなく、**実際の局面でどの程度Drawが出現するかを見るための開発用観測**とする。
 
 ---
 
@@ -488,7 +494,7 @@ CI回帰検証 (Node)                                ci/verify.js
 - **ハンド指定の横4列表示**: 360px幅で4列のカードと勝率・役が窮屈すぎないか。360px未満では4人だけ2×2に切り替える
 - **Turn/Riverの操作制限**: Flopが3枚そろうまでTurn、Turnが入るまでRiverは新しく入力できない。既存カードはそのまま編集できる。
 - **実機の計算速度**: 特に4人プリフロップと、相手想定1人のFlop(約107万通り)。開発者向け「計算速度を測る」でWorker経路を実測する
-- **Draw Insightの実利用**: セッション観測で表示状態・タグ遭遇を確認し、機能追加の判断材料にする
+- **Analysis Layerの実利用**: セッション観測で表示状態・タグ遭遇を確認し、機能追加の判断材料にする
 - **Boardの横一列**: 360px幅で5枠が収まるか(計算上は収まる見込み)
 - **相手想定のPreflop**: 外部の正解値との一致(出典を併記)
 - 外部の正解値(`R-001` / `R-002`)の登録
