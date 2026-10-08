@@ -345,8 +345,8 @@
         '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
       '</div>' +
       '<div class="potOddsResult">' +
-        '<div><b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
-        '<div><b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
+        '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
+        '<div><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
       '</div>' +
       '</div>';
   }
@@ -368,7 +368,10 @@
           cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span>${pctHtml}</div>` +
             `<div class="bar"><i style="width:${w}%"></i></div>` + renderDrawBadges(i);
           const potMount = $('players').querySelector('.potOddsMount');
-          if (potMount && i === 0) potMount.innerHTML = renderPotOdds();
+          if (potMount && i === 0) {
+            potMount.innerHTML = renderPotOdds();
+            updatePotOddsDisplay();
+          }
         } else {
           cell.innerHTML = `<div class="pline"><span class="pct${done ? '' : ' dim'}">${txt}</span><span class="mh">${mh}</span></div>` + renderDrawBadges(i);
         }
@@ -589,17 +592,25 @@
     });
   }
 
-  $('results').addEventListener('input', (e) => {
+  function updatePotOddsDisplay() {
+    const box = $('players').querySelector('.potOddsResult');
+    if (!box) return;
+    const requiredEl = box.querySelector('[data-pot-result="required"]');
+    const equityEl = box.querySelector('[data-pot-result="equity"]');
+    if (!requiredEl || !equityEl) return;
+    const required = potOddsValue();
+    const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
+    requiredEl.textContent = required === null ? '—' : required.toFixed(1) + '%';
+    equityEl.textContent = equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%';
+  }
+
+  // Pot Odds は #players 内に描画されるため、同じコンテナに委譲する。
+  // render() で中身が作り直されても、このリスナーは維持される。
+  $('players').addEventListener('input', (e) => {
     if (e.target.id !== 'potInput' && e.target.id !== 'callInput') return;
     potOddsState[e.target.id === 'potInput' ? 'pot' : 'call'] = e.target.value;
     try { localStorage.setItem(POT_ODDS_KEY, JSON.stringify(potOddsState)); } catch (err) { /* 無視 */ }
-    const required = potOddsValue();
-    const box = $('results').querySelector('.potOddsResult');
-    if (!box) return;
-    const spans = box.querySelectorAll('span');
-    const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
-    spans[0].innerHTML = 'Required Equity <b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b>';
-    spans[1].innerHTML = 'Hero Equity <b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b>';
+    updatePotOddsDisplay();
   });
 
   /* ---------- イベント ---------- */

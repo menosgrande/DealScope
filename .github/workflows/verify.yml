@@ -12,7 +12,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,3 +22,5 @@ jobs:
           node-version: 20
       - name: Run regression checks
         run: node ci/verify.js
+      - name: Run browser regression checks
+        run: node ci/browser-verify.js

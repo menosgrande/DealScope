@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>DealScope browser regression</title></head>
+<body>
+<div id="status">RUNNING</div>
+<iframe id="app" src="/index.html#AsKd-??" style="width:390px;height:1200px;border:0"></iframe>
+<script>
+(async function () {
+  const status = document.getElementById('status');
+  const frame = document.getElementById('app');
+
+  function fail(message) {
+    status.textContent = 'FAIL: ' + message;
+    document.title = 'FAIL';
+  }
+
+  function waitFor(getter, timeout) {
+    timeout = timeout || 5000;
+    const start = performance.now();
+    return new Promise((resolve, reject) => {
+      (function poll() {
+        try {
+          const value = getter();
+          if (value) return resolve(value);
+        } catch (_) {}
+        if (performance.now() - start >= timeout) return reject(new Error('timeout'));
+        setTimeout(poll, 50);
+      })();
+    });
+  }
+
+  async function waitFrameLoad() {
+    if (frame.contentDocument && frame.contentDocument.readyState === 'complete') return;
+    await new Promise(resolve => frame.addEventListener('load', resolve, {once:true}));
+  }
+
+  try {
+    await waitFrameLoad();
+    await waitFor(() => frame.contentDocument && frame.contentDocument.querySelector('#potInput'));
+
+    const doc = frame.contentDocument;
+    frame.contentWindow.localStorage.removeItem('dealscope-pot-odds-v1');
+
+    const pot = doc.querySelector('#potInput');
+    const call = doc.querySelector('#callInput');
+    if (!pot || !call) throw new Error('Pot Odds inputs not rendered');
+
+    pot.value = '100';
+    pot.dispatchEvent(new Event('input', {bubbles:true}));
+    call.value = '30';
+    call.dispatchEvent(new Event('input', {bubbles:true}));
+
+    await waitFor(() => {
+      const el = doc.querySelector('[data-pot-result="required"]');
+      return el && el.textContent === '23.1%';
+    });
+
+    const saved = JSON.parse(frame.contentWindow.localStorage.getItem('dealscope-pot-odds-v1') || '{}');
+    if (saved.pot !== '100' || saved.call !== '30') throw new Error('Pot Odds values were not persisted');
+
+    const reload = new Promise(resolve => frame.addEventListener('load', resolve, {once:true}));
+    frame.contentWindow.location.reload();
+    await reload;
+    await waitFor(() => frame.contentDocument && frame.contentDocument.querySelector('#potInput'));
+
+    const after = frame.contentDocument;
+    const potAfter = after.querySelector('#potInput');
+    const callAfter = after.querySelector('#callInput');
+    const requiredAfter = after.querySelector('[data-pot-result="required"]');
+    if (!potAfter || !callAfter || !requiredAfter) throw new Error('Pot Odds did not restore');
+    if (potAfter.value !== '100' || callAfter.value !== '30') throw new Error('saved Pot/Call values were not restored');
+    if (requiredAfter.textContent !== '23.1%') throw new Error('restored Required Equity is wrong');
+
+    status.textContent = 'PASS';
+    document.title = 'PASS';
+  } catch (e) {
+    fail(e && e.message ? e.message : String(e));
+  }
+})();
+</script>
+</body>
+</html>
