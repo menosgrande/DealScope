@@ -1,5 +1,5 @@
 (function(root){'use strict';
-const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,card,cards}=V;
+const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,card,cards}=V;const S=window.DealState;
   /* ---------- Cache透明性 ---------- */
     async function testExactCacheTransparency() {
       const C = window.DealCache;

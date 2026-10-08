@@ -33,7 +33,7 @@ function preStrength(h){
  return clamp(x,0,1)
 }
 function texture(){
- var r=A.board.filter(function(c){return c>=0}),rs=r.map(rank),ss=r.map(function(c){return c&3}),u=[].concat(new Set(rs)),x=0;
+ var r=A.board.filter(function(c){return c>=0}),rs=r.map(rank),ss=r.map(function(c){return c&3}),u=Array.from(new Set(rs)),x=0;
  if(u.length<rs.length)x+=0.08;
  for(var s=0;s<4;s++)if(ss.filter(function(v){return v===s}).length>=3)x+=0.12;
  u.sort(function(a,b){return a-b});for(var i=0;i<u.length-1;i++)if(u[i+1]-u[i]<=2)x+=0.04;
@@ -133,22 +133,9 @@ function foldWin(){
 function showdown(){
  var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
  A.players.forEach(function(p){var z=scores.find(function(x){return x.p===p});p.showdownScore=z?z.s:0});
- var levels=[].concat(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
- var prev=0,winners=[];
- levels.forEach(function(level){
-   var participants=all.filter(function(p){return (p.contrib||0)>=level});
-   var pot=(level-prev)*participants.length;
-   if(pot<=0)return;
-   var eligible=participants.filter(function(p){return !p.fold});
-   if(!eligible.length)return;
-   var best=Math.max.apply(null,eligible.map(function(p){var z=scores.find(function(x){return x.p===p});return z.s}));
-   var w=eligible.filter(function(p){var z=scores.find(function(x){return x.p===p});return z.s===best});
-   var base=Math.floor(pot/w.length),rem=pot%w.length;
-   w.forEach(function(p,i){p.stack+=base+(i<rem?1:0)});
-   winners=winners.concat(w);
-   prev=level
- });
- var unique=[];winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
+ var settlement=window.DealMiniGamePots.settle(all,scores);
+ settlement.awards.forEach(function(a){a.player.stack+=a.amount});
+ var unique=[];settlement.winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
  A.message=unique.length===1?unique[0].name+' がポットを獲得（'+money(A.players.reduce(function(s,p){return s+(p.contrib||0)},0))+'）':'ショーダウン完了。勝者：'+unique.map(function(p){return p.name}).join(' / ');
  A.pot=0;endHand()
 }

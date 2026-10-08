@@ -117,7 +117,7 @@ const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,ca
       const compareCases = [
         ['A-high straight > K-high straight', 'As Ks Qd Jc Th', 'Ks Qs Jd Tc 9h'],
         ['K-high straight > Q-high straight', 'Ks Qs Jd Tc 9h', 'Qs Js Td 9c 8h'],
-        ['wheel < 6-high straight', 'As 2s 3d 4c 5h', '6s 5d 4h 3c 2d'],
+        ['6-high straight > wheel', '6s 5d 4h 3c 2d', 'As 2s 3d 4c 5h'],
         ['AA pair: K kicker > Q kicker', 'As Ah Kd Jc 9s', 'Ac Ad Qh Jd 9c'],
         ['AAKK two pair > AAQQ two pair', 'As Ah Kd Kh Qs', 'Ac Ad Qh Qd Ks'],
         ['AAA trips: K kicker > Q kicker', 'As Ah Ad Kd Qs', 'Ac Ad Ah Qh Js'],
