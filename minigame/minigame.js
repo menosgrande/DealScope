@@ -126,7 +126,7 @@ function act(seat,a,n){
  }else if(a==='allin'){
    var target2=A.roundBet[seat]+p.stack,before=A.currentBet,prevRaise=A.lastRaise;contribute(p,p.stack);
    if(target2>before){var rb2=target2-before;A.currentBet=target2;if(rb2>=prevRaise){A.lastRaise=rb2;A.acted=A.players.map(function(q){return q.out||q.fold||q.allin});A.raiseLocked=A.players.map(function(){return false})}else{A.raiseLocked=A.players.map(function(q,i){return A.acted[i]||q.out||q.fold||q.allin})}A.acted[seat]=true}
-   text=target2>A.currentBet?'オールイン':'オールイン（コール）'
+   text=target2>before?'オールイン':'オールイン（コール）'
  }
  if(!text)return false;
  A.acted[seat]=true;A.history.push({seat:seat,text:text});A.actor=nextSeat(seat);render();return true
@@ -147,7 +147,7 @@ function showdown(){
  var settlement=window.DealMiniGamePots.settle(all,scores);
  settlement.awards.forEach(function(a){a.player.stack+=a.amount});
  var unique=[];settlement.winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
- A.message=unique.length===1?unique[0].name+' がポットを獲得（'+money(A.players.reduce(function(s,p){return s+(p.contrib||0)},0))+'）':'ショーダウン完了。勝者：'+unique.map(function(p){return p.name}).join(' / ');
+ var total=all.reduce(function(s,p){return s+(p.contrib||0)},0),winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+' '+scoreLabel(z.s)}).join(' / ');A.message=unique.length===1?winnerText+' が '+money(total)+' を獲得':'ショーダウン：'+winnerText+'（'+money(total)+'）';
  A.pot=0;endHand()
 }
 function endHand(){
