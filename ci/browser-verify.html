@@ -36,9 +36,12 @@
 
   try {
     await waitFrameLoad();
-    await waitFor(() => frame.contentDocument && frame.contentDocument.querySelector('#potInput'));
-
     const doc = frame.contentDocument;
+    await waitFor(() => doc && doc.querySelector('.potOddsToggle'));
+    const toggle = doc.querySelector('.potOddsToggle');
+    if (!toggle || toggle.getAttribute('aria-expanded') !== 'false') throw new Error('Pot Odds should be collapsed by default');
+    toggle.click();
+    await waitFor(() => doc.querySelector('#potInput'));
     frame.contentWindow.localStorage.removeItem('dealscope-pot-odds-v1');
 
     const pot = doc.querySelector('#potInput');

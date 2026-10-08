@@ -9,6 +9,7 @@
   const RANDOM_TRIALS = 100000; // 相手想定(近似)の試行回数
   const POT_ODDS_KEY = 'dealscope-pot-odds-v1';
   let potOddsState = { pot: '', call: '' };
+  let potOddsOpen = false;
   try {
     const savedOdds = JSON.parse(localStorage.getItem(POT_ODDS_KEY));
     if (savedOdds && typeof savedOdds === 'object') potOddsState = { pot: savedOdds.pot ?? '', call: savedOdds.call ?? '' };
@@ -339,14 +340,20 @@
     if (!isRandom()) return '';
     const required = potOddsValue();
     const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
+    const hidden = potOddsOpen ? '' : ' hidden';
     return '<div class="potOdds">' +
-      '<div class="potOddsInputs">' +
-        '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
-        '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
-      '</div>' +
-      '<div class="potOddsResult">' +
-        '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
-        '<div><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
+      '<button type="button" class="potOddsToggle" aria-expanded="' + String(potOddsOpen) + '" aria-controls="potOddsPanel">' +
+        '<span>Pot Odds</span><span class="potOddsChevron" aria-hidden="true">' + (potOddsOpen ? '▲' : '▼') + '</span>' +
+      '</button>' +
+      '<div id="potOddsPanel" class="potOddsPanel"' + hidden + '>' +
+        '<div class="potOddsInputs">' +
+          '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
+          '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
+        '</div>' +
+        '<div class="potOddsResult">' +
+          '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
+          '<div><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
+        '</div>' +
       '</div>' +
       '</div>';
   }
@@ -608,7 +615,10 @@
   // render() で中身が作り直されても、このリスナーは維持される。
   $('players').addEventListener('input', (e) => {
     if (e.target.id !== 'potInput' && e.target.id !== 'callInput') return;
-    potOddsState[e.target.id === 'potInput' ? 'pot' : 'call'] = e.target.value;
+    const key = e.target.id === 'potInput' ? 'pot' : 'call';
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    e.target.value = value;
+    potOddsState[key] = value;
     try { localStorage.setItem(POT_ODDS_KEY, JSON.stringify(potOddsState)); } catch (err) { /* 無視 */ }
     updatePotOddsDisplay();
   });
@@ -831,6 +841,20 @@
   }
 
   $('players').addEventListener('click', (e) => {
+    const potToggle = e.target.closest('.potOddsToggle');
+    if (potToggle) {
+      e.preventDefault();
+      potOddsOpen = !potOddsOpen;
+      const panel = $('players').querySelector('#potOddsPanel');
+      potToggle.setAttribute('aria-expanded', String(potOddsOpen));
+      potToggle.querySelector('.potOddsChevron').textContent = potOddsOpen ? '▲' : '▼';
+      if (panel) panel.hidden = !potOddsOpen;
+      if (potOddsOpen) {
+        const first = $('players').querySelector('#potInput');
+        if (first) first.focus();
+      }
+      return;
+    }
     const deal = e.target.closest('#deal');
     if (deal) { e.preventDefault(); dealCards(); return; }
     const allShuffle = e.target.closest('#handShuffle');
