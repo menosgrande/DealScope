@@ -8,10 +8,20 @@
 (async function () {
   const status = document.getElementById('status');
   const frame = document.getElementById('app');
+  const frameErrors = [];
+  const frameWindow = frame.contentWindow;
+  frameWindow.addEventListener('error', (e) => {
+    frameErrors.push('error: ' + (e.message || 'unknown') + (e.filename || '') + ':' + (e.lineno || 0));
+  });
+  frameWindow.addEventListener('unhandledrejection', (e) => {
+    const r = e.reason;
+    frameErrors.push('unhandledrejection: ' + (r && r.message ? r.message : String(r)));
+  });
 
   function fail(message) {
     status.textContent = 'FAIL: ' + message;
     document.title = 'FAIL';
+    if (frameErrors.length) status.textContent += ' [' + frameErrors.join(' | ') + ']';
   }
 
   function waitFor(getter, timeout) {
