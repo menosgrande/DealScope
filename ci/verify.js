@@ -196,6 +196,20 @@ function testMiniGamePotConservation() {
   assert.equal(qr.distributed,800);
   assert.equal(qa,qb);
   assert.deepEqual(q.map(p=>p.stack),[200,200,200,200]);
+  const edge=[
+    {seat:0,name:'C',stack:0,contrib:500,fold:true},
+    {seat:1,name:'D',stack:0,contrib:300,fold:false},
+    {seat:2,name:'F',stack:0,contrib:300,fold:false},
+  ];
+  const edgeScores=edge.filter(p=>!p.fold).map(p=>({p,s:p.name==='D'?60:50}));
+  const eb=edge.reduce((sum,p)=>sum+p.stack+p.contrib,0);
+  const er=Pots.settle(edge,edgeScores);
+  er.awards.forEach(a=>{a.player.stack+=a.amount;});
+  const ea=edge.reduce((sum,p)=>sum+p.stack,0);
+  assert.equal(er.contributed,1100);
+  assert.equal(er.distributed,1100);
+  assert.equal(ea,eb);
+  assert.deepEqual(edge.map(p=>p.stack),[0,550,550]);
   console.log('✓ mini game pot distribution conserves chips');
 }
 function main() {
