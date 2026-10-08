@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
-const {spawnSync} = require('node:child_process');
+const {spawn, spawnSync} = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const mime = {
@@ -58,18 +58,31 @@ server.listen(0, '127.0.0.1', () => {
     '--virtual-time-budget=12000',
     url,
   ];
-  const result = spawnSync(browser, args, {encoding:'utf8', maxBuffer:1024 * 1024});
-  server.close();
+  const child = spawn(browser, args, {stdio:['ignore','pipe','pipe']});
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', chunk => { stdout += chunk; });
+  child.stderr.on('data', chunk => { stderr += chunk; });
 
-  if (result.status !== 0) {
-    process.stderr.write(result.stderr || '');
-    process.exit(result.status || 1);
-  }
-
-  if (!(result.stdout || '').includes('<div id="status">PASS</div>')) {
-    process.stderr.write((result.stdout || '') + '\n' + (result.stderr || ''));
+  child.on('error', err => {
+    server.close();
+    console.error(err.message || err);
     process.exit(1);
-  }
+  });
 
-  console.log('✓ browser regression: Pot Odds input / calculation / localStorage restore');
+  child.on('close', code => {
+    server.close();
+
+    if (code !== 0) {
+      process.stderr.write(stderr);
+      process.exit(code || 1);
+    }
+
+    if (!stdout.includes('<div id="status">PASS</div>')) {
+      process.stderr.write(stdout + '\n' + stderr);
+      process.exit(1);
+    }
+
+    console.log('✓ browser regression: Pot Odds input / calculation / localStorage restore');
+  });
 });
