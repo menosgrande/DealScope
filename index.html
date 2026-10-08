@@ -171,15 +171,10 @@ body.picking .playerGrid{padding-top:8px}
 .pr .pct.dim{color:var(--mute)}
 .pr .bar{height:6px;margin-top:7px;background:var(--felt2);border-radius:3px;overflow:hidden}
 .pr .bar i{display:block;height:100%;background:var(--brass);width:0}
-.drawInsight{margin:4px 0 8px;border:1px solid var(--line);border-radius:9px;background:rgba(20,61,50,.48);min-height:34px}
-.drawInsight[hidden]{display:none}
-.drawInsightInner{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px;padding:4px 9px}
-.drawTags{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.drawTag{height:24px;padding:0 8px;border:1px solid var(--line);border-radius:12px;background:rgba(216,178,82,.06);color:var(--ivory);font-size:11px;font-weight:700;letter-spacing:.04em}
-.drawOuts{margin-left:auto;white-space:nowrap;color:var(--brass);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
-.pheadname[data-analysis-player]{cursor:pointer}
-.pheadname[data-analysis-player]:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:6px}
-.pcol.analysisTarget .pheadname{color:var(--brass)}
+.drawTags{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;margin-top:4px}
+.drawTag,.textureTag{height:20px;padding:0 7px;border:1px solid var(--line);border-radius:10px;background:rgba(216,178,82,.06);color:var(--ivory);font-size:10px;font-weight:700;letter-spacing:.03em;display:inline-flex;align-items:center}
+.textureTags{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap;margin-top:7px}
+.textureTags[hidden]{display:none}
 #results{margin-top:6px}
 details.cats{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:center}
@@ -305,7 +300,6 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
   <div id="players"></div>
   <div id="board"></div>
-  <div id="drawInsight" class="drawInsight" hidden aria-live="polite"></div>
   <div id="results"></div>
   <p class="note">引き分けは取り分を等分して計算</p>
   <div id="cats"></div>
@@ -414,6 +408,8 @@ details.dev summary{font-size:12px;color:var(--mute)}
 <script src="engine.js"></script>
 <script src="state.js"></script>
 <script src="cache.js"></script>
+<script src="analysis/drawAnalyzer.js"></script>
+<script src="analysis/textureAnalyzer.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
