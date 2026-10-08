@@ -176,33 +176,28 @@ function testMiniGamePotConservation() {
   const p1={seat:1,name:'P1',stack:0,contrib:200,fold:false};
   const p2={seat:2,name:'P2',stack:0,contrib:200,fold:false};
   const p3={seat:3,name:'P3',stack:0,contrib:200,fold:true};
-  const scores=[{p:p0,s:10},{p1:p1,s:30},{p:p1,s:30},{p:p2,s:30},{p:p3,s:20}];
-  // Correct the intentionally explicit score records before calling the pure distributor.
-  scores.splice(1,1,{p:p1,s:30});
-  const before=[p0,p1,p2,p3].reduce((sum,p)=>sum+p.stack,0);
-  const totalContrib=[p0,p1,p2,p3].reduce((sum,p)=>sum+p.contrib,0);
-  const r=Pots.settle([p0,p1,p2,p3],scores);
-  const paid=r.awards.reduce((sum,a)=>sum+a.amount,0);
-  assert.equal(r.contributed,totalContrib);
-  assert.equal(paid,700);
-  assert.equal(r.distributed,paid);
-  const after=before+paid;
-  assert.equal(after,before+700);
-  // Main pot: 400 split three ways by best eligible P1/P2 tie -> 200 each, 100 P0.
-  // Side pot: 300 split by P1/P2 -> 150 each.
-  const a=new Map(r.awards.map(x=>[x.player.name,(a=undefined,0)]));
-  const amounts={P0:0,P1:0,P2:0};
-  r.awards.forEach(x=>{amounts[x.player.name]+=x.amount;});
-  assert.deepEqual(amounts,{P0:100,P1:350,P2:250});
-  // Four players all-in equally, heads-up tie: total is preserved.
-  const q=[0,1,2,3].map(i=>({seat:i,name:'Q'+i,contrib:200,fold:false}));
+  const players=[p0,p1,p2,p3];
+  const scores=[{p:p0,s:40},{p:p1,s:30},{p:p2,s:30},{p:p3,s:20}];
+  const before=players.reduce((sum,p)=>sum+p.stack+p.contrib,0);
+  const r=Pots.settle(players,scores);
+  r.awards.forEach(a=>{a.player.stack+=a.amount;});
+  const after=players.reduce((sum,p)=>sum+p.stack,0);
+  assert.equal(r.contributed,700);
+  assert.equal(r.distributed,700);
+  assert.equal(after,before);
+  assert.deepEqual(players.map(p=>p.stack),[400,150,150,0]);
+
+  const q=[0,1,2,3].map(i=>({seat:i,name:'Q'+i,stack:0,contrib:200,fold:false}));
   const qs=q.map(p=>({p,s:50}));
+  const qb=q.reduce((sum,p)=>sum+p.stack+p.contrib,0);
   const qr=Pots.settle(q,qs);
+  qr.awards.forEach(a=>{a.player.stack+=a.amount;});
+  const qa=q.reduce((sum,p)=>sum+p.stack,0);
   assert.equal(qr.distributed,800);
-  assert.deepEqual(qr.awards.map(x=>x.amount),[200,200,200,200]);
+  assert.equal(qa,qb);
+  assert.deepEqual(q.map(p=>p.stack),[200,200,200,200]);
   console.log('✓ mini game pot distribution conserves chips');
 }
-
 function main() {
   testFiveCardDistribution();
   testEvaluatorOrdering();
