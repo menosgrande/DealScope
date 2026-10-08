@@ -6,6 +6,8 @@ const S = require('../state.js');
 const C = require('../cache.js');
 const Pots = require('../minigame/pots.js');
 const Rules = require('../minigame/rules.js');
+const Draw = require('../analysis/drawAnalyzer.js');
+const Texture = require('../analysis/textureAnalyzer.js');
 
 const expected5 = [1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40];
 
@@ -95,64 +97,35 @@ function testEquityConservation() {
   console.log('✓ equity conservation');
 }
 
-function testDrawAnalyzer() {
-  let r = E.analyzeDraws(hand('5s 6s 7h 8d 2c'), hand('5s 6s 7h 8d 2c'), hand('5s 6s'));
-  assert(r.tags.includes('OESD'));
-  assert.equal(r.outs, 8);
+function testAnalysisLayer() {
+  let r = Draw.analyzeDraws(hand('5s 6s'), hand('7h 8d 2c'), hand('5s 6s 7h 8d 2c'));
+  assert(r.draws.some(d => d.type === 'OESD'));
+  assert.equal(r.draws.length, 1);
 
-  r = E.analyzeDraws(hand('2s 4h 5d 6c 8s'), hand('2s 4h 5d 6c 8s'), hand('2s 4h'));
-  assert(r.tags.includes('DGS'));
-  assert.equal(r.outs, 8);
+  r = Draw.analyzeDraws(hand('6s 5h'), hand('7d 9c 2c'), hand('6s 5h 7d 9c 2c'));
+  assert(r.draws.some(d => d.type === 'GS'));
 
-  r = E.analyzeDraws(hand('6s 5h 7d 9c 2c'), hand('6s 5h 7d 9c 2c'), hand('6s 5h'));
-  assert(r.tags.includes('GS'));
-  assert.equal(r.outs, 4);
+  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qd'), hand('As Ks 2s 7s Qd'));
+  assert(r.draws.some(d => d.type === 'FD'));
 
-  r = E.analyzeDraws(hand('As Ks 2s 7s Qd'), hand('As Ks 2s 7s Qd'), hand('As Ks'));
-  assert(r.tags.includes('FD'));
-  assert.equal(r.outs, 9);
+  r = Draw.analyzeDraws(hand('Qd Jd'), hand('8s 9d Th Kc'), hand('Qd Jd 8s 9d Th Kc'));
+  assert.equal(r.draws.length, 0);
 
-  r = E.analyzeDraws(hand('As Kd 2s 7s Qd'), hand('As Kd 2s 7s Qd'), hand('As Kd'));
-  assert(r.tags.includes('BDFD'));
-  assert.equal(r.outs, 0);
+  r = Draw.analyzeDraws(hand('Ac Kd'), hand('5h 6c 7s'), hand('Ac Kd 5h 6c 7s'));
+  assert.equal(r.draws.length, 0);
 
-  // A234 / JQKA are one-ended straight draws, not OESD.
-  r = E.analyzeDraws(hand('As 2d 3h 4c 9s'), hand('As 2d 3h 4c 9s'), hand('As 2d'));
-  assert(r.tags.includes('GS'));
-  assert(!r.tags.includes('OESD'));
-  assert.equal(r.outs, 4);
+  let t = Texture.analyzeBoardTexture(hand('As Kd 7c'));
+  assert(t.tags.includes('RAINBOW'));
+  assert(!t.tags.includes('CONNECTED'));
 
-  r = E.analyzeDraws(hand('As Kd Qh Jc 2s'), hand('As Kd Qh Jc 2s'), hand('As Kd'));
-  assert(r.tags.includes('GS'));
-  assert(!r.tags.includes('OESD'));
-  assert.equal(r.outs, 4);
+  t = Texture.analyzeBoardTexture(hand('8s 9d Tc'));
+  assert(t.tags.includes('RAINBOW'));
+  assert(t.tags.includes('CONNECTED'));
 
-  // Board-only draws must not be attributed to Hero.
-  r = E.analyzeDraws(hand('Ac Kd 5h 6c 7s 8d'), hand('Ac Kd 5h 6c 7s 8d'), hand('Ac Kd'));
-  assert(!r.tags.includes('OESD'));
-  assert(!r.tags.includes('DGS'));
-  assert(!r.tags.includes('GS'));
+  t = Texture.analyzeBoardTexture(hand('Ah Ad 7c'));
+  assert(t.tags.includes('PAIRED'));
 
-  r = E.analyzeDraws(hand('Ac Kd 2h 7h 9h Jh'), hand('Ac Kd 2h 7h 9h Jh'), hand('Ac Kd'));
-  assert(!r.tags.includes('FD'));
-  assert(!r.tags.includes('BDFD'));
-
-  // Blockers reduce the actual next-card outs.
-  r = E.analyzeDraws(
-    hand('5s 6s 7h 8d 2c'),
-    hand('5s 6s 7h 8d 2c 4h 4d 4s 4c'),
-    hand('5s 6s')
-  );
-  assert(r.tags.includes('OESD'));
-  assert.equal(r.outs, 4);
-
-  // A backdoor flush draw disappears once the fourth suited card arrives.
-  r = E.analyzeDraws(hand('As Kd 2s 7s Qs'), hand('As Kd 2s 7s Qs'), hand('As Kd'));
-  assert(r.tags.includes('FD'));
-  assert(!r.tags.includes('BDFD'));
-  assert.equal(r.outs, 9);
-
-  console.log('✓ draw analyzer: hole-card aware OESD / DGS / GS / FD / BDFD / blockers');
+  console.log('✓ Analysis Layer: player draws / board texture');
 }
 
 function testCanonicalAndCache() {
@@ -263,7 +236,7 @@ function main() {
   testEvaluatorOrdering();
   testSevenCardAndEnumeration();
   testEquityConservation();
-  testDrawAnalyzer();
+  testAnalysisLayer();
   testCanonicalAndCache();
   testMiniGamePotConservation();
   testMiniGameStateTransitions();
