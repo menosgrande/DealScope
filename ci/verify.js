@@ -98,20 +98,20 @@ function testEquityConservation() {
 }
 
 function testAnalysisLayer() {
-  let r = Draw.analyzeDraws(hand('5s 6s'), hand('7h 8d 2c'), hand('5s 6s 7h 8d 2c'));
+  let r = Draw.analyzeDraws(hand('5s 6s'), hand('7h 8d 2c'));
   assert(r.draws.some(d => d.type === 'OESD'));
   assert.equal(r.draws.length, 1);
 
-  r = Draw.analyzeDraws(hand('6s 5h'), hand('7d 9c 2c'), hand('6s 5h 7d 9c 2c'));
+  r = Draw.analyzeDraws(hand('6s 5h'), hand('7d 9c 2c'));
   assert(r.draws.some(d => d.type === 'GS'));
 
-  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qd'), hand('As Ks 2s 7s Qd'));
+  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qd'));
   assert(r.draws.some(d => d.type === 'FD'));
 
-  r = Draw.analyzeDraws(hand('Qd Jd'), hand('8s 9d Th Kc'), hand('Qd Jd 8s 9d Th Kc'));
+  r = Draw.analyzeDraws(hand('Qd Jd'), hand('8s 9d Th Kc'));
   assert.equal(r.draws.length, 0);
 
-  r = Draw.analyzeDraws(hand('Ac Kd'), hand('5h 6c 7s'), hand('Ac Kd 5h 6c 7s'));
+  r = Draw.analyzeDraws(hand('Ac Kd'), hand('5h 6c 7s'));
   assert.equal(r.draws.length, 0);
 
   let t = Texture.analyzeBoardTexture(hand('As Kd 7c'));
