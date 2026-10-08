@@ -45,6 +45,17 @@ function equity(p){
  try{return E.monteCarloVsRandom(p.hand,b,360,{seed:((A.handNo+1)*10007+p.seat*7919+(seed>>>0))>>>0}).equity[0]/100}catch(e){return 0.5}
 }
 function minRaise(){return A.currentBet===0?A.blinds[1]:A.currentBet+Math.max(A.blinds[1],A.lastRaise||A.blinds[1])}
+function legalActions(p){
+ var r={fold:true,check:false,call:false,bet:false,raise:false,allin:false,callAmount:0,minRaise:minRaise(),max:p?p.stack+A.roundBet[p.seat]:0};
+ if(!p||p.out||p.fold||p.allin)return r;
+ r.callAmount=Math.max(0,A.currentBet-A.roundBet[p.seat]);
+ r.check=r.callAmount===0;
+ r.call=r.callAmount>0&&r.callAmount<=p.stack;
+ r.allin=p.stack>0;
+ if(r.callAmount===0)r.bet=p.stack>=A.blinds[1];
+ else r.raise=!A.raiseLocked[p.seat]&&r.max>=r.minRaise;
+ return r;
+}
 function amount(p,n){var max=p.stack+A.roundBet[p.seat];return Math.min(max,Math.max(0,Math.floor(n/A.blinds[1])*A.blinds[1]))}
 function ai(p){
  var t=TYPES[p.type],eq=equity(p),pre=preStrength(p.hand),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],spr=stack/Math.max(A.blinds[1],A.pot),odds=call>0?call/(A.pot+call):0,tex=texture();
@@ -154,8 +165,9 @@ function advance(){
 }
 function human(a){
  if(!A.awaiting||A.actor!==0||A.finished)return;
- var p=A.players[0],n=Number($('amount').value)||0;
- if((a==='bet'||a==='raise')&&a==='raise'&&A.raiseLocked[0])return;if((a==='bet'||a==='raise')&&!act(0,a,n))return;
+ var p=A.players[0],n=Number($('amount').value)||0,legal=legalActions(p);
+ if(!legal[a])return;
+ if((a==='bet'||a==='raise')&&!act(0,a,n))return;
  if(a!=='bet'&&a!=='raise'&&!act(0,a,n))return;
  A.awaiting=false;advance()
 }
@@ -174,12 +186,18 @@ function render(){
    return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+p.position+' '+st+'</small></div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="stack">'+money(p.stack)+' <small>chips</small></div><div class="betline">in pot <b>'+money(A.roundBet[p.seat]||0)+'</b></div>'+(p.showdownScore?'<div class="made">'+scoreLabel(p.showdownScore)+'</div>':'')+'</section>'
  }).join('');
  $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
- var p=A.players[0],call=p?Math.max(0,A.currentBet-A.roundBet[0]):0;
- $('hint').textContent=A.awaiting?(call?'コール '+money(call)+'。入力額はこのストリートの合計ベット額。':'チェックまたはベット。'):(A.finished?'':'CPUが考えています…');$('toCall').textContent=A.awaiting?(call?'Call '+money(call):'Check'):' ';
- $('foldBtn').disabled=!A.awaiting;$('callBtn').disabled=!A.awaiting;$('betBtn').disabled=!A.awaiting;$('allinBtn').disabled=!A.awaiting;
- $('callBtn').textContent=call?'コール '+money(call):'チェック';$('betBtn').textContent=A.currentBet?'レイズ':'ベット';
- var min=minRaise(),max=p?p.stack+A.roundBet[0]:0;$('amount').min=min;$('amount').max=Math.max(min,max);$('amount').value=clamp(min,min,Math.max(min,max));$('betBtn').disabled=!A.awaiting||!!(A.currentBet&&A.raiseLocked[0])
+ var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
+ $('hint').textContent=A.awaiting?(call?'コール '+money(call)+'。レイズ額はこのストリートの合計ベット額。':'チェックまたはベット。'):(A.finished?'':'CPUが考えています…');
+ $('toCall').textContent=A.awaiting?(call?'Call '+money(call):'Check'):' ';
+ $('foldBtn').disabled=!A.awaiting||!legal.fold;
+ $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
+ $('allinBtn').disabled=!A.awaiting||!legal.allin;
+ $('callBtn').textContent=call?'コール '+money(call):'チェック';
+ $('betBtn').textContent=A.currentBet?'レイズ':'ベット';
+ $('amount').min=legal.minRaise;$('amount').max=Math.max(legal.minRaise,legal.max);
+ $('amount').value=clamp(legal.minRaise,legal.minRaise,Math.max(legal.minRaise,legal.max));
+ $('betBtn').disabled=!A.awaiting||!(legal.bet||legal.raise);
 }
-$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){human('call')};$('betBtn').onclick=function(){human(A.currentBet?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('newBtn').onclick=restart;Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);$('amount').value=Math.min(p.stack+A.roundBet[0],target)}});
+$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){human(A.currentBet?'call':'check')};$('betBtn').onclick=function(){human(A.currentBet?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('newBtn').onclick=restart;Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);$('amount').value=Math.min(p.stack+A.roundBet[0],target)}});
 restart()
 })();
