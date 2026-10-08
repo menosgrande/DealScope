@@ -5,6 +5,7 @@ const E = require('../engine.js');
 const S = require('../state.js');
 const C = require('../cache.js');
 const Pots = require('../minigame/pots.js');
+const Rules = require('../minigame/rules.js');
 
 const expected5 = [1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40];
 
@@ -212,6 +213,49 @@ function testMiniGamePotConservation() {
   assert.deepEqual(edge.map(p=>p.stack),[0,1100,0]);
   console.log('✓ mini game pot distribution conserves chips');
 }
+function testMiniGameStateTransitions() {
+  const players = [
+    {seat:0,out:false,fold:false,allin:true},
+    {seat:1,out:false,fold:false,allin:false},
+    {seat:2,out:false,fold:true,allin:false},
+    {seat:3,out:false,fold:false,allin:false},
+  ];
+  const base = {players,acted:[true,true,true,true],roundBet:[100,100,0,100],currentBet:100,street:'preflop'};
+  assert(Rules.roundComplete(base));
+  assert.equal(Rules.nextStreet(base.street),'flop');
+  assert(!Rules.shouldShowdown(base));
+  assert(Rules.shouldAutoAdvance(base));
+
+  const foldWin={players:players.map((p,i)=>({...p,fold:i!==1,allin:false})),acted:[true,true,true,true],roundBet:[100,100,100,100],currentBet:100,street:'flop'};
+  assert(Rules.shouldFoldWin(foldWin));
+  assert(Rules.shouldAutoAdvance(foldWin));
+
+  const allIn={players:players.map((p,i)=>({...p,fold:false,allin:true})),acted:[true,true,true,true],roundBet:[100,100,100,100],currentBet:100,street:'turn'};
+  assert(Rules.roundComplete(allIn));
+  assert.equal(Rules.nextStreet(allIn.street),'river');
+  assert(!Rules.shouldShowdown(allIn));
+
+  const river={...allIn,street:'river'};
+  assert(Rules.shouldShowdown(river));
+
+  const bbCheck={
+    players:[
+      {seat:0,out:false,fold:false,allin:false},
+      {seat:1,out:false,fold:false,allin:false},
+      {seat:2,out:false,fold:false,allin:false},
+      {seat:3,out:false,fold:false,allin:false},
+    ],
+    acted:[true,true,true,true],roundBet:[200,200,200,200],currentBet:200,street:'preflop'
+  };
+  assert(Rules.roundComplete(bbCheck));
+
+  const seats=[0,1,2,3].map(i=>({seat:i,out:false}));
+  assert.equal(Rules.nextSeat(seats,3),0);
+  seats[0].out=true;
+  assert.equal(Rules.nextSeat(seats,3),1);
+  console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation');
+}
+
 function main() {
   testFiveCardDistribution();
   testEvaluatorOrdering();
@@ -220,6 +264,7 @@ function main() {
   testDrawAnalyzer();
   testCanonicalAndCache();
   testMiniGamePotConservation();
+  testMiniGameStateTransitions();
   console.log('All CI checks passed.');
 }
 main();
