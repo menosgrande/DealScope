@@ -17,6 +17,8 @@
     return Array.from(new Set((cards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52)));
   }
 
+  const evaluator = root.PokerEq || (typeof require === 'function' ? require('../engine.js') : null);
+
   function analyzeDraws(holeCards, board) {
     const hole = validCards(holeCards);
     const bd = validCards(board);
@@ -25,7 +27,8 @@
     const cards = hole.concat(bd);
     const rankSet = new Set(cards.map((c) => c >> 2));
     const holeRanks = new Set(hole.map((c) => c >> 2));
-    const category = root.PokerEq.evaluate(cards) >>> 20;
+    if (!evaluator || typeof evaluator.evaluate !== 'function') return { draws: [] };
+    const category = evaluator.evaluate(cards) >>> 20;
     const draws = [];
 
     if (category < 4) {
