@@ -6,11 +6,12 @@ function active(players){return players.filter(function(p){return !p.out&&!p.fol
 function roundComplete(state){
  var c=contenders(state.players);
  if(c.length<=1)return true;
- return c.filter(function(p){return !p.allin}).every(function(p){
+ return active(state.players).every(function(p){
    return state.acted[p.seat]&&state.roundBet[p.seat]===state.currentBet;
  });
 }
 function nextSeat(players,i){for(var k=1;k<=players.length;k++){var j=(i+k)%players.length;if(!players[j].out)return j}return i}
+function nextActionSeat(players,i){for(var k=1;k<=players.length;k++){var j=(i+k)%players.length,p=players[j];if(p&&!p.out&&!p.fold&&!p.allin)return j}return -1}
 function nextStreet(street){
  if(street==='preflop')return 'flop';
  if(street==='flop')return 'turn';
@@ -20,6 +21,7 @@ function nextStreet(street){
 function shouldShowdown(state){return state.street==='river'&&roundComplete(state)}
 function shouldFoldWin(state){return contenders(state.players).length===1}
 function shouldAutoAdvance(state){return shouldFoldWin(state)||roundComplete(state)}
-var api={contenders:contenders,active:active,roundComplete:roundComplete,nextSeat:nextSeat,nextStreet:nextStreet,shouldShowdown:shouldShowdown,shouldFoldWin:shouldFoldWin,shouldAutoAdvance:shouldAutoAdvance};
+function allInRunout(state){return contenders(state.players).length>1&&active(state.players).length===0}
+var api={contenders:contenders,active:active,roundComplete:roundComplete,nextSeat:nextSeat,nextActionSeat:nextActionSeat,nextStreet:nextStreet,shouldShowdown:shouldShowdown,shouldFoldWin:shouldFoldWin,shouldAutoAdvance:shouldAutoAdvance,allInRunout:allInRunout};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DealMiniGameRules=api;
 })(typeof window!=='undefined'?window:globalThis);
