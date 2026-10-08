@@ -608,7 +608,7 @@
   }
 
   function updatePotOddsDisplay() {
-    const box = $('players').querySelector('.potOddsCompact');
+    const box = $('players').querySelector('#potOddsBox');
     if (!box) return;
     const requiredEl = box.querySelector('[data-pot-result="required"]');
     const equityEl = box.querySelector('[data-pot-result="equity"]');
