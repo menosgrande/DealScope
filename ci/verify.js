@@ -159,7 +159,8 @@ function testBoardDeal() {
   const flop=S.dealBoard(empty,players,rnd);
   assert.equal(flop.filter(c=>c>=0).length,3);
   assert.equal(new Set(flop.filter(c=>c>=0)).size,3);
-  assert(!flop.some(c=>players.flat().includes(c)));
+  const playerCards = players.flat().filter(c=>c>=0);
+  assert(!flop.filter(c=>c>=0).some(c=>playerCards.includes(c)));
 
   const turn=S.dealBoard(flop,players,rnd);
   assert.equal(turn.filter(c=>c>=0).length,4);
