@@ -37,10 +37,10 @@
   try {
     await waitFrameLoad();
     const doc = frame.contentDocument;
-    await waitFor(() => doc && doc.querySelector('.potOddsToggle'));
-    const toggle = doc.querySelector('.potOddsToggle');
-    if (!toggle || toggle.getAttribute('aria-expanded') !== 'false') throw new Error('Pot Odds should be collapsed by default');
-    toggle.click();
+    await waitFor(() => doc && doc.querySelector('#potOddsBox'));
+    const details = doc.querySelector('#potOddsBox');
+    if (!details || details.open) throw new Error('Pot Odds should be collapsed by default');
+    details.querySelector('summary').click();
     await waitFor(() => doc.querySelector('#potInput'));
     frame.contentWindow.localStorage.removeItem('dealscope-pot-odds-v1');
 
@@ -65,10 +65,10 @@
     frame.contentWindow.location.reload();
     await reload;
     const after = frame.contentDocument;
-    await waitFor(() => after && after.querySelector('.potOddsToggle'));
-    const afterToggle = after.querySelector('.potOddsToggle');
-    if (!afterToggle || afterToggle.getAttribute('aria-expanded') !== 'false') throw new Error('Pot Odds should reload collapsed');
-    afterToggle.click();
+    await waitFor(() => after && after.querySelector('#potOddsBox'));
+    const afterDetails = after.querySelector('#potOddsBox');
+    if (!afterDetails || afterDetails.open) throw new Error('Pot Odds should reload collapsed');
+    afterDetails.querySelector('summary').click();
     await waitFor(() => after.querySelector('#potInput'));
 
     const potAfter = after.querySelector('#potInput');

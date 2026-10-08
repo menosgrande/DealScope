@@ -340,20 +340,20 @@
     if (!isRandom()) return '';
     const required = potOddsValue();
     const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
-    const hidden = potOddsOpen ? '' : ' hidden';
-    return '<div class="potOdds">' +
-      '<button type="button" class="potOddsToggle" aria-expanded="' + String(potOddsOpen) + '" aria-controls="potOddsPanel">' +
-        '<span>Pot Odds</span><span class="potOddsChevron" aria-hidden="true">' + (potOddsOpen ? '▲' : '▼') + '</span>' +
-      '</button>' +
-      '<div id="potOddsPanel" class="potOddsPanel"' + hidden + '>' +
-        '<div class="potOddsCompact">' +
-          '<label class="potOddsField"><span class="potOddsLabel">Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
-          '<label class="potOddsField"><span class="potOddsLabel">Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
-          '<div class="potOddsMetric"><span>Req.</span><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b></div>' +
-          '<div class="potOddsMetric"><span>You</span><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b></div>' +
+    const open = potOddsOpen ? ' open' : '';
+    return '<details id="potOddsBox" class="potOdds"' + open + '>' +
+      '<summary>Pot Odds</summary>' +
+      '<div class="potOddsPanel">' +
+        '<div class="potOddsInputs">' +
+          '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
+          '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
+        '</div>' +
+        '<div class="potOddsResult">' +
+          '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
+          '<div><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
         '</div>' +
       '</div>' +
-      '</div>';
+      '</details>';
   }
 
   function renderResults() {
@@ -375,6 +375,16 @@
           const potMount = $('players').querySelector('.potOddsMount');
           if (potMount && i === 0) {
             potMount.innerHTML = renderPotOdds();
+            const potDetails = potMount.querySelector('#potOddsBox');
+            if (potDetails) {
+              potDetails.addEventListener('toggle', () => {
+                potOddsOpen = potDetails.open;
+                if (potDetails.open) {
+                  const first = potDetails.querySelector('#potInput');
+                  if (first) first.focus();
+                }
+              });
+            }
             updatePotOddsDisplay();
           }
         } else {
@@ -839,20 +849,6 @@
   }
 
   $('players').addEventListener('click', (e) => {
-    const potToggle = e.target.closest('.potOddsToggle');
-    if (potToggle) {
-      e.preventDefault();
-      potOddsOpen = !potOddsOpen;
-      const panel = $('players').querySelector('#potOddsPanel');
-      potToggle.setAttribute('aria-expanded', String(potOddsOpen));
-      potToggle.querySelector('.potOddsChevron').textContent = potOddsOpen ? '▲' : '▼';
-      if (panel) panel.hidden = !potOddsOpen;
-      if (potOddsOpen) {
-        const first = $('players').querySelector('#potInput');
-        if (first) first.focus();
-      }
-      return;
-    }
     const deal = e.target.closest('#deal');
     if (deal) { e.preventDefault(); dealCards(); return; }
     const allShuffle = e.target.closest('#handShuffle');
