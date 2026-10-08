@@ -42,9 +42,7 @@
     const [a, b] = state.players[i] || [-1, -1];
     const board = boardCards();
     if (a < 0 || b < 0 || !board || board.length < 3 || board.length >= 5) return [];
-    const dead = [];
-    state.players.slice(0, count()).forEach((h) => h.forEach((c) => { if (c >= 0) dead.push(c); }));
-    return window.DealDrawAnalysis.analyzeDraws([a, b], board, dead).draws;
+    return window.DealDrawAnalysis.analyzeDraws([a, b], board).draws;
   }
 
   function renderDrawBadges(i) {
