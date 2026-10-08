@@ -1,5 +1,5 @@
 (function(root){'use strict';
-const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,card,cards}=V;
+const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,card,cards,naiveEval}=V;
   /* ---------- ② 勝率の計算 ---------- */
     const CASES = [
       { note: 'リバー: セット vs オーバーペア', hands: ['Ks Kd', 'Ah Ad'], board: '2c 7d 9h Js Kc', expected: [100, 0], src: 'ルールから確定(リバーは結果が決まっている)' },
