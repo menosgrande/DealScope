@@ -7,6 +7,12 @@
   const $ = (id) => document.getElementById(id);
   const STORE_KEY = 'card-equity-state-v1';
   const RANDOM_TRIALS = 100000; // 相手想定(近似)の試行回数
+  const POT_ODDS_KEY = 'dealscope-pot-odds-v1';
+  let potOddsState = { pot: '', call: '' };
+  try {
+    const savedOdds = JSON.parse(localStorage.getItem(POT_ODDS_KEY));
+    if (savedOdds && typeof savedOdds === 'object') potOddsState = { pot: savedOdds.pot ?? '', call: savedOdds.call ?? '' };
+  } catch (e) { /* 無視 */ }
   const HAND_NAMES = ['ハイカード', 'ワンペア', 'ツーペア', 'スリーカード', 'ストレート', 'フラッシュ', 'フルハウス', 'フォーカード', 'ストレートフラッシュ'];
 
   /* ---------- カード状態 ----------
@@ -322,6 +328,30 @@
   let calcWorker = null;
 
   // 勝率は各プレイヤー行の右側(.pr)に表示。ボード下(#results)には補足の注記だけ出す
+  function potOddsValue() {
+    const pot = Number(potOddsState.pot);
+    const call = Number(potOddsState.call);
+    if (!Number.isFinite(pot) || !Number.isFinite(call) || pot < 0 || call < 0 || pot + call <= 0) return null;
+    return (call / (pot + call)) * 100;
+  }
+
+  function renderPotOdds() {
+    if (!isRandom()) return '';
+    const required = potOddsValue();
+    const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
+    return '<div class="potOdds">' +
+      '<div class="potOddsTitle">Pot Odds</div>' +
+      '<div class="potOddsInputs">' +
+        '<label>Pot <input id="potInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></label>' +
+        '<label>Call <input id="callInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></label>' +
+      '</div>' +
+      '<div class="potOddsResult">' +
+        '<span>Required Equity <b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b></span>' +
+        '<span>Hero Equity <b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b></span>' +
+      '</div>' +
+      '</div>';
+  }
+
   function renderResults() {
     for (let i = 0; i < count(); i++) {
       let txt = '—', w = 0;
@@ -360,7 +390,7 @@
       }
     }
     let h = '';
-    if (isRandom()) h += `<div class="note">vs ランダム${state.opp}人${res.mode === 'done' && res.approx ? '(近似値)' : ''}</div>`;
+    if (isRandom()) h += '<div class="note">vs ランダム' + state.opp + '人' + (res.mode === 'done' && res.approx ? '(近似値)' : '') + '</div>' + renderPotOdds();
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
     renderCats();
@@ -557,6 +587,19 @@
       trials: RANDOM_TRIALS,
     });
   }
+
+  $('results').addEventListener('input', (e) => {
+    if (e.target.id !== 'potInput' && e.target.id !== 'callInput') return;
+    potOddsState[e.target.id === 'potInput' ? 'pot' : 'call'] = e.target.value;
+    try { localStorage.setItem(POT_ODDS_KEY, JSON.stringify(potOddsState)); } catch (err) { /* 無視 */ }
+    const required = potOddsValue();
+    const box = $('results').querySelector('.potOddsResult');
+    if (!box) return;
+    const spans = box.querySelectorAll('span');
+    const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
+    spans[0].innerHTML = 'Required Equity <b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b>';
+    spans[1].innerHTML = 'Hero Equity <b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b>';
+  });
 
   /* ---------- イベント ---------- */
   function onSlotClick(e) {
