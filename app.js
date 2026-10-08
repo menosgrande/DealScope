@@ -589,6 +589,7 @@
   }
 
   $('board').addEventListener('click', onSlotClick);
+  $('players').addEventListener('click', onSlotClick);
   // ピッカーの外側をクリック／タップしたら閉じる。
   // pointerdown を使うことで、枠をタップした場合はその後の slot click で自然に再オープンできる。
   document.addEventListener('pointerdown', (e) => {
