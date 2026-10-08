@@ -41,6 +41,9 @@
     BDFD: 'Backdoor flush draw',
   }[code] || code);
 
+  /* ---------- 開発用の実利用観測(外部送信なし) ---------- */
+  const observation={analysisSelections:0,drawStateChanges:0,drawVisibleStates:0,drawTags:Object.create(null),lastDrawKey:null,current:''};
+  window.DealObservation={stats(){return {analysisSelections:observation.analysisSelections,drawStateChanges:observation.drawStateChanges,drawVisibleStates:observation.drawVisibleStates,drawTags:{...observation.drawTags},current:observation.current};}};
   function ensureAnalysisPlayer() {
     if (isRandom()) state.analysisPlayer = 0;
     else if (state.analysisPlayer < 0 || state.analysisPlayer >= count()) state.analysisPlayer = 0;
@@ -63,12 +66,11 @@
     const box = $('drawInsight');
     if (!box) return;
     const d = analysisCards();
-    if (!d || d.tags.length === 0) {
-      box.innerHTML = '';
-      box.hidden = true;
-      return;
-    }
-    box.hidden = false;
+    const drawKey=!d||d.tags.length===0?'':d.tags.join('+')+'|'+d.outs;
+    if(drawKey!==observation.lastDrawKey){observation.lastDrawKey=drawKey;observation.drawStateChanges++;if(d&&d.tags.length){observation.drawVisibleStates++;d.tags.forEach(tag=>{observation.drawTags[tag]=(observation.drawTags[tag]||0)+1;});}}
+    observation.current=d&&d.tags.length?d.tags.join(' / ')+' / '+d.outs+' outs':'';
+    if(!d||d.tags.length===0){box.innerHTML='';box.hidden=true;return;}
+    box.hidden=false;
     const tags = d.tags.map((code) => '<span class="drawTag" title="' + analysisLabel(code) + '" aria-label="' + analysisLabel(code) + '">' + code + '</span>').join('');
     const outs = d.outs > 0 ? '<span class="drawOuts">' + d.outs + ' outs</span>' : '';
     box.innerHTML = '<div class="drawInsightInner"><div class="drawTags">' + tags + '</div>' + outs + '</div>';
@@ -608,7 +610,8 @@
     e.preventDefault();
     const i = Number(pick.dataset.analysisPlayer);
     if (Number.isInteger(i) && i >= 0 && i < count()) {
-      state.analysisPlayer = i;
+      if(state.analysisPlayer!==i) observation.analysisSelections++;
+      state.analysisPlayer=i;
       render();
     }
   });
@@ -618,7 +621,8 @@
     if (targetPick && !e.target.closest('.slot') && !e.target.closest('.playerAction') && !e.target.closest('.cardDelete') && !e.target.closest('.approxMark')) {
       const i = Number(targetPick.dataset.analysisPlayer);
       if (Number.isInteger(i) && i >= 0 && i < count()) {
-        state.analysisPlayer = i;
+        if(state.analysisPlayer!==i) observation.analysisSelections++;
+        state.analysisPlayer=i;
         render();
       }
       return;

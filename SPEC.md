@@ -398,7 +398,7 @@ Exact Cache (Canonical Key / インメモリMap)              cache.js
         ↓
 結果表示 (勝率 / 最終役)
 
-検証 (本番UIとは分離)                            verify.js
+検証 (本番UIとは分離)                            verify.js + verify/
 CI回帰検証 (Node)                                ci/verify.js
 ```
 
@@ -410,7 +410,11 @@ CI回帰検証 (Node)                                ci/verify.js
 | `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚・最終役の集計。UI非依存、外部依存なし |
 | `cache.js` | Canonical Key単位のExact結果Cache。インメモリMap、Hit/Miss統計。Monte Carloは対象外 |
 | `worker.js` | Exact / 相手想定1人Exact / Monte Carloの計算をUIスレッド外で実行し、完了結果を返す。入力変更時は旧Workerをterminateして打ち切る |
-| `verify.js` | ブラウザ上の詳細検証と速度測定。「開発者向け」を開いたときだけ読み込む |
+| `verify.js` | 開発者向け検証のローダーと画面制御。「開発者向け」を開いたときだけ読み込む |
+| `verify/evaluator.js` | Evaluator・7枚評価・列挙のブラウザ検証 |
+| `verify/equity.js` | Equity・ランダム相手・最終役のブラウザ検証 |
+| `verify/state.js` | State / Canonical State / URL / 保存データのブラウザ検証 |
+| `verify/cache.js` | Cache透明性・Cache統計・実機速度測定 |
 | `ci/verify.js` | Nodeで実行する回帰検証。Evaluator・Exact列挙・Equity・Canonical Cacheを自動確認 |
 | `.github/workflows/verify.yml` | push / pull request時にNode回帰検証を実行 |
 | `README.md` / `SPEC.md` | 簡易説明 / この仕様書 |
@@ -442,7 +446,11 @@ CI回帰検証 (Node)                                ci/verify.js
 
 ### 9.2 「計算速度を測る」
 
-人数・ストリート別にExactの所要時間を表示する(快適 / 実用的 / やや遅い / 遅い)。開発者向けの目安であり、性能保証ではない。最終判断は実機での操作感で行う。
+2〜4人・Preflop〜Riverの代表局面を、**通常のUIと同じWeb Worker経路**で測定する。1秒未満=快適 / 3秒未満=実用的 / 6秒以上=遅い、を開発者向けの目安とする。メインスレッド直計算も一部を参考値として表示する。性能保証ではなく、最終判断はPC/スマホ実機で行う。
+
+### 9.3 Draw Insight セッション観測
+
+開発者向けパネルから、このタブ内のメモリ上だけで、分析対象の切替回数・Draw Insightの表示状態変化・遭遇したタグを確認できる。外部送信・永続保存はしない。これは利用者全体の利用率を測るAnalyticsではなく、**実際の局面でどの程度Draw Insightが出現するかを見るための開発用観測**とする。
 
 ---
 
@@ -479,7 +487,8 @@ CI回帰検証 (Node)                                ci/verify.js
 - **カードピッカーのタップしやすさ**: 360px幅で1ボタン約24px。「A♠を10枚連続で入れて苦痛か」で判断する。スート切替式は2タップになるので、必ずしも改善とは限らない
 - **ハンド指定の横4列表示**: 360px幅で4列のカードと勝率・役が窮屈すぎないか。360px未満では4人だけ2×2に切り替える
 - **Turn/Riverの操作制限**: Flopが3枚そろうまでTurn、Turnが入るまでRiverは新しく入力できない。既存カードはそのまま編集できる。
-- **実機の計算速度**: 特に4人プリフロップと、相手想定1人のFlop(約107万通り)
+- **実機の計算速度**: 特に4人プリフロップと、相手想定1人のFlop(約107万通り)。開発者向け「計算速度を測る」でWorker経路を実測する
+- **Draw Insightの実利用**: セッション観測で表示状態・タグ遭遇を確認し、機能追加の判断材料にする
 - **Boardの横一列**: 360px幅で5枠が収まるか(計算上は収まる見込み)
 - **相手想定のPreflop**: 外部の正解値との一致(出典を併記)
 - 外部の正解値(`R-001` / `R-002`)の登録
