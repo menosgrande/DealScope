@@ -54,7 +54,7 @@ function legalActions(p){
  if(!p||p.out||p.fold||p.allin)return r;
  r.callAmount=Math.max(0,A.currentBet-A.roundBet[p.seat]);
  r.check=r.callAmount===0;
- r.call=r.callAmount>0&&r.callAmount<=p.stack;
+ r.call=r.callAmount>0&&p.stack>0;
  r.allin=p.stack>0;
  if(r.callAmount===0)r.bet=p.stack>=A.blinds[1];
  else r.raise=!A.raiseLocked[p.seat]&&r.max>=r.minRaise;
@@ -118,7 +118,7 @@ function act(seat,a,n){
  var call=Math.max(0,A.currentBet-A.roundBet[seat]),text='';
  if(a==='fold'){p.fold=true;text='フォールド'}
  else if(a==='check'){if(call)return false;text='チェック'}
- else if(a==='call'){contribute(p,call);text=call?'コール':'チェック'}
+ else if(a==='call'){var paid=Math.min(call,p.stack);contribute(p,paid);text=call?'コール'+(paid<call?'（オールイン）':''):'チェック'}
  else if(a==='bet'){
    if(A.currentBet)return false;n=Math.min(p.stack,Math.max(A.blinds[1],n||A.blinds[1]));contribute(p,n);A.currentBet=A.roundBet[seat];A.lastRaise=n;A.acted=A.players.map(function(q){return q.out||q.fold||q.allin});A.acted[seat]=true;text='ベット '+money(n)
  }else if(a==='raise'){
@@ -244,15 +244,15 @@ function render(){
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
   var turnLabel=A.finished?'優勝！':A.handOver?(A.awards.some(function(a){return a.seat===0})?'このHandで勝利！':'このHandは終了'):A.awaiting?'あなたの番':'CPUが考えています…';
-  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(call):'　Check'):'');
+  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var payableCall=Math.min(call,Math.max(0,A.players[0].stack));var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(payableCall)+(call>payableCall?'（オールイン）':''):'　Check'):'');
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);$('nextBtn').style.display=A.handOver&&!A.finished?'block':'none';
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
-  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
-  $('toCall').textContent=A.awaiting?(call?'Call '+money(call):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
+  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
+  $('toCall').textContent=A.awaiting?(call?'Call '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（AI）':''):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
-  $('callBtn').textContent=call?'コール '+money(call):'チェック';
+  $('callBtn').textContent=call?'コール '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'チェック';
   $('betBtn').textContent=A.currentBet?'レイズ':'ベット';
   $('amount').min=legal.minRaise;$('amount').max=Math.max(legal.minRaise,legal.max);
   $('amount').value=clamp(legal.minRaise,legal.minRaise,Math.max(legal.minRaise,legal.max));
