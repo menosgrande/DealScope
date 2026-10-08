@@ -10,6 +10,7 @@ function roundComplete(state){
    return state.acted[p.seat]&&state.roundBet[p.seat]===state.currentBet;
  });
 }
+function nextSeat(players,i){for(var k=1;k<=players.length;k++){var j=(i+k)%players.length;if(!players[j].out)return j}return i}
 function nextStreet(street){
  if(street==='preflop')return 'flop';
  if(street==='flop')return 'turn';
@@ -19,6 +20,6 @@ function nextStreet(street){
 function shouldShowdown(state){return state.street==='river'&&roundComplete(state)}
 function shouldFoldWin(state){return contenders(state.players).length===1}
 function shouldAutoAdvance(state){return shouldFoldWin(state)||roundComplete(state)}
-var api={contenders:contenders,active:active,roundComplete:roundComplete,nextStreet:nextStreet,shouldShowdown:shouldShowdown,shouldFoldWin:shouldFoldWin,shouldAutoAdvance:shouldAutoAdvance};
+var api={contenders:contenders,active:active,roundComplete:roundComplete,nextSeat:nextSeat,nextStreet:nextStreet,shouldShowdown:shouldShowdown,shouldFoldWin:shouldFoldWin,shouldAutoAdvance:shouldAutoAdvance};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DealMiniGameRules=api;
 })(typeof window!=='undefined'?window:globalThis);
