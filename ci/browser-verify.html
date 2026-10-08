@@ -58,6 +58,27 @@
       return el && el.textContent === '23.1%';
     });
 
+    const potPlus10 = doc.querySelector('[data-pot-key="pot"][data-pot-step="10"]');
+    const potMinus10 = doc.querySelector('[data-pot-key="pot"][data-pot-step="-10"]');
+    if (!potPlus10 || !potMinus10) throw new Error('Pot 10-step controls are missing');
+    potPlus10.click();
+    if (doc.querySelector('#potInput').value !== '110') throw new Error('Pot +10 did not reach 110');
+    potMinus10.click();
+    if (doc.querySelector('#potInput').value !== '100') throw new Error('Pot -10 did not return to 100');
+
+    const callPlus10 = doc.querySelector('[data-pot-key="call"][data-pot-step="10"]');
+    const callMinus10 = doc.querySelector('[data-pot-key="call"][data-pot-step="-10"]');
+    if (!callPlus10 || !callMinus10) throw new Error('Call 10-step controls are missing');
+    callPlus10.click();
+    if (doc.querySelector('#callInput').value !== '40') throw new Error('Call +10 did not reach 40');
+    callMinus10.click();
+    if (doc.querySelector('#callInput').value !== '30') throw new Error('Call -10 did not return to 30');
+
+    await waitFor(() => {
+      const el = doc.querySelector('[data-pot-result="required"]');
+      return el && el.textContent === '23.1%';
+    });
+
     const saved = JSON.parse(frame.contentWindow.localStorage.getItem('dealscope-pot-odds-v1') || '{}');
     if (saved.pot !== '100' || saved.call !== '30') throw new Error('Pot Odds values were not persisted');
 
