@@ -274,7 +274,7 @@
     if (isRandom()) {
       ph += '<div class="randomHand">';
       for (let i = 0; i < count(); i++) {
-        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span><div class="pr" data-i="${i}" ></div></div>`;
+        ph += `<div class="randomHandRow"><div class="randomHandName">${pname(i)}</div><div class="slots">${slotHTML({ t: 'p', i, j: 0 })}${slotHTML({ t: 'p', i, j: 1 })}</div><span class="playerTools"><button class="playerAction playerShuffle" data-player="${i}" data-action="shuffle" aria-label="${pname(i)}のハンドを引き直す" title="${pname(i)}だけ引き直す">↻</button><button class="playerAction playerClear" data-player="${i}" data-action="clear" aria-label="${pname(i)}のハンドを消去" title="${pname(i)}だけ消去">×</button></span><div class="pr" data-i="${i}" ></div></div><div class="potOddsMount"></div>`;
       }
       ph += '</div>';
     } else {
@@ -340,14 +340,13 @@
     const required = potOddsValue();
     const equity = res.mode === 'done' && res.eq[0] !== undefined ? res.eq[0] : null;
     return '<div class="potOdds">' +
-      '<div class="potOddsTitle">Pot Odds</div>' +
       '<div class="potOddsInputs">' +
-        '<label>Pot <input id="potInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></label>' +
-        '<label>Call <input id="callInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></label>' +
+        '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
+        '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="number" min="0" step="any" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
       '</div>' +
       '<div class="potOddsResult">' +
-        '<span>Required Equity <b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b></span>' +
-        '<span>Hero Equity <b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b></span>' +
+        '<div><b>' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
+        '<div><b>' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
       '</div>' +
       '</div>';
   }
@@ -368,6 +367,8 @@
             : `<span class="pct${done ? '' : ' dim'}">${txt}</span>`;
           cell.innerHTML = `<div class="pline"><span class="mh">${mh}</span>${pctHtml}</div>` +
             `<div class="bar"><i style="width:${w}%"></i></div>` + renderDrawBadges(i);
+          const potMount = $('players').querySelector('.potOddsMount');
+          if (potMount && i === 0) potMount.innerHTML = renderPotOdds();
         } else {
           cell.innerHTML = `<div class="pline"><span class="pct${done ? '' : ' dim'}">${txt}</span><span class="mh">${mh}</span></div>` + renderDrawBadges(i);
         }
@@ -390,7 +391,7 @@
       }
     }
     let h = '';
-    if (isRandom()) h += '<div class="note">vs ランダム' + state.opp + '人' + (res.mode === 'done' && res.approx ? '(近似値)' : '') + '</div>' + renderPotOdds();
+    if (isRandom()) h += '<div class="note">vs ランダム' + state.opp + '人' + (res.mode === 'done' && res.approx ? '(近似値)' : '') + '</div>';
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
     renderCats();
