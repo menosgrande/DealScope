@@ -81,6 +81,8 @@ Flop以降、全員のカードがそろうと、**全員の中でいちばん�
 | `app.js` | カード入力UI / カード状態 / 結果表示 / 保存 / Exact Cache接続 / Worker管理 |
 | `state.js` | 入力状態の純関数(URLの書き出し・読み込み / 重複の整理 / 保存データの検証 / 配る・Hand/Boardの引き直し・消去 / Canonical State)。UI非依存 |
 | `engine.js` | 役評価・Exact・Monte Carlo・最強の5枚。UI非依存、外部依存なし |
+| `analysis/drawAnalyzer.js` | プレイヤーごとのOESD / GS / FD判定。勝率計算から独立 |
+| `analysis/textureAnalyzer.js` | BoardのRainbow / Monotone / Paired / Connected判定。勝率計算から独立 |
 | `cache.js` | Canonical Key単位のExact結果Cache。セッション中のHit/Miss統計も保持 |\n| `worker.js` | Exact / 相手想定1人Exact / Monte CarloをUIスレッド外で実行 |\n| `verify.js` | ブラウザ上の詳細検証・速度測定・Cache利用状況確認。ヘルプの奥「開発者向け」を開いたときだけ読み込まれる |\n| `ci/verify.js` | Nodeで実行する回帰検証 |\n| `.github/workflows/verify.yml` | push / pull request時の自動検証 |
 
 ## 検証
