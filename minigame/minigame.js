@@ -177,7 +177,7 @@ function restart(){
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:20000,out:false,hand:[],fold:false,allin:false})});
  resetHand()
 }
-function card(c){var suit=c&3,cls=['spade','heart','diamond','club'][suit],colors=['#111','#d23b45','#3478d4','#31945a'];return '<span class="card '+cls+'" style="color:'+colors[suit]+'">'+R[c>>2]+S[suit]+'</span>'}
+function card(c){var suit=c&3,cls=['spade','heart','diamond','club'][suit];return '<span class="card '+cls+'"><span class="rank">'+R[c>>2]+'</span><span class="suit">'+S[suit]+'</span></span>'}
 function render(){
  $('msg').textContent=A.message||'';$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1])+'　Pot '+money(A.pot);
  $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
