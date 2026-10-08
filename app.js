@@ -26,7 +26,6 @@
     active: { t: 'p', i: 0, j: 0 },
     open: false,
     deleteTarget: null,
-    analysisPlayer: 0,
   };
 
   const isRandom = () => state.mode === 'random';
@@ -369,6 +368,7 @@
     if (res.mode === 'wait') h += '<div class="note">入力待ち — ボードはFlopの3枚がそろうと計算します</div>';
     $('results').innerHTML = h;
     renderCats();
+    renderBoardTexture();
   }
 
   /* 勝率の左に出す「いま作れている役」。Flop以降で、そのプレイヤーの2枚がそろっているときだけ(それ以外は -1 = 「—」) */
