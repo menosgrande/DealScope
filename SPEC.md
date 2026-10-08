@@ -383,7 +383,7 @@ Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含
 
 Analysis Layerは勝率エンジンから独立した補助分析層。現在のv1では `analysis/drawAnalyzer.js` と `analysis/textureAnalyzer.js` を持つ。
 
-- Draw Analyzer: `analyzeDraws(holeCards, board, deadCards)` → `{ draws: [{ type: 'OESD' | 'GS' | 'FD' }] }`
+- Draw Analyzer: `analyzeDraws(holeCards, board)` → `{ draws: [{ type: 'OESD' | 'GS' | 'FD' }] }`
 - Texture Analyzer: `analyzeBoardTexture(board)` → `{ tags: ['RAINBOW' | 'MONOTONE' | 'PAIRED' | 'CONNECTED'] }`
 - Draw AnalyzerはUIやEquity Engineに依存しない。Equityの計算結果を変更しない。
 - v1ではouts、Backdoor Draw、Double Gutshot、Combo Draw、Nut Drawは扱わない。
