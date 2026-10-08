@@ -14,7 +14,7 @@ var TYPES={
 var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false]};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false};
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
@@ -102,7 +102,7 @@ function blind(p,n){var x=Math.min(n,p.stack);p.stack-=x;p.contrib=x;A.roundBet[
 function contribute(p,n){n=Math.max(0,Math.min(n,p.stack));p.stack-=n;A.roundBet[p.seat]+=n;p.contrib=(p.contrib||0)+n;A.pot+=n;if(!p.stack)p.allin=true;return n}
 function resetHand(){
  if(alive().length<=1){finish();return}
- A.handNo++;
+ A.handNo++;A.epoch++;A.pending=false;
  if(A.handNo>1&&A.handNo%8===1){var next=[200,300,400,600,800,1200,1600,2400,3200,4800,6400],i=Math.min(Math.floor((A.handNo-1)/8),next.length-1);A.blinds=[next[i]/2,next[i]]}
  A.dealer=nextSeat(A.dealer);A.board=[];A.street='preflop';A.currentBet=0;A.lastRaise=A.blinds[1];A.pot=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.raiseLocked=[false,false,false,false];A.history=[];A.awards=[];A.handOver=false;initDeck();
  A.players.forEach(function(p){p.hand=[];p.fold=false;p.allin=false;p.contrib=0;p.showdownScore=0});
@@ -160,18 +160,52 @@ function endHand(){
 }
 function nextHand(){
  if(!A.handOver||A.finished)return;
- A.handOver=false;
+ A.handOver=false;A.epoch++;A.pending=false;
  A.players.forEach(function(p){if(p.stack<=0)p.out=true});
  if(alive().length<=1)finish();else resetHand();
 }
 function finish(){A.finished=true;var w=alive()[0];A.message=w?w.name+' の優勝！':'ゲーム終了';render()}
+function fallbackCpuAction(p){
+ var legal=legalActions(p);
+ if(legal.check)return{a:'check'};
+ if(legal.call)return{a:'call'};
+ if(legal.allin)return{a:'allin'};
+ return{a:'fold'};
+}
 function advance(){
- if(A.finished)return;
+ if(A.finished||A.handOver)return;
  if(foldWin())return;
  if(roundDone()){if(A.street==='river')showdown();else street();return}
- var p=A.players[A.actor];if(!p||p.out||p.fold||p.allin){A.actor=nextActionSeat(A.actor);if(A.actor<0){if(Rules.allInRunout(A)){if(A.street==='river')showdown();else street();}return}}
- if(p.seat===0){A.awaiting=true;render();return}
- A.awaiting=false;setTimeout(function(){var d=ai(p);if(d.a==='raise'&&A.raiseLocked[p.seat])d={a:(A.currentBet>A.roundBet[p.seat]?'call':'check')};if(!act(p.seat,d.a,d.n)){var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);if(call>0)act(p.seat,'call');else act(p.seat,'check')}advance()},460)
+ var seat=A.actor;
+ if(seat<0||!A.players[seat]||A.players[seat].out||A.players[seat].fold||A.players[seat].allin){
+   seat=nextActionSeat(A.players,seat<0?A.dealer:seat);
+   A.actor=seat;
+   if(seat<0){if(Rules.allInRunout(A)){if(A.street==='river')showdown();else street();}return}
+ }
+ var p=A.players[seat];
+ if(!p||p.out||p.fold||p.allin){A.actor=nextActionSeat(A.players,seat);advance();return}
+ if(p.seat===0){A.awaiting=true;A.pending=false;render();return}
+ A.awaiting=false;
+ if(A.pending)return;
+ A.pending=true;
+ var epoch=A.epoch,handNo=A.handNo,actor=seat;
+ setTimeout(function(){
+   if(A.finished||A.handOver||A.epoch!==epoch||A.handNo!==handNo||A.actor!==actor){A.pending=false;return}
+   var cpu=A.players[actor];
+   if(!cpu||cpu.out||cpu.fold||cpu.allin){A.pending=false;advance();return}
+   var d=ai(cpu);
+   if(d.a==='raise'&&A.raiseLocked[cpu.seat])d={a:(A.currentBet>A.roundBet[cpu.seat]?'call':'check')};
+   var ok=act(cpu.seat,d.a,d.n);
+   if(!ok)ok=act(cpu.seat,(fallbackCpuAction(cpu)).a,(fallbackCpuAction(cpu)).n);
+   A.pending=false;
+   if(!ok){
+     cpu.fold=true;
+     A.history.push({seat:cpu.seat,text:'フォールド（自動処理）'});
+     A.actor=nextActionSeat(A.players,cpu.seat);
+     render();
+   }
+   advance();
+ },460)
 }
 function human(a){
  if(!A.awaiting||A.actor!==0||A.finished)return;
