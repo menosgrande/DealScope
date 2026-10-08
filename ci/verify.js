@@ -114,7 +114,7 @@ function testAnalysisLayer() {
   r = Draw.analyzeDraws(hand('Ac Kd'), hand('5h 6c 7s'));
   assert.equal(r.draws.length, 0);
 
-  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qs 3d'));
+  r = Draw.analyzeDraws(hand('As Ks'), hand('2s 7s Qd 3d'));
   assert(r.draws.some(d => d.type === 'FD'));
 
   r = Draw.analyzeDraws(hand('As Kd'), hand('2s 7s Qs 3s'));
