@@ -21,20 +21,22 @@ h1{font-size:16px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 .amount{display:flex;gap:5px;margin-bottom:5px}.amount input{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:8px;background:#092219;color:var(--ivory);padding:0 10px;font-size:14px}.new{width:100%;height:32px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--mute);margin-top:8px}
 .note{font-size:9px;color:var(--mute);line-height:1.45;margin-top:7px}
 @media(max-width:390px){main{padding-left:8px;padding-right:8px}.card{width:39px;height:56px}.players{gap:5px}.player{padding:7px}.cardBack{width:33px;height:46px}.phead small{font-size:9px}.actions button{height:40px}}
+
+.street{text-align:center;font-size:10px;letter-spacing:.12em;color:var(--brass);font-weight:800;margin-bottom:3px}.tocall{min-width:70px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:10px}.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px}.presets button{height:28px;border:1px solid var(--line);border-radius:7px;background:#102f27;color:var(--mute);font-size:10px;font-weight:700}.player.current{box-shadow:0 0 0 1px var(--brass) inset}.dealerMark{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:var(--ivory);color:#173e32;font-size:8px;font-weight:900;margin-left:2px}.betline{text-align:center;color:var(--mute);font-size:9px;margin-top:2px}.betline b{color:var(--ivory)}
 </style>
 </head>
 <body>
 <main>
 <div class="top"><h1>DealScope / 4人トーナメント β</h1><a class="backLink" href="../">← Calculator</a></div>
 <div class="panel">
-  <div id="info" class="info"></div>
+  <div id="street" class="street"></div><div id="info" class="info"></div>
   <div id="msg" class="msg"></div>
   <div id="board" class="board"></div>
   <div id="players" class="players"></div>
 </div>
 <div class="panel">
   <div class="hint" id="hint"></div>
-  <div class="amount"><input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ額"></div>
+  <div class="amount"><input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ額"><span id="toCall" class="tocall"></span></div><div class="presets"><button data-size="min">最小</button><button data-size="half">½P</button><button data-size="pot">POT</button><button data-size="double">2P</button></div>
   <div class="actions">
     <button id="foldBtn" class="fold">フォールド</button>
     <button id="callBtn">チェック</button>
@@ -44,9 +46,9 @@ h1{font-size:16px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
   <button id="newBtn" class="new">最初からやり直す</button>
 </div>
 <div class="panel log" id="log"></div>
-<p class="note">これはDealScope本体とは別の遊び用ミニゲームです。CPUはGTO解ではなく、TAG / LAG / タイト・パッシブ / ルーズ・パッシブの傾向を、ハンド強度・ボード・ポット・スタック・確率的な揺らぎに反映します。</p>
+<p class="note">これはDealScope本体とは別の遊び用ミニゲームです。No-Limit Texas Hold’emの4人Sit & Goとして、ブラインド・ベットラウンド・オールイン・サイドポット・ショーダウンを処理します。CPUはGTO解ではなく、TAG / LAG / タイト・パッシブ / ルーズ・パッシブの傾向を、ハンド強度・ボード・ポット・スタック・確率的な揺らぎに反映します。</p>
 </main>
 <script src="../engine.js"></script>
-<script src="./minigame.js?v=20261008-5suit"></script>
+<script src="./minigame.js?v=20261008-poker2"></script>
 </body>
 </html>
