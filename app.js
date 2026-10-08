@@ -137,7 +137,6 @@
     inputUndo = null;
     if (isRandom() || v < 2 || v > 4 || v === state.n) return;
     state.n = v;
-    ensureAnalysisPlayer();
     const c = S.dedupe(state.board, state.players);
     state.board = c.board;
     state.players = c.players;
@@ -156,7 +155,6 @@
     inputUndo = null;
     if ((m !== 'known' && m !== 'random') || m === state.mode) return;
     state.mode = m;
-    ensureAnalysisPlayer();
     if (m === 'known') {
       // 隠れていた P2〜 が戻る。Board と Hero(P1) は画面に出ていたので優先し、重複した側(P2〜)を空欄にする
       const c = S.dedupe(state.board, state.players);
