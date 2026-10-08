@@ -110,6 +110,32 @@
     if (potAfter.value !== '100' || callAfter.value !== '30') throw new Error('saved Pot/Call values were not restored');
     if (requiredAfter.textContent !== '23.1%') throw new Error('restored Required Equity is wrong');
 
+    const mini = document.createElement('iframe');
+    mini.id = 'mini';
+    mini.src = '/minigame/';
+    mini.style = 'width:390px;height:1200px;border:0;position:absolute;left:-9999px';
+    document.body.appendChild(mini);
+    await new Promise(resolve => mini.addEventListener('load', resolve, {once:true}));
+    const md = mini.contentDocument;
+    await waitFor(() => md && md.querySelector('#turnLabel'), 4000);
+    let seenHands = 0;
+    const miniStart = performance.now();
+    while (seenHands < 3 && performance.now() - miniStart < 12000) {
+      await new Promise(resolve => setTimeout(resolve, 40));
+      const info = md.querySelector('#info');
+      const m = info && info.textContent.match(/Hand #(\d+)/);
+      if (m) seenHands = Math.max(seenHands, Number(m[1]));
+      const next = md.querySelector('#nextBtn');
+      if (next && getComputedStyle(next).display !== 'none') { next.click(); continue; }
+      const turn = md.querySelector('#turnLabel');
+      if (turn && turn.textContent === 'あなたの番') {
+        const call = md.querySelector('#callBtn');
+        const allin = md.querySelector('#allinBtn');
+        if (call && !call.disabled) call.click();
+        else if (allin && !allin.disabled) allin.click();
+      }
+    }
+    if (seenHands < 3) throw new Error('mini game stalled before Hand 3');
     status.textContent = 'PASS';
     document.title = 'PASS';
   } catch (e) {
