@@ -112,7 +112,7 @@
 
     const mini = document.createElement('iframe');
     mini.id = 'mini';
-    mini.src = '/minigame/';
+    mini.src = '/minigame/index.html';
     mini.style = 'width:390px;height:1200px;border:0;position:absolute;left:-9999px';
     document.body.appendChild(mini);
     await new Promise(resolve => mini.addEventListener('load', resolve, {once:true}));
