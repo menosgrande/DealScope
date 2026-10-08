@@ -17,13 +17,9 @@
     return Array.from(new Set((cards || []).filter((c) => Number.isInteger(c) && c >= 0 && c < 52)));
   }
 
-  function analyzeDraws(holeCards, board, deadCards) {
+  function analyzeDraws(holeCards, board) {
     const hole = validCards(holeCards);
     const bd = validCards(board);
-    const dead = new Set(validCards(deadCards));
-    hole.forEach((c) => dead.add(c));
-    bd.forEach((c) => dead.add(c));
-
     if (hole.length !== 2 || bd.length < 3 || bd.length >= 5) return { draws: [] };
 
     const cards = hole.concat(bd);
