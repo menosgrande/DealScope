@@ -248,7 +248,7 @@ function render(){
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);$('nextBtn').style.display=A.handOver&&!A.finished?'block':'none';
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
   $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
-  $('toCall').textContent=A.awaiting?(call?'Call '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（AI）':''):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
+  $('toCall').textContent=A.awaiting?(call?'Call '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
