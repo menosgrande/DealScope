@@ -11,7 +11,7 @@ var TYPES={
  tp:{name:'慎重派',short:'TP',vpip:0.14,raise:0.30,call:0.48,bluff:0.03,pressure:0.25,post:0.42},
  lp:{name:'お人よし',short:'LP',vpip:0.43,raise:0.22,call:0.64,bluff:0.12,pressure:0.35,post:0.50}
 };
-var NAMES=['あなた','冷静なプロ','攻める狂犬','慎重派'];
+var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
 var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,raiseLocked:[false,false,false,false]};
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
