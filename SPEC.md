@@ -381,13 +381,45 @@ Monte Carloを将来Cache対象にする場合は、seed・試行条件まで含
 ---
 ### 7.3.1 Analysis Layer
 
-Analysis Layerは勝率エンジンから独立した補助分析層。現在のv1では `analysis/drawAnalyzer.js` と `analysis/textureAnalyzer.js` を持つ。
+Analysis Layerは、勝率計算とは独立した「現在の局面を説明するための補助分析層」とする。v1では `analysis/drawAnalyzer.js` と `analysis/textureAnalyzer.js` の2モジュールだけを持つ。Analysis Layerの結果は勝率・equity・最終役集計の計算値を変更しない。
 
-- Draw Analyzer: `analyzeDraws(holeCards, board)` → `{ draws: [{ type: 'OESD' | 'GS' | 'FD' }] }`
-- Texture Analyzer: `analyzeBoardTexture(board)` → `{ tags: ['RAINBOW' | 'MONOTONE' | 'PAIRED' | 'CONNECTED'] }`
-- Draw AnalyzerはUIやEquity Engineに依存しない。Equityの計算結果を変更しない。
-- v1ではouts、Backdoor Draw、Double Gutshot、Combo Draw、Nut Drawは扱わない。
-- 将来拡張時もAnalysis Layer内に閉じ込め、Equity Engineへ責務を戻さない。
+#### Draw Analyzer v1
+
+API:
+
+`analyzeDraws(holeCards, board) → { draws: [{ type: 'OESD' | 'GS' | 'FD' }] }`
+
+- 対象はFlop(ボード3枚)とTurn(ボード4枚)のみ。River(ボード5枚)では `{ draws: [] }`。
+- Hole Cardsが2枚そろっていない場合も `{ draws: [] }`。
+- OESD / Gutshotは、Hole Cardsが少なくとも1枚そのストレート構成に寄与している場合だけ表示する。Boardだけで成立するストレートドローは表示しない。
+- すでにストレート以上が完成している場合、そのストレートに由来するDrawは表示しない。
+- FDは、Hole CardsがそのSuitに少なくとも1枚あり、Hole + Boardの同Suitカードが4枚になっている場合に表示する。
+- 複数の未完成Drawが成立する場合は、v1では `OESD` を `GS` より優先し、FDは独立して併記する。
+- v1のDraw typeは `OESD` / `GS` / `FD` に固定する。
+- v1ではouts、Backdoor Flush Draw、Double Gutshot、Combo Draw、Nut Drawは扱わない。
+- OutsはDraw Analyzerの単純な拡張として実装せず、将来、theoretical outs / effective outs の定義を別途決めてから設計する。
+
+#### Texture Analyzer v1
+
+API:
+
+`analyzeBoardTexture(board) → { tags: ['RAINBOW' | 'MONOTONE' | 'PAIRED' | 'CONNECTED'] }`
+
+- ボード3〜5枚を対象とし、3枚未満では `{ tags: [] }`。
+- `RAINBOW`: ボード上の各Suitの枚数がすべて1枚以下。したがってFlopでは3Suit、Turnでは4Suitすべて1枚ずつの状態を指す。
+- `MONOTONE`: ボード全体が同一Suit。
+- `PAIRED`: 同じRankが2枚以上ある。
+- `CONNECTED`: A2345を含む5Rank窓のいずれかに、ボードRankが3種類以上含まれる。
+- Textureタグは排他的ではない。条件を満たすタグを独立して複数返す。
+- v1ではSuit texture以外の分類、より細かい「wet/dry」評価、Drawの強弱評価は扱わない。
+
+#### 共通契約
+
+- 入力の重複カードや不正値はAnalyzer内部で安全に無視し、UIを壊さない。
+- AnalyzerはUI DOM、localStorage、Worker、Cache、Equity Engineの状態を変更しない。
+- Draw Analyzerはプレイヤー単位、Texture AnalyzerはBoard単位で評価する。
+- APIの戻り値はv1では上記の固定構造とし、UIは `type` / `tags` の値だけに依存する。
+- 将来、outs等を追加するときもEquity Engineへ責務を戻さず、Analysis Layer内で別APIとして設計する。
 
 ## 8. 構成
 
