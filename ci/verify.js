@@ -151,6 +151,26 @@ function testAnalysisLayer() {
   console.log('✓ Analysis Layer: player draws / board texture / input contract');
 }
 
+function testBoardDeal() {
+  const players=[hand('Ah Kd'), hand('Qs Qd'), [-1,-1], [-1,-1]];
+  const empty=[-1,-1,-1,-1,-1];
+  let seq=0;
+  const rnd=()=>((seq=(seq+7)%52)/52);
+  const flop=S.dealBoard(empty,players,rnd);
+  assert.equal(flop.filter(c=>c>=0).length,3);
+  assert.equal(new Set(flop.filter(c=>c>=0)).size,3);
+  assert(!flop.some(c=>players.flat().includes(c)));
+
+  const turn=S.dealBoard(flop,players,rnd);
+  assert.equal(turn.filter(c=>c>=0).length,4);
+  assert.equal(turn.slice(0,3).join(','),flop.slice(0,3).join(','));
+
+  const river=S.dealBoard(turn,players,rnd);
+  assert.equal(river.filter(c=>c>=0).length,5);
+  assert.equal(river.slice(0,4).join(','),turn.slice(0,4).join(','));
+  console.log('✓ board auto-deal advances flop → turn → river');
+}
+
 function testCanonicalAndCache() {
   C.clear();
   const a={players:[hand('Ah Ad'),hand('Ks Kd')],board:[card('Qc'),card('Jc'),card('2h')],deadCards:[],calculationMode:'exact',opponentCount:null};
@@ -260,6 +280,7 @@ function main() {
   testSevenCardAndEnumeration();
   testEquityConservation();
   testAnalysisLayer();
+  testBoardDeal();
   testCanonicalAndCache();
   testMiniGamePotConservation();
   testMiniGameStateTransitions();

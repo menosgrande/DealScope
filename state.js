@@ -268,6 +268,26 @@
     return { players: ps, board: b };
   }
 
+  // Boardだけを自動ディールする。既存カードと全プレイヤーのカードを除外し、
+  // 空のBoardならFlop、Flop中ならFlop完成、Flop完成ならTurn、Turn完成ならRiverまで埋める。
+  function dealBoard(board, players, rnd) {
+    const b = board.slice();
+    const used = new Set();
+    players.forEach((h) => h.forEach((c) => { if (c >= 0) used.add(c); }));
+    b.forEach((c) => { if (c >= 0) used.add(c); });
+    const deck = [];
+    for (let c = 0; c < 52; c++) if (!used.has(c)) deck.push(c);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    let target = 3;
+    if (b[3] >= 0) target = 5;
+    else if (b.slice(0, 3).every((c) => c >= 0)) target = 4;
+    for (let j = 0; j < target; j++) if (b[j] < 0) b[j] = deck.pop();
+    return b;
+  }
+
   /* ---------- Canonical State ----------
    * 結果に影響する情報だけを残し、表現上の順序差を正規化する。
    * Player order は出力配列に対応するため保持する。各player内の2枚とboardはソートする。
@@ -290,7 +310,7 @@
   function canonicalKey(canonicalState) {
     return JSON.stringify(canonicalState);
   }
-  const api = { RANKS, emptyHands, buildCanonicalState, canonicalKey, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard, clearBoardStreet };
+  const api = { RANKS, emptyHands, buildCanonicalState, canonicalKey, emptyBoard, dedupe, encode, decode, normalizeSaved, fillEmpty, shuffleBoard, shuffleBoardStreet, dealBoard, shufflePlayerHand, shuffleHands, clearPlayerHand, clearHands, clearBoard, clearBoardStreet };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DealState = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -296,7 +296,7 @@
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
       `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardDeal" class="boardShuffle" aria-label="ボードを自動ディールする" title="空いているBoardを自動ディールする"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">自動ディール</span></button><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -677,6 +677,12 @@
   // ボード全体 / ストリート単位の引き直し・消去。Boardコンテナはrender()で作り直されるためイベント委譲する。
   let streetShuffleExplained = false;
   $('board').addEventListener('click', (e) => {
+    const boardDeal = e.target.closest('#boardDeal');
+    if (boardDeal) {
+      e.preventDefault();
+      dealBoardCards();
+      return;
+    }
     const shuffle = e.target.closest('#boardShuffle, .streetShuffle');
     const clear = e.target.closest('#boardClear, .streetClear');
     if (shuffle && !shuffle.disabled) {
@@ -789,6 +795,18 @@
     $('toastMsg').textContent = message;
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
+  }
+  function dealBoardCards() {
+    inputUndo = null;
+    const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
+    const nextBoard = S.dealBoard(state.board, state.players, Math.random);
+    if (nextBoard.every((c, i) => c === state.board[i])) return;
+    state.board = nextBoard;
+    state.deleteTarget = null;
+    state.open = false;
+    render();
+    recompute();
+    showUndo(prev, 'Boardを自動ディールしました');
   }
   function dealCards() {
     inputUndo = null;
