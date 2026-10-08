@@ -37,8 +37,8 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 .phead{height:20px;display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.phead i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .phead small{margin-left:auto;color:var(--mute);font-size:9px;overflow:hidden;text-overflow:ellipsis}.phead small b{color:var(--mute)}
 .cards{height:56px;display:flex;align-items:center;justify-content:center;gap:5px}
-.stack{text-align:center;font-size:14px;font-weight:700;line-height:1.1}.stack small{font-size:9px;color:var(--mute);font-weight:400}
-.made{text-align:center;color:var(--brass);font-size:9px;line-height:1.1;margin-top:2px}.betline{text-align:center;color:var(--mute);font-size:9px;line-height:1.1;margin-top:2px}.betline b{color:var(--ivory)}
+.stack{text-align:center;font-size:16px;font-weight:800;line-height:1.05;margin-top:1px}.stack:before{content:'所持 ';font-size:9px;color:var(--mute);font-weight:500}.stack small{display:none}
+.made{text-align:center;color:var(--brass);font-size:9px;line-height:1.1;margin-top:2px}.betline{text-align:center;color:var(--mute);font-size:8px;line-height:1.1;margin-top:3px}.betline b{color:var(--ivory)}
 .dealerMark{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:var(--ivory);color:#173e32;font-size:8px;font-weight:900;margin-left:1px}
 .turnPanel{padding:7px}
 .turnCard{display:flex;align-items:center;justify-content:space-between;gap:8px;height:31px;padding:0 9px;margin:0 0 4px;border:1px solid var(--line);border-radius:8px;background:#102f27}
@@ -60,7 +60,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .panel{padding:6px}.metaRow{flex-basis:17px}.street{font-size:9px}.info{font-size:9px}
  .msg{font-size:12px;height:24px}.potArea{height:39px;flex-basis:39px}.board{height:57px;flex-basis:57px}
  .card,.cardBack{width:35px;height:50px;font-size:18px}.players{gap:4px}.player{padding:5px 6px}
- .phead{font-size:10px;height:18px}.phead small{font-size:8px}.cards{height:47px;gap:4px}.stack{font-size:12px}.betline{font-size:8px}.made{font-size:8px}
+ .phead{font-size:10px;height:18px}.phead small{font-size:8px}.cards{height:47px;gap:4px}.stack{font-size:14px}.stack:before{font-size:8px}.betline{font-size:8px}.made{font-size:8px}
  .turnCard{height:29px}.turnLabel{font-size:12px}.turnMeta{font-size:9px}.hint{font-size:8px}
  .amount{height:36px}.amount input{height:34px}.presets button{height:26px}.actions button{height:38px}
 }
@@ -68,7 +68,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  main{padding-top:4px;padding-bottom:4px;grid-template-rows:21px minmax(320px,1fr) auto 20px}
  .msg{height:22px}.potArea{height:35px;flex-basis:35px}.board{height:52px;flex-basis:52px}
  .card,.cardBack{width:33px;height:47px;font-size:17px}.cards{height:44px}
- .player{padding:4px 5px}.phead{height:17px}.stack{font-size:11px}
+ .player{padding:4px 5px}.phead{height:17px}.stack{font-size:13px}.stack:before{font-size:7px}
  .turnCard{height:27px}.hint{height:12px}.amount{height:33px}.amount input{height:32px}.presets button{height:23px}.actions button{height:34px}
 }
 </style>/head>
@@ -102,6 +102,6 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261008-poker8"></script>
+<script src="./minigame.js?v=20261008-poker9"></script>
 </body>
 </html>
