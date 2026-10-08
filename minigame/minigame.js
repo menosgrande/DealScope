@@ -24,6 +24,7 @@ function alive(){return A.players.filter(function(p){return !p.out})}
 function active(){return Rules.active(A.players)}
 function contenders(){return Rules.contenders(A.players)}
 function nextSeat(i){return Rules.nextSeat(A.players,i)}
+function nextActionSeat(i){return Rules.nextActionSeat(A.players,i)}
 function cardName(c){return R[c>>2]+S[c&3]}
 function scoreLabel(s){return ['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'][s>>>20]||''}
 function rank(c){return c>>2}
@@ -126,14 +127,14 @@ function act(seat,a,n){
    text=target2>before?'オールイン':'オールイン（コール）'
  }
  if(!text)return false;
- A.acted[seat]=true;A.history.push({seat:seat,text:text});A.actor=nextSeat(seat);render();return true
+ A.acted[seat]=true;A.history.push({seat:seat,text:text});A.actor=nextActionSeat(seat);render();return true
 }
 function street(){
  if(A.street==='preflop'){A.deck.pop();A.board.push(deal(),deal(),deal());A.street='flop'}
  else if(A.street==='flop'){A.deck.pop();A.board.push(deal());A.street='turn'}
  else if(A.street==='turn'){A.deck.pop();A.board.push(deal());A.street='river'}
  else{return}
- A.currentBet=0;A.lastRaise=A.blinds[1];A.roundBet=[0,0,0,0];A.raiseLocked=[false,false,false,false];A.acted=A.players.map(function(p){return p.out||p.fold||p.allin});A.actor=nextSeat(A.dealer);A.message=A.street==='flop'?'Flop':A.street==='turn'?'Turn':'River';render();advance()
+ A.currentBet=0;A.lastRaise=A.blinds[1];A.roundBet=[0,0,0,0];A.raiseLocked=[false,false,false,false];A.acted=A.players.map(function(p){return p.out||p.fold||p.allin});A.actor=nextActionSeat(A.dealer);A.message=A.street==='flop'?'Flop':A.street==='turn'?'Turn':'River';render();advance()
 }
 function foldWin(){
  var c=contenders();if(c.length!==1)return false;var p=c[0];p.stack+=A.pot;A.message=p.name+' が '+money(A.pot)+' を獲得';A.pot=0;endHand();return true
@@ -156,7 +157,7 @@ function advance(){
  if(A.finished)return;
  if(foldWin())return;
  if(roundDone()){if(A.street==='river')showdown();else street();return}
- var p=A.players[A.actor];if(!p||p.out||p.fold||p.allin){A.actor=nextSeat(A.actor);advance();return}
+ var p=A.players[A.actor];if(!p||p.out||p.fold||p.allin){A.actor=nextActionSeat(A.actor);if(A.actor<0){if(Rules.allInRunout(A)){if(A.street==='river')showdown();else street();}return}}
  if(p.seat===0){A.awaiting=true;render();return}
  A.awaiting=false;setTimeout(function(){var d=ai(p);if(d.a==='raise'&&A.raiseLocked[p.seat])d={a:(A.currentBet>A.roundBet[p.seat]?'call':'check')};if(!act(p.seat,d.a,d.n)){var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);if(call>0)act(p.seat,'call');else act(p.seat,'check')}advance()},320)
 }
