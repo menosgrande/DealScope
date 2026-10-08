@@ -40,7 +40,8 @@
   }
 
   async function waitFrameLoad() {
-    if (frame.contentDocument && frame.contentDocument.readyState === 'complete') return;
+    if (frame.contentDocument && frame.contentDocument.readyState === 'complete'
+        && frame.contentWindow.location.href !== 'about:blank') return;
     await new Promise(resolve => frame.addEventListener('load', resolve, {once:true}));
   }
 
