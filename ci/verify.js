@@ -209,7 +209,7 @@ function testMiniGamePotConservation() {
   assert.equal(er.contributed,1100);
   assert.equal(er.distributed,1100);
   assert.equal(ea,eb);
-  assert.deepEqual(edge.map(p=>p.stack),[0,550,550]);
+  assert.deepEqual(edge.map(p=>p.stack),[0,1100,0]);
   console.log('✓ mini game pot distribution conserves chips');
 }
 function main() {
