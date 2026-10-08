@@ -346,13 +346,11 @@
         '<span>Pot Odds</span><span class="potOddsChevron" aria-hidden="true">' + (potOddsOpen ? '▲' : '▼') + '</span>' +
       '</button>' +
       '<div id="potOddsPanel" class="potOddsPanel"' + hidden + '>' +
-        '<div class="potOddsInputs">' +
-          '<label><span>Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
-          '<label><span>Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
-        '</div>' +
-        '<div class="potOddsResult">' +
-          '<div><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b><span>Required Equity</span></div>' +
-          '<div><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b><span>Your Equity</span></div>' +
+        '<div class="potOddsCompact">' +
+          '<label class="potOddsField"><span class="potOddsLabel">Pot</span><span class="moneyInput"><span class="currency">$</span><input id="potInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="next" value="' + String(potOddsState.pot).replace(/"/g, '&quot;') + '"></span></label>' +
+          '<label class="potOddsField"><span class="potOddsLabel">Call</span><span class="moneyInput"><span class="currency">$</span><input id="callInput" inputmode="decimal" type="text" autocomplete="off" enterkeyhint="done" value="' + String(potOddsState.call).replace(/"/g, '&quot;') + '"></span></label>' +
+          '<div class="potOddsMetric"><span>Req.</span><b data-pot-result="required">' + (required === null ? '—' : required.toFixed(1) + '%') + '</b></div>' +
+          '<div class="potOddsMetric"><span>You</span><b data-pot-result="equity">' + (equity === null ? '—' : (res.approx ? '≈' : '') + equity.toFixed(1) + '%') + '</b></div>' +
         '</div>' +
       '</div>' +
       '</div>';
