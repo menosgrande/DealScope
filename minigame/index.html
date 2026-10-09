@@ -287,6 +287,8 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:28px;height:38px;font-size:15px}
 }
 
+/* Result summaries can contain multiple side-pot payouts; allow wrapping instead of clipping */
+.msg{height:auto;min-height:27px;flex:0 0 auto;padding:3px 6px;white-space:normal;overflow:visible;overflow-wrap:anywhere;line-height:1.2}
 /* Compact seat list + separate hero analysis column */
 .heroAnalysis{min-width:0;min-height:0;padding:7px;display:flex;flex-direction:column;gap:7px;overflow:hidden}
 .analysisTitle{display:flex;flex-direction:column;gap:2px;padding-bottom:5px;border-bottom:1px solid var(--line)}
@@ -425,6 +427,6 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261009-poker22"></script>
+<script src="./minigame.js?v=20261009-poker23"></script>
 </body>
 </html>
