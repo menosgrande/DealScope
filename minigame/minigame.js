@@ -247,7 +247,7 @@ function render(){
   var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var payableCall=Math.min(call,Math.max(0,A.players[0].stack));var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(payableCall)+(call>payableCall?'（オールイン）':''):'　Check'):'');
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);$('nextBtn').style.display=A.handOver&&!A.finished?'block':'none';
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
-  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
+  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ額はスライダーで調整します。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
   $('toCall').textContent=A.awaiting?(call?'CALL '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（ALL-IN）':''):'CHECK'):' ';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
