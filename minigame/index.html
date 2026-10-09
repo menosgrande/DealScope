@@ -36,13 +36,20 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 .resultBadge{display:inline-flex;margin-left:auto;padding:2px 6px;border-radius:9px;background:var(--brass);color:#17140d;font-size:9px;font-weight:800}
 .phead{height:20px;display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.phead i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .phead small{margin-left:auto;color:var(--mute);font-size:9px;overflow:hidden;text-overflow:ellipsis}.phead small b{color:var(--mute)}
-.cards{height:56px;display:flex;align-items:center;justify-content:center;gap:5px}
-.betChips{position:absolute;right:8px;top:43px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:24px;height:24px;z-index:1;pointer-events:none}
-.betChip{display:block;width:18px;height:6px;border-radius:50%;border:1.5px solid #f0d78b;background:#c94f55;box-shadow:0 1px 0 #7d3034;margin-top:-2px}
-.betChip:nth-child(2n){background:#4d79c7;border-color:#b7cbf2;box-shadow:0 2px 0 #304f88}
-.betChip:nth-child(3n){background:#4a9a70;border-color:#b7e2c9;box-shadow:0 2px 0 #2f6348}
-.stack{position:absolute;left:0;right:0;bottom:18px;text-align:center;font-size:16px;font-weight:800;line-height:1.05;min-height:17px}.stack:before{content:'所持 ';font-size:9px;color:var(--mute);font-weight:500}.stack small{display:none}
-.made{position:absolute;left:0;right:0;bottom:37px;text-align:center;color:var(--brass);font-size:9px;line-height:1.1}.betline{position:absolute;left:0;right:0;bottom:4px;text-align:center;color:var(--mute);font-size:8px;line-height:1.1;min-height:10px}.betline b{color:var(--ivory)}
+.cards{height:56px;width:calc(100% - 84px);display:flex;align-items:center;justify-content:center;gap:5px}
+.sideInfo{position:absolute;right:7px;top:43px;width:78px;display:flex;flex-direction:column;gap:7px;text-align:right;z-index:2}
+.stack{position:static;min-height:0;width:100%;font-size:12px;font-weight:800;line-height:1.15;text-align:right;white-space:nowrap}
+.stack .sideLabel{display:block;font-size:9px;color:var(--mute);font-weight:500;margin-bottom:2px}
+.stack small{display:none}
+.betline{position:static;left:auto;right:auto;bottom:auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:flex-end;gap:5px;color:var(--mute);font-size:9px;line-height:1.1;white-space:nowrap}
+.betline .potLabel{display:block}
+.betline b{color:var(--ivory)}
+.betChips{position:static;display:inline-flex;flex-direction:row;align-items:center;justify-content:flex-end;width:auto;height:auto;z-index:1;pointer-events:none;flex-shrink:0}
+.betChip{display:inline-block;width:12px;height:5px;border-radius:50%;border:1.5px solid #f0d78b;background:#c94f55;box-shadow:0 1px 0 #7d3034;margin:0 -2px}
+.betChip:nth-child(2n){background:#4d79c7;border-color:#b7cbf2;box-shadow:0 1px 0 #304f88}
+.betChip:nth-child(3n){background:#4a9a70;border-color:#b7e2c9;box-shadow:0 1px 0 #2f6348}
+
+.made{position:absolute;left:8px;right:88px;bottom:4px;text-align:center;color:var(--brass);font-size:9px;line-height:1.1}
 .dealerMark{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:var(--ivory);color:#173e32;font-size:8px;font-weight:900;margin-left:1px}
 .turnPanel{padding:7px}
 .turnCard{display:flex;align-items:center;justify-content:space-between;gap:8px;height:31px;padding:0 9px;margin:0 0 4px;border:1px solid var(--line);border-radius:8px;background:#102f27}
@@ -64,7 +71,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .panel{padding:6px}.metaRow{flex-basis:17px}.street{font-size:9px}.info{font-size:9px}
  .msg{font-size:12px;height:24px}.potArea{height:39px;flex-basis:39px}.board{height:57px;flex-basis:57px}
  .card,.cardBack{width:35px;height:50px;font-size:18px}.players{gap:4px}.player{padding:5px 6px}
- .phead{font-size:10px;height:18px}.phead small{font-size:8px}.cards{height:47px;gap:4px}.betChips{right:6px;top:39px;transform:scale(.9)}.stack{font-size:12px}.betline{font-size:8px}.made{font-size:8px}
+ .phead{font-size:10px;height:18px}.phead small{font-size:8px}.cards{height:47px;gap:4px;width:calc(100% - 78px)}.sideInfo{right:5px;top:39px;width:72px;gap:6px}.stack{font-size:11px}.betline{font-size:8px}.betChip{width:10px;height:5px}.made{font-size:8px;right:82px}
  .turnCard{height:29px}.turnLabel{font-size:12px}.turnMeta{font-size:9px}.hint{font-size:8px}
  .amount{height:36px}.amount input{height:34px}.presets button{height:26px}.actions button{height:38px}
 }
@@ -72,7 +79,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  main{padding-top:4px;padding-bottom:4px;grid-template-rows:21px minmax(320px,auto) auto auto}
  .msg{height:22px}.potArea{height:35px;flex-basis:35px}.board{height:52px;flex-basis:52px}
  .card,.cardBack{width:33px;height:47px;font-size:17px}.cards{height:44px}
- .player{padding:4px 5px}.phead{height:17px}.betChips{right:5px;top:37px;transform:scale(.82)}.stack{font-size:11px}
+ .player{padding:4px 5px}.phead{height:17px}.cards{height:44px;width:calc(100% - 74px)}.sideInfo{right:4px;top:37px;width:68px;gap:5px}.stack{font-size:10px}.betline{font-size:8px}.betChip{width:9px;height:4px}.made{right:78px}
  .turnCard{height:27px}.hint{height:12px}.amount{height:33px}.amount input{height:32px}.presets button{height:23px}.actions button{height:34px}
 }
 .nextButton{display:block;width:100%;height:38px;margin-top:1px;border:1px solid var(--brass);border-radius:8px;background:var(--brass);color:#17140d;font-weight:700;font-size:11px}.nextButton:disabled{opacity:.3}@media(max-width:390px){.nextButton{height:38px;font-size:10px}}@media(max-height:700px){.nextButton{height:34px}}</style>
