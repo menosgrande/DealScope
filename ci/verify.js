@@ -306,6 +306,8 @@ function testGlossaryData() {
   for (const term of ['アンダーザガン','コール','サイドポット','エクイティ','ポットオッズ','GTO','MTT']) {
     assert(names.includes(term), 'expected glossary term: ' + term);
   }
+  assert.equal(terms.find(t => t.term === 'アンダーザガン').abbreviation, 'UTG', 'UTG abbreviation should be displayed with its Japanese term');
+  assert.equal(terms.find(t => t.term === 'アウトオブポジション').abbreviation, 'OOP', 'OOP abbreviation should be available');
   console.log('✓ glossary data ' + terms.length + ' terms / categories / star ratings');
 }
 
