@@ -187,6 +187,45 @@
       throw new Error('mobile players should retain two-column layout');
     }
 
+    const glossaryFrame = document.createElement('iframe');
+    glossaryFrame.id = 'glossary';
+    glossaryFrame.src = '/glossary.html';
+    glossaryFrame.style = 'width:390px;height:1000px;border:0;position:absolute;left:-9999px';
+    document.body.appendChild(glossaryFrame);
+    await new Promise(resolve => glossaryFrame.addEventListener('load', resolve, {once:true}));
+    const gd = glossaryFrame.contentDocument;
+    await waitFor(() => gd && gd.querySelector('#search') && gd.querySelector('#terms .term'), 5000);
+    const glossaryTerms = gd.querySelectorAll('#terms .term');
+    if (glossaryTerms.length < 250) throw new Error('glossary should show the full vocabulary list on load');
+    const glossarySearch = gd.querySelector('#search');
+    glossarySearch.value = 'サイドポット';
+    glossarySearch.dispatchEvent(new glossaryFrame.contentWindow.Event('input', {bubbles:true}));
+    await waitFor(() => gd.querySelectorAll('#terms .term').length === 1, 2000);
+    if (!gd.querySelector('#terms .term').textContent.includes('サイドポット')) {
+      throw new Error('glossary Japanese search did not find side pot');
+    }
+    glossarySearch.value = 'Equity';
+    glossarySearch.dispatchEvent(new glossaryFrame.contentWindow.Event('input', {bubbles:true}));
+    await waitFor(() => gd.querySelectorAll('#terms .term').length > 0, 2000);
+    if (!Array.from(gd.querySelectorAll('#terms .term')).some(el => el.textContent.includes('エクイティ'))) {
+      throw new Error('glossary English search did not find equity');
+    }
+    glossarySearch.value = '';
+    glossarySearch.dispatchEvent(new glossaryFrame.contentWindow.Event('input', {bubbles:true}));
+    const glossaryCategory = gd.querySelector('#category');
+    glossaryCategory.value = 'アクション';
+    glossaryCategory.dispatchEvent(new glossaryFrame.contentWindow.Event('change', {bubbles:true}));
+    if (!Array.from(gd.querySelectorAll('#terms .term')).every(el => el.querySelector('.category').textContent === 'アクション')) {
+      throw new Error('glossary category filter did not restrict the list');
+    }
+    glossaryCategory.value = '';
+    glossaryCategory.dispatchEvent(new glossaryFrame.contentWindow.Event('change', {bubbles:true}));
+    gd.querySelector('[data-stars="5"]').click();
+    if (!Array.from(gd.querySelectorAll('#terms .term')).every(el => el.querySelector('.stars').getAttribute('aria-label') === '重要度 5 / 5')) {
+      throw new Error('glossary importance-star filter did not restrict the list');
+    }
+    glossaryFrame.remove();
+
     status.textContent = 'PASS';
     document.title = 'PASS';
   } catch (e) {
