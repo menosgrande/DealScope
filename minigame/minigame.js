@@ -26,24 +26,81 @@ function equityEligible(seat,p){
 function equityHandText(p){
  if(p.showdownScore)return handDetail(p.showdownScore);
  if(A.board.length>=3&&p.hand.length===2)return handDetail(E.evaluate(A.board.concat(p.hand)));
- return 'フロップ後に役を表示'
+ return 'プレフロップ（役未確定）'
+}
+function equityDetailLines(p){
+ var hand=p.hand||[],board=A.board||[];
+ if(board.length===0){
+  var traits=[];
+  if(hand.length===2){
+   var a=rank(hand[0]),b=rank(hand[1]),hi=Math.max(a,b),lo=Math.min(a,b);
+   if(a===b)traits.push('ポケットペア');
+   if((hand[0]&3)===(hand[1]&3))traits.push('スーテッド');
+   if(hi-lo===1)traits.push('コネクター');
+   else if(hi-lo===2)traits.push('ワンギャップ');
+   traits.push(rankLabel(hi)+'ハイ');
+  }
+  return [{label:'ハンド',value:traits.join(' ・ ')||'—'},{label:'ボード',value:'未公開'}]
+ }
+ var known=hand.concat(board),rankCount={},suitCount=[0,0,0,0],boardRankCount={},boardSuitCount=[0,0,0,0];
+ known.forEach(function(c){rankCount[rank(c)]=(rankCount[rank(c)]||0)+1;suitCount[c&3]++});
+ board.forEach(function(c){boardRankCount[rank(c)]=(boardRankCount[rank(c)]||0)+1;boardSuitCount[c&3]++});
+ var draw=[];
+ if(board.length<5){
+  var flushSuit=-1;
+  for(var s=0;s<4;s++)if(suitCount[s]>=4){flushSuit=s;break}
+  if(flushSuit>=0)draw.push('フラッシュ '+(13-suitCount[flushSuit])+'アウト');
+  var present=Object.create(null);
+  known.forEach(function(c){present[rank(c)]=true});
+  var patterns=[];
+  for(var base=0;base<=8;base++)patterns.push([base,base+1,base+2,base+3,base+4]);
+  patterns.push([12,0,1,2,3]);
+  var missing=Object.create(null),edge=Object.create(null),inside=Object.create(null);
+  patterns.forEach(function(seq){
+   var miss=seq.filter(function(r){return !present[r]});
+   if(miss.length===1){missing[miss[0]]=true;if(miss[0]===seq[0]||miss[0]===seq[4])edge[miss[0]]=true;else inside[miss[0]]=true}
+  });
+  var missRanks=Object.keys(missing).map(Number),outs=missRanks.reduce(function(n,r){return n+Math.max(0,4-(rankCount[r]||0))},0);
+  if(missRanks.length){
+   var edgeCount=Object.keys(edge).length;
+   var kind=edgeCount>=2?'オープンエンド':inside[missRanks[0]]?'ガットショット':'ストレート候補';
+   draw.push(kind+' '+outs+'アウト候補');
+  }
+  if(!draw.length)draw.push('目立ったドローなし');
+ }else draw.push('リバー（追加カードなし）');
+ var boardInfo=[];
+ if(board.length===3)boardInfo.push('フロップ');
+ else if(board.length===4)boardInfo.push('ターン');
+ else boardInfo.push('リバー');
+ if(Object.keys(boardRankCount).some(function(r){return boardRankCount[r]>=2}))boardInfo.push('ペアあり');
+ var maxBoardSuit=Math.max.apply(null,boardSuitCount);
+ if(maxBoardSuit>=3)boardInfo.push('同スート'+maxBoardSuit+'枚');
+ return [{label:'現在の役',value:equityHandText(p)},{label:'ドロー',value:draw.join(' / ')},{label:'ボード',value:boardInfo.join(' ・ ')}]
+}
+function equityDetailMarkup(p){
+ return '<div class="equityInfo"><div class="equityInfoHeading">HAND DETAILS</div>'+equityDetailLines(p).map(function(item){return '<div class="equityInfoLine"><span>'+item.label+'</span><b>'+item.value+'</b></div>'}).join('')+'</div>'
 }
 function equityBodyMarkup(seat,p,key){
  var opponents=contenders().filter(function(q){return q.seat!==seat}).length;
- if(p.out)return '<div class="equityMessage">このプレイヤーはトーナメントから脱落しています。</div>';
+ if(p.out)return '<div class="equityMessage">トーナメントから脱落しています。</div>';
  if(p.fold)return '<div class="equityMessage">このHandはフォールド済みです。</div>';
  if(A.handOver){var won=A.awards.some(function(a){return a.seat===seat});return '<div class="equityMessage">'+(won?'このHandで勝利しました。':'このHandは終了しました。')+'</div><div class="equityHand">'+(p.showdownScore?'役：'+handDetail(p.showdownScore):'結果を確認できます')+'</div>'}
  if(!equityEligible(seat,p))return '<div class="equityMessage">現在は推定できません。</div>';
- var cached=equityCache[key];
- if(!cached)return '<div class="equityPending">'+(equityJobs[key]?'勝率を推定中…':'開くと推定を開始します。')+'</div>';
- var pct=cached.equity[0];
- return '<div class="equityStats"><span>推定エクイティ</span><b data-equity-result="'+seat+'">'+pct.toFixed(1)+'%</b></div><div class="equityBar" aria-label="推定エクイティ '+pct.toFixed(1)+'%"><i style="width:'+Math.max(0,Math.min(100,pct)).toFixed(1)+'%"></i></div><div class="equityMeta">ランダムな相手'+opponents+'人・'+money(cached.trials)+'試行（引き分けは取り分換算）</div><div class="equityHand">現在の役：'+equityHandText(p)+'</div>'
+ var cached=equityCache[key],right;
+ if(!cached)right='<div class="equityAside"><div class="equityAsideLabel">推定エクイティ</div><b class="equityPct" data-equity-result="'+seat+'">…</b><div class="equityPending">'+(equityJobs[key]?'計算中…':'展開して計算')+'</div></div>';
+ else{
+  var pct=cached.equity[0];
+  right='<div class="equityAside"><div class="equityAsideLabel">推定エクイティ</div><b class="equityPct" data-equity-result="'+seat+'">'+pct.toFixed(1)+'%</b><div class="equityBar" aria-label="推定エクイティ '+pct.toFixed(1)+'%"><i style="width:'+Math.max(0,Math.min(100,pct)).toFixed(1)+'%"></i></div><div class="equityMeta">相手'+opponents+'人・'+money(cached.trials)+'試行</div></div>'
+ }
+ return '<div class="equityBody">'+equityDetailMarkup(p)+right+'</div>'
 }
 function equityMarkup(seat,p){
+ if(seat!==0)return '';
  var key=equityKey(seat),cached=equityCache[key],summary=p.out?'脱落':p.fold?'対象外':A.handOver?'結果確認':cached?cached.equity[0].toFixed(1)+'%':'未計算';
- return '<details class="equityDetails" data-equity-seat="'+seat+'" '+(equityExpanded[seat]?'open':'')+'><summary><span>勝率情報</span><b data-equity-summary="'+seat+'">'+summary+'</b><i aria-hidden="true">▾</i></summary><div class="equityBody">'+equityBodyMarkup(seat,p,key)+'</div></details>'
+ return '<details class="equityDetails" data-equity-seat="0" '+(equityExpanded[0]?'open':'')+'><summary><span>勝率情報</span><b data-equity-summary="0">'+summary+'</b><i aria-hidden="true">▾</i></summary>'+equityBodyMarkup(0,p,key)+'</details>'
 }
 function queueEquity(seat){
+ if(seat!==0)return;
  var p=A.players[seat],key=equityKey(seat);
  if(!equityExpanded[seat]||!equityEligible(seat,p)||equityCache[key]||equityJobs[key])return;
  var opponents=contenders().filter(function(q){return q.seat!==seat}).length;
