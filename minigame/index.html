@@ -82,7 +82,59 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .player{padding:4px 5px}.phead{height:17px}.cards{height:44px;width:calc(100% - 74px)}.sideInfo{right:4px;top:37px;width:68px;gap:5px}.stack{font-size:10px}.betline{font-size:8px}.betChip{width:9px;height:4px}.made{right:78px}
  .turnCard{height:27px}.hint{height:12px}.amount{height:33px}.amount input{height:32px}.presets button{height:23px}.actions button{height:34px}
 }
-.nextButton{display:block;width:100%;height:38px;margin-top:1px;border:1px solid var(--brass);border-radius:8px;background:var(--brass);color:#17140d;font-weight:700;font-size:11px}.nextButton:disabled{opacity:.3}@media(max-width:390px){.nextButton{height:38px;font-size:10px}}@media(max-height:700px){.nextButton{height:34px}}</style>
+.nextButton{display:block;width:100%;height:38px;margin-top:1px;border:1px solid var(--brass);border-radius:8px;background:var(--brass);color:#17140d;font-weight:700;font-size:11px}.nextButton:disabled{opacity:.3}@media(max-width:390px){.nextButton{height:38px;font-size:10px}}@media(max-height:700px){.nextButton{height:34px}}
+/* Refined table / bet sizing controls */
+.tablePanel{padding:8px;gap:2px}
+.metaRow{margin-bottom:1px}
+.msg{margin:0;height:25px}
+.potArea{margin:0 auto}
+.board{margin:1px 0 3px}
+.players{gap:6px}
+.player{border-radius:10px;padding:7px 8px;background:linear-gradient(145deg,#0d2b23,#0a241d)}
+.player.hero{border-width:1px;box-shadow:inset 0 0 0 1px #d8b2522b}
+.player.current{box-shadow:inset 0 0 0 1px #d8b25288}
+.phead{gap:4px}
+.phead b{overflow:hidden;text-overflow:ellipsis}
+.sideInfo{top:42px;right:8px;width:76px;padding-left:6px;border-left:1px solid #2a5a4b;gap:8px}
+.stack .sideLabel{font-size:8px;letter-spacing:.06em;text-transform:uppercase}
+.stack b{font-variant-numeric:tabular-nums}
+.betline{gap:4px;font-variant-numeric:tabular-nums}
+.potLabel{color:var(--mute)}
+.betline b{font-weight:800}
+.turnPanel{padding:9px}
+.turnCard{height:34px;padding:0 10px;margin-bottom:5px}
+.hint{height:auto;min-height:13px;margin:0 3px 6px;line-height:1.3}
+.amountControl{padding:9px 10px 7px;border:1px solid var(--line);border-radius:9px;background:#0d2a22;margin-bottom:7px}
+.amountHead{display:flex;align-items:center;gap:8px;min-width:0}
+.amountLabel{font-size:10px;letter-spacing:.02em;color:var(--mute);white-space:nowrap}
+.amountHead .tocall{margin-left:auto;min-width:0;justify-content:flex-end;font-size:9px;white-space:nowrap}
+.amountHead output{min-width:72px;text-align:right;padding:3px 8px;border:1px solid #705d2d;border-radius:7px;background:#302a18;color:var(--brass);font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+#amountSlider{display:block;width:100%;height:24px;margin:5px 0 0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;touch-action:pan-y}
+#amountSlider::-webkit-slider-runnable-track{height:5px;border-radius:99px;background:linear-gradient(90deg,#836b2f,#d8b252 55%,#6e8a6e)}
+#amountSlider::-moz-range-track{height:5px;border-radius:99px;background:linear-gradient(90deg,#836b2f,#d8b252 55%,#6e8a6e)}
+#amountSlider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
+#amountSlider::-moz-range-thumb{width:13px;height:13px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
+#amountSlider:disabled{opacity:.35;cursor:not-allowed}
+.amountScale{display:flex;justify-content:space-between;gap:8px;color:var(--mute);font-size:8px;font-variant-numeric:tabular-nums}
+.presets{gap:5px;margin-bottom:7px}
+.presets button{height:30px;border-radius:8px;background:#0e2a22;font-size:10px;transition:border-color .12s,background .12s}
+.presets button:hover{border-color:var(--brass);color:var(--ivory)}
+.actions{gap:6px}
+.actions button{height:40px;border-radius:9px;font-size:11px}
+.actions button.primary{box-shadow:0 2px 0 #81682d}
+#nextBtn{height:40px;border-radius:9px}
+.restartArea{margin-top:7px;padding:7px 8px 8px}
+.bottomDetails{gap:7px}
+.logBox,.helpBox{background:#102f27}
+.logBox summary,.helpBox summary{font-size:10px}
+@media(max-width:390px){
+ .tablePanel{padding:6px}.player{padding:5px 6px}.players{gap:4px}
+ .sideInfo{right:5px;top:38px;width:70px;padding-left:5px;gap:7px}
+ .cards{width:calc(100% - 76px)}
+ .turnPanel{padding:7px}.amountControl{padding:8px 8px 6px}.amountHead output{min-width:66px;font-size:15px}
+ #amountSlider{height:22px}.presets{gap:4px}.presets button{height:28px}.actions{gap:5px}.actions button{height:38px}
+}
+</style>
 </head>
 <body>
 <main>
@@ -103,12 +155,15 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
     <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
     <div class="hint" id="hint"></div>
 
-    <div class="amount">
-      <div class="amountField">
-        <label class="amountLabel" for="amount">ベット額</label>
-        <input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ額">
+    <div class="amountControl">
+      <div class="amountHead">
+        <label class="amountLabel" for="amountSlider">ベット／レイズ額</label>
+        <span id="toCall" class="tocall"></span>
+        <output id="amountReadout" for="amountSlider">400</output>
       </div>
-      <span id="toCall" class="tocall"></span>
+      <input id="amountSlider" type="range" min="200" max="20000" step="100" value="400" aria-label="ベットまたはレイズ額">
+      <div class="amountScale"><span id="amountMinLabel">最小 400</span><span id="amountMaxLabel">最大 20,000</span></div>
+      <input id="amount" type="hidden" value="400">
     </div>
 
     <div class="presets">
