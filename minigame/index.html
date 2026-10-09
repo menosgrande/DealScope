@@ -287,34 +287,44 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:28px;height:38px;font-size:15px}
 }
 
-/* Player-card foldout: use the unused card-width for equity and made-hand info */
+/* Hero-only equity panel: compact details left, percentage anchored right */
 .equityDetails{min-width:0;font-size:8px;color:var(--mute);line-height:1.15}
 .equityDetails summary{display:flex;align-items:center;gap:4px;min-height:15px;cursor:pointer;list-style:none;white-space:nowrap;overflow:hidden}
 .equityDetails summary::-webkit-details-marker{display:none}
 .equityDetails summary span{color:var(--ivory);font-weight:700}
 .equityDetails summary b{font-size:8px;color:var(--brass);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
 .equityDetails summary i{font-style:normal;margin-left:auto;font-size:8px;flex-shrink:0}
-.equityDetails[open]{padding:3px 5px;border:1px solid var(--line);border-radius:6px;background:#0b2922f5;box-shadow:0 3px 9px #0005}
-.equityDetails[open] summary{margin-bottom:3px}
-.equityBody{display:flex;flex-direction:column;gap:3px;font-size:8px;line-height:1.2;min-width:0}
-.equityStats{display:flex;justify-content:space-between;align-items:center;gap:5px}
-.equityStats b{color:var(--ivory);font-size:10px;font-variant-numeric:tabular-nums}
+.equityDetails[open]{padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#0b2922f5;box-shadow:0 3px 9px #0005}
+.equityDetails[open] summary{margin-bottom:4px}
+.equityBody{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:7px;align-items:center;min-width:0}
+.equityInfo{display:flex;flex-direction:column;gap:3px;min-width:0}
+.equityInfoHeading{font-size:7px;letter-spacing:.08em;color:var(--brass);font-weight:800}
+.equityInfoLine{display:flex;align-items:baseline;gap:4px;min-width:0;font-size:8px;line-height:1.15}
+.equityInfoLine span{flex:0 0 35px;color:var(--mute)}
+.equityInfoLine b{min-width:0;color:var(--ivory);font-weight:600;overflow-wrap:anywhere}
+.equityAside{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;padding-left:7px;border-left:1px solid var(--line);text-align:right}
+.equityAsideLabel{font-size:7px;color:var(--mute);white-space:nowrap}
+.equityPct{font-size:15px;line-height:1.05;color:var(--ivory);font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
 .equityBar{height:4px;overflow:hidden;border-radius:4px;background:#25483c}
 .equityBar i{display:block;height:100%;border-radius:4px;background:var(--brass)}
-.equityMeta{font-size:7px;color:var(--mute);overflow-wrap:anywhere}
-.equityHand{color:var(--ivory);font-size:8px;overflow-wrap:anywhere}
+.equityMeta{font-size:6.5px;line-height:1.2;color:var(--mute);overflow-wrap:anywhere}
 .equityMessage,.equityPending{font-size:8px;color:var(--mute)}
 @media(min-width:601px){
- .equityDetails{position:absolute;left:78px;right:91px;top:23px;z-index:4;max-width:250px}
+ .equityDetails{position:absolute;left:78px;right:91px;top:23px;z-index:4}
  .player:has(.equityDetails[open]){z-index:8;overflow:visible}
  .player:has(.equityDetails[open]) .made{visibility:hidden}
 }
 @media(max-width:600px){
  .equityDetails{position:relative;left:auto;right:auto;top:auto;bottom:auto;margin:0 4px 1px;max-width:none;z-index:4}
- .player:has(.equityDetails[open]){z-index:8;overflow:visible;min-height:120px}
+ .player:has(.equityDetails[open]){z-index:8;overflow:visible;min-height:126px}
  .players{grid-template-rows:repeat(2,minmax(100px,auto))}
  .equityDetails[open]{max-width:none}
- .equityMeta{font-size:7px;white-space:normal}
+ .equityBody{grid-template-columns:minmax(0,1fr) 70px;gap:5px}
+ .equityInfoLine{font-size:7px;gap:3px}
+ .equityInfoLine span{flex-basis:32px}
+ .equityPct{font-size:13px}
+ .equityAside{padding-left:5px}
+ .equityMeta{font-size:6px;white-space:normal}
 }
 </style>
 </head>
@@ -395,6 +405,6 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261009-poker20"></script>
+<script src="./minigame.js?v=20261009-poker21"></script>
 </body>
 </html>
