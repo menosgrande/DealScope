@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e2f26">
+<title>DealScope — ポーカー用語集</title>
+<style>
+:root{--felt:#0e2f26;--felt2:#143d32;--line:#2a5a4b;--ivory:#f3efe3;--mute:#8fb0a3;--brass:#d8b252;--ink:#1b1b1b}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--felt);color:var(--ivory);font-family:system-ui,"Yu Gothic UI","Noto Sans JP",sans-serif}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+a{color:inherit}
+main{width:min(920px,100%);margin:0 auto;padding:14px 14px 40px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand{font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--mute);text-decoration:none}
+.nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.nav a{font-size:12px;text-decoration:none;color:var(--mute)}
+.nav a:hover{text-decoration:underline}
+.intro{padding:20px 0 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--brass);font-weight:800}
+h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
+.lead{font-size:13px;color:var(--mute);line-height:1.7;margin:0;max-width:680px}
+.stats{display:flex;align-items:center;gap:9px;margin-top:14px;flex-wrap:wrap}
+.stat{border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:11px;color:var(--mute)}
+.stat b{color:var(--ivory);font-size:13px;margin-right:3px}
+.controls{padding:16px 0 13px;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px}
+.searchWrap{position:relative}
+.searchWrap label,.controlLabel{display:block;font-size:10px;letter-spacing:.06em;color:var(--mute);margin:0 0 6px 2px}
+.searchWrap input,.filterSelect{width:100%;height:42px;border:1px solid var(--line);border-radius:8px;background:var(--felt2);color:var(--ivory);padding:0 12px}
+.searchWrap input::placeholder{color:#739588}
+.filterSelect{appearance:auto}
+.filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:0 0 14px}
+.filterCaption{font-size:10px;color:var(--mute);margin-right:3px}
+.filterBtn{height:29px;padding:0 10px;border:1px solid var(--line);border-radius:15px;color:var(--mute);background:transparent;font-size:11px;cursor:pointer}
+.filterBtn[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:var(--ink);font-weight:700}
+.listHead{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:13px 0 9px}
+.listHead h2{font-size:13px;margin:0;font-weight:700}
+#count{font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+#terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.term{min-width:0;background:var(--felt2);border:1px solid var(--line);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.termTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.termTitles{min-width:0}
+.term h3{font-size:15px;line-height:1.35;margin:0;font-weight:750;overflow-wrap:anywhere}
+.english{font-size:11px;color:var(--mute);line-height:1.4;margin-top:3px;overflow-wrap:anywhere}
+.category{display:inline-flex;align-items:center;align-self:flex-start;border:1px solid #376856;border-radius:4px;color:#a7c3b8;padding:2px 5px;font-size:9px;white-space:nowrap}
+.stars{font-size:12px;letter-spacing:1px;color:var(--brass);white-space:nowrap;flex-shrink:0}
+.stars .empty{color:#45695a}
+.definition{font-size:12px;line-height:1.65;margin:0;color:#e4e8df;overflow-wrap:anywhere}
+.noResults{grid-column:1/-1;text-align:center;border:1px dashed var(--line);border-radius:9px;padding:30px 15px;color:var(--mute);font-size:13px}
+.source{font-size:10px;line-height:1.6;color:var(--mute);border-top:1px solid var(--line);margin-top:22px;padding-top:13px}
+.source a{color:var(--brass)}
+@media(max-width:620px){
+ main{padding:10px 11px 30px}
+ .controls{grid-template-columns:minmax(0,1fr);gap:10px}
+ #terms{grid-template-columns:minmax(0,1fr)}
+ .term{padding:12px}
+ .intro{padding-top:13px}
+ .nav{gap:10px}
+}
+@media(min-width:621px) and (max-width:800px){#terms{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <a class="brand" href="./">DealScope</a>
+    <nav class="nav" aria-label="メインナビゲーション">
+      <a href="./">勝率計算</a>
+      <a href="./minigame/">ミニゲーム</a>
+      <a href="./glossary.html" aria-current="page">用語集</a>
+    </nav>
+  </header>
+  <section class="intro">
+    <div class="eyebrow">POKER REFERENCE</div>
+    <h1>ポーカー用語集</h1>
+    <p class="lead">ポーカーで使われる用語を、日本語・英語・重要度・短い説明で引ける辞典です。日本語と英語のどちらでも検索でき、カテゴリや重要度で絞り込めます。</p>
+    <div class="stats">
+      <div class="stat"><b id="totalTerms">—</b>用語</div>
+      <div class="stat"><b>★★★★★</b>重要度5が最優先</div>
+    </div>
+  </section>
+  <section aria-label="用語の検索と絞り込み">
+    <div class="controls">
+      <div class="searchWrap">
+        <label for="search">用語を検索</label>
+        <input id="search" type="search" placeholder="例：サイドポット / equity / OOP" autocomplete="off">
+      </div>
+      <div>
+        <label class="controlLabel" for="category">カテゴリ</label>
+        <select id="category" class="filterSelect"><option value="">すべてのカテゴリ</option></select>
+      </div>
+    </div>
+    <div class="filters" role="group" aria-label="重要度で絞り込む">
+      <span class="filterCaption">重要度</span>
+      <button class="filterBtn" type="button" data-stars="0" aria-pressed="true">すべて</button>
+      <button class="filterBtn" type="button" data-stars="5" aria-pressed="false">★★★★★</button>
+      <button class="filterBtn" type="button" data-stars="4" aria-pressed="false">★★★★以上</button>
+      <button class="filterBtn" type="button" data-stars="3" aria-pressed="false">★★★以上</button>
+      <button class="filterBtn" type="button" data-stars="2" aria-pressed="false">★★以上</button>
+    </div>
+  </section>
+  <section aria-labelledby="resultsTitle">
+    <div class="listHead"><h2 id="resultsTitle">用語一覧</h2><span id="count" aria-live="polite"></span></div>
+    <div id="terms"></div>
+  </section>
+  <footer class="source">
+    重要度は学習の目安としてDealScope側で整理しています。説明は簡潔な独自要約です。<br>
+    用語選定の参考：<a href="https://light-three.com/pokerterms/" target="_blank" rel="noopener noreferrer">LightTHREE「ポーカー用語集」</a>
+  </footer>
+</main>
+<script src="./glossary-data.js"></script>
+<script>
+(function(){
+'use strict';
+var data=window.DealScopeGlossary;
+if(!data||!Array.isArray(data.terms)){document.getElementById('terms').textContent='用語データを読み込めませんでした。ページを再読み込みしてください。';return}
+var $=function(id){return document.getElementById(id)};
+var search=$('search'),category=$('category'),container=$('terms'),starFilter=0;
+$('totalTerms').textContent=data.terms.length.toLocaleString('ja-JP');
+data.categories.slice().sort(function(a,b){return a.localeCompare(b,'ja')}).forEach(function(cat){
+ var option=document.createElement('option');option.value=cat;option.textContent=cat;category.appendChild(option)
+});
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
+function stars(n){return '<span class="stars" role="img" aria-label="重要度 '+n+' / 5">'+ '★'.repeat(n)+'<span class="empty">'+'☆'.repeat(5-n)+'</span></span>'}
+function render(){
+ var q=search.value.trim().toLocaleLowerCase();
+ var cat=category.value;
+ var list=data.terms.filter(function(t){
+  return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.english,t.definition,t.category].some(function(v){return String(v).toLocaleLowerCase().includes(q)}))
+ }).sort(function(a,b){return a.term.localeCompare(b.term,'ja')||a.english.localeCompare(b.english,'en')});
+ $('count').textContent=list.length.toLocaleString('ja-JP')+' / '+data.terms.length.toLocaleString('ja-JP')+'語';
+ if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
+ container.innerHTML=list.map(function(t){
+  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p></article>'
+ }).join('')
+}
+search.addEventListener('input',render);
+category.addEventListener('change',render);
+Array.prototype.forEach.call(document.querySelectorAll('[data-stars]'),function(button){
+ button.addEventListener('click',function(){
+  starFilter=Number(button.getAttribute('data-stars'));
+  Array.prototype.forEach.call(document.querySelectorAll('[data-stars]'),function(other){other.setAttribute('aria-pressed',String(other===button))});
+  render()
+ })
+});
+render();
+})();
+</script>
+</body>
+</html>
