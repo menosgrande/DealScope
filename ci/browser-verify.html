@@ -118,6 +118,14 @@
     await new Promise(resolve => mini.addEventListener('load', resolve, {once:true}));
     const md = mini.contentDocument;
     await waitFor(() => md && md.querySelector('#turnLabel'), 4000);
+    const slider = md.querySelector('#amountSlider');
+    const amountValue = md.querySelector('#amount');
+    const amountReadout = md.querySelector('#amountReadout');
+    if (!slider || slider.type !== 'range' || !amountValue || !amountReadout) throw new Error('bet sizing slider is missing');
+    slider.value = String(Math.min(Number(slider.max), Number(slider.min) + Number(slider.step)));
+    slider.dispatchEvent(new md.defaultView.Event('input', {bubbles:true}));
+    if (amountValue.value !== slider.value) throw new Error('slider value did not update action amount');
+    if (amountReadout.textContent !== Number(slider.value).toLocaleString('ja-JP')) throw new Error('slider amount readout did not update');
     let seenHands = 0;
     const miniStart = performance.now();
     while (seenHands < 3 && performance.now() - miniStart < 12000) {
