@@ -287,44 +287,63 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:28px;height:38px;font-size:15px}
 }
 
-/* Hero-only equity panel: compact details left, percentage anchored right */
-.equityDetails{min-width:0;font-size:8px;color:var(--mute);line-height:1.15}
-.equityDetails summary{display:flex;align-items:center;gap:4px;min-height:15px;cursor:pointer;list-style:none;white-space:nowrap;overflow:hidden}
-.equityDetails summary::-webkit-details-marker{display:none}
-.equityDetails summary span{color:var(--ivory);font-weight:700}
-.equityDetails summary b{font-size:8px;color:var(--brass);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
-.equityDetails summary i{font-style:normal;margin-left:auto;font-size:8px;flex-shrink:0}
-.equityDetails[open]{padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#0b2922f5;box-shadow:0 3px 9px #0005}
-.equityDetails[open] summary{margin-bottom:4px}
-.equityBody{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:7px;align-items:center;min-width:0}
-.equityInfo{display:flex;flex-direction:column;gap:3px;min-width:0}
+/* Compact seat list + separate hero analysis column */
+.heroAnalysis{min-width:0;min-height:0;padding:7px;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.analysisTitle{display:flex;flex-direction:column;gap:2px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.analysisTitle span{font-size:7px;letter-spacing:.12em;font-weight:800;color:var(--brass)}
+.analysisTitle b{font-size:11px;color:var(--ivory)}
+.equityBody{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:7px;align-items:start;min-width:0}
+.equityInfo{display:flex;flex-direction:column;gap:5px;min-width:0}
 .equityInfoHeading{font-size:7px;letter-spacing:.08em;color:var(--brass);font-weight:800}
-.equityInfoLine{display:flex;align-items:baseline;gap:4px;min-width:0;font-size:8px;line-height:1.15}
-.equityInfoLine span{flex:0 0 35px;color:var(--mute)}
+.equityInfoLine{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:8px;line-height:1.2}
+.equityInfoLine span{color:var(--mute)}
 .equityInfoLine b{min-width:0;color:var(--ivory);font-weight:600;overflow-wrap:anywhere}
-.equityAside{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;padding-left:7px;border-left:1px solid var(--line);text-align:right}
-.equityAsideLabel{font-size:7px;color:var(--mute);white-space:nowrap}
-.equityPct{font-size:15px;line-height:1.05;color:var(--ivory);font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
-.equityBar{height:4px;overflow:hidden;border-radius:4px;background:#25483c}
+.equityAside{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0;padding-left:7px;border-left:1px solid var(--line);text-align:right}
+.equityAsideLabel{font-size:7px;line-height:1.2;color:var(--mute)}
+.equityPct{font-size:17px;line-height:1.05;color:var(--ivory);font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.equityBar{height:5px;overflow:hidden;border-radius:4px;background:#25483c}
 .equityBar i{display:block;height:100%;border-radius:4px;background:var(--brass)}
-.equityMeta{font-size:6.5px;line-height:1.2;color:var(--mute);overflow-wrap:anywhere}
-.equityMessage,.equityPending{font-size:8px;color:var(--mute)}
+.equityMeta{font-size:7px;line-height:1.25;color:var(--mute);overflow-wrap:anywhere}
+.equityMessage,.equityPending{font-size:8px;color:var(--mute);line-height:1.3}
 @media(min-width:601px){
- .equityDetails{position:absolute;left:78px;right:91px;top:23px;z-index:4}
- .player:has(.equityDetails[open]){z-index:8;overflow:visible}
- .player:has(.equityDetails[open]) .made{visibility:hidden}
+ .playArea{grid-template-columns:minmax(156px,.78fr) minmax(170px,.9fr) minmax(0,1.12fr);gap:7px}
+ .players{min-width:0}
+ .player{width:100%;min-width:0}
+ .cards{left:6px;right:auto;width:62px;justify-content:flex-start;gap:4px}
+ .cards .card,.cards .cardBack{width:28px;height:37px;font-size:15px}
+ .sideInfo{left:74px;right:auto;width:61px;padding-left:5px;top:24px;bottom:4px}
+ .stack{font-size:10px}
+ .betline{font-size:7px;gap:2px}
+ .betChip{width:7px}
+ .heroAnalysis{align-self:stretch}
+ .equityBody{grid-template-columns:minmax(0,1fr) 70px;gap:5px}
+ .equityInfoLine{font-size:8px}
+ .equityAside{padding-left:5px}
+ .equityPct{font-size:15px}
+ .equityMeta{font-size:6.5px}
+}
+@media(min-width:601px) and (max-width:760px){
+ .playArea{grid-template-columns:minmax(148px,.76fr) minmax(160px,.88fr) minmax(0,1.1fr);gap:6px}
+ .tablePanel{padding:6px}
+ .heroAnalysis{padding:6px;gap:5px}
+ .equityBody{grid-template-columns:minmax(0,1fr) 63px;gap:4px}
+ .equityPct{font-size:14px}
+ .equityAsideLabel{font-size:6px}
+ .equityInfoHeading{font-size:6.5px}
+ .equityInfoLine{font-size:7px}
+ .phead{gap:2px}
+ .phead b{font-size:9px}
+ .phead small{font-size:7px}
 }
 @media(max-width:600px){
- .equityDetails{position:relative;left:auto;right:auto;top:auto;bottom:auto;margin:0 4px 1px;max-width:none;z-index:4}
- .player:has(.equityDetails[open]){z-index:8;overflow:visible;min-height:126px}
- .players{grid-template-rows:repeat(2,minmax(100px,auto))}
- .equityDetails[open]{max-width:none}
- .equityBody{grid-template-columns:minmax(0,1fr) 70px;gap:5px}
- .equityInfoLine{font-size:7px;gap:3px}
- .equityInfoLine span{flex-basis:32px}
- .equityPct{font-size:13px}
- .equityAside{padding-left:5px}
- .equityMeta{font-size:6px;white-space:normal}
+ .playArea{grid-template-columns:minmax(0,1fr);gap:6px}
+ .heroAnalysis{padding:8px;gap:7px}
+ .analysisTitle{flex-direction:row;align-items:baseline;justify-content:space-between}
+ .equityBody{grid-template-columns:minmax(0,1fr) 90px;gap:10px}
+ .equityInfoLine{flex-direction:row;align-items:baseline;gap:5px}
+ .equityInfoLine span{flex:0 0 52px}
+ .equityPct{font-size:19px}
+ .equityMeta{font-size:7px}
 }
 </style>
 </head>
@@ -342,6 +361,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
     <div id="board" class="board"></div>
     <div class="playArea">
       <div id="players" class="players"></div>
+      <aside id="heroAnalysis" class="panel heroAnalysis" aria-label="自分のハンド分析"></aside>
       <div class="panel turnPanel">
         <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
         <div class="hint" id="hint"></div>
@@ -405,6 +425,6 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261009-poker21"></script>
+<script src="./minigame.js?v=20261009-poker22"></script>
 </body>
 </html>
