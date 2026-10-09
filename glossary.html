@@ -51,6 +51,7 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
 .stars{font-size:12px;letter-spacing:1px;color:var(--brass);white-space:nowrap;flex-shrink:0}
 .stars .empty{color:#45695a}
 .definition{font-size:12px;line-height:1.65;margin:0;color:#e4e8df;overflow-wrap:anywhere}
+.guideLink{margin:0;padding-top:5px;border-top:1px solid var(--line);font-size:11px}.guideLink a{color:var(--brass);text-decoration:none}.guideLink a:hover{text-decoration:underline}
 .noResults{grid-column:1/-1;text-align:center;border:1px dashed var(--line);border-radius:9px;padding:30px 15px;color:var(--mute);font-size:13px}
 .source{font-size:10px;line-height:1.6;color:var(--mute);border-top:1px solid var(--line);margin-top:22px;padding-top:13px}
 .source a{color:var(--brass)}
@@ -73,6 +74,7 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
       <a href="./">勝率計算</a>
       <a href="./minigame/">▶ ミニゲーム</a>
       <a href="./glossary.html" aria-current="page" aria-label="現在のページ：ポーカー用語集">⌕ 用語集</a>
+      <a href="./beginner-guide.html">初心者ガイド</a>
     </nav>
   </header>
   <section class="intro">
@@ -121,12 +123,22 @@ var data=window.DealScopeGlossary;
 if(!data||!Array.isArray(data.terms)){document.getElementById('terms').textContent='用語データを読み込めませんでした。ページを再読み込みしてください。';return}
 var $=function(id){return document.getElementById(id)};
 var search=$('search'),category=$('category'),container=$('terms'),starFilter=0;
+try{var initialQuery=new URLSearchParams(window.location.search).get('q');if(initialQuery)search.value=initialQuery}catch(e){}
 $('totalTerms').textContent=data.terms.length.toLocaleString('ja-JP');
 data.categories.slice().sort(function(a,b){return a.localeCompare(b,'ja')}).forEach(function(cat){
  var option=document.createElement('option');option.value=cat;option.textContent=cat;category.appendChild(option)
 });
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
 function stars(n){return '<span class="stars" role="img" aria-label="重要度 '+n+' / 5">'+ '★'.repeat(n)+'<span class="empty">'+'☆'.repeat(5-n)+'</span></span>'}
+function guideSection(t){
+ var key=[t.abbreviation,t.term,t.english].join(' ').toLocaleLowerCase();
+ if(/sb|bb|small blind|big blind|utg|ep|mp|co|btn|button|ポジション|ブラインド|スモールブラインド|ビッグブラインド|アンダーザガン|カットオフ/.test(key))return 'positions';
+ if(/check|bet|call|raise|fold|all-in|チェック|ベット|コール|レイズ|フォールド|オールイン/.test(key))return 'actions';
+ if(/preflop|flop|turn|river|showdown|プリフロップ|フロップ|ターン|リバー|ショウダウン/.test(key))return 'flow';
+ if(/equity|win rate|エクイティ|勝率/.test(key))return 'equity';
+ if(/ハンド・役|ロイヤルフラッシュ|ストレート|フラッシュ|ツーペア|ワンペア|フォーカード|フルハウス/.test(key))return 'hands';
+ return '';
+}
 function render(){
  var q=search.value.trim().toLocaleLowerCase();
  var cat=category.value;
@@ -136,7 +148,8 @@ function render(){
  $('count').textContent=list.length.toLocaleString('ja-JP')+' / '+data.terms.length.toLocaleString('ja-JP')+'語';
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
  container.innerHTML=list.map(function(t){
-  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p></article>'
+  var section=guideSection(t);var guideLink=section?'<p class="guideLink"><a href="./beginner-guide.html#'+section+'">初心者ガイドで詳しく見る →</a></p>':'';
+  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p>'+guideLink+'</article>'
  }).join('')
 }
 search.addEventListener('input',render);
