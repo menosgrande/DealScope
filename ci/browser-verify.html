@@ -121,11 +121,18 @@
     const slider = md.querySelector('#amountSlider');
     const amountValue = md.querySelector('#amount');
     const amountReadout = md.querySelector('#amountReadout');
+    const minusStep = md.querySelector('#minusStep');
+    const plusStep = md.querySelector('#plusStep');
+    const stepLabel = md.querySelector('#stepLabel');
+    const betButton = md.querySelector('#betBtn');
     if (!slider || slider.type !== 'range' || !amountValue || !amountReadout) throw new Error('bet sizing slider is missing');
+    if (!minusStep || !plusStep || !stepLabel || !betButton) throw new Error('bet sizing adjustment controls are missing');
     slider.value = String(Math.min(Number(slider.max), Number(slider.min) + Number(slider.step)));
     slider.dispatchEvent(new md.defaultView.Event('input', {bubbles:true}));
     if (amountValue.value !== slider.value) throw new Error('slider value did not update action amount');
     if (amountReadout.textContent !== Number(slider.value).toLocaleString('ja-JP')) throw new Error('slider amount readout did not update');
+    if (!betButton.textContent.includes(Number(slider.value).toLocaleString('ja-JP'))) throw new Error('bet action label did not follow slider value');
+    if (!stepLabel.textContent.includes(Number(slider.step).toLocaleString('ja-JP'))) throw new Error('slider increment label did not update');
     let seenHands = 0;
     const miniStart = performance.now();
     while (seenHands < 3 && performance.now() - miniStart < 12000) {
