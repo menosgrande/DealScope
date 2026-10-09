@@ -169,6 +169,83 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .amountNudge{grid-template-columns:38px 1fr 38px;gap:7px}.amountNudge button{height:28px}
  .presets button{height:30px}.actions{gap:5px}.actions button{height:41px;min-height:41px;font-size:11px}
 }
+
+/* Integrated table + action surface: use horizontal space instead of stacking panels */
+main{grid-template-rows:24px auto auto;gap:7px}
+.tablePanel{min-height:0;padding:8px;gap:3px}
+.playArea{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:8px;align-items:stretch;min-width:0;min-height:330px}
+.players{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;min-width:0;min-height:0;overflow:visible;align-self:stretch}
+.player{padding:6px 6px 5px;min-width:0}
+.phead{height:18px;gap:3px;font-size:10px}
+.phead i{width:6px;height:6px;flex-shrink:0}
+.phead b{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.phead small{font-size:8px;max-width:34px}
+.typeTag{font-size:7px;padding:1px 3px}
+.resultBadge{font-size:8px;padding:2px 4px}
+.cards{height:48px;width:calc(100% - 57px);gap:3px}
+.cards .card,.cards .cardBack{width:28px;height:40px;font-size:16px;border-radius:5px}
+.sideInfo{top:38px;right:4px;width:51px;padding-left:4px;border-left:1px solid #2a5a4b;gap:6px}
+.stack{font-size:10px}
+.stack .sideLabel{font-size:8px}
+.betline{font-size:8px;gap:2px}
+.betChip{width:8px;height:4px;margin:0 -1.5px}
+.made{left:3px;right:57px;bottom:3px;font-size:8px}
+.turnPanel{padding:7px;min-width:0;display:flex;flex-direction:column;gap:0;overflow:visible}
+.turnCard{height:33px;padding:0 8px;margin-bottom:4px}
+.turnLabel{font-size:12px}
+.turnMeta{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint{height:auto;min-height:15px;font-size:9px;line-height:1.25;margin:0 2px 5px;text-align:left}
+.amountControl{padding:7px 8px 6px;margin-bottom:6px}
+.amountHead output{min-width:72px;font-size:16px;padding:3px 7px}
+.amountLabel{font-size:10px}
+.amountCallRow{margin-top:4px;min-height:13px}
+.amountCallRow .tocall{font-size:9px}
+#amountSlider{height:22px;margin:3px 0 0}
+.amountNudge{grid-template-columns:32px 1fr 32px;gap:5px;margin-bottom:2px}
+.amountNudge button{height:24px;font-size:16px}
+.amountNudge span{font-size:8px}
+.amountScale{font-size:8px}
+.presets{gap:3px;margin-bottom:5px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.presets button{height:27px;font-size:9px;padding:0 2px}
+.actions{gap:5px}
+.actions button{height:36px;min-height:36px;font-size:10px;padding:0 3px}
+#nextBtn{height:36px;min-height:36px;margin-top:5px}
+.restartArea{margin-top:auto;padding:5px 6px 6px}
+.restartLabel{font-size:8px;margin-bottom:3px}
+.new{height:25px;font-size:9px}
+.bottomDetails{margin-top:0}
+@media(max-width:600px){
+ main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
+ .tablePanel{padding:6px}
+ .playArea{grid-template-columns:minmax(0,1fr);gap:6px;min-height:0}
+ .players{min-height:210px;grid-template-rows:repeat(2,minmax(100px,1fr))}
+ .player{padding:5px 6px}
+ .phead{font-size:10px}
+ .cards{height:47px;width:calc(100% - 70px)}
+ .cards .card,.cards .cardBack{width:31px;height:44px;font-size:17px}
+ .sideInfo{width:63px;right:5px;top:38px}
+ .stack{font-size:11px}
+ .turnPanel{padding:8px}
+ .turnCard{height:34px}
+ .amountControl{padding:8px 9px 7px}
+ .amountNudge{grid-template-columns:38px 1fr 38px}
+ .amountNudge button{height:28px}
+ .presets button{height:30px;font-size:10px}
+ .actions button{height:41px;min-height:41px;font-size:11px}
+}
+@media(max-height:700px) and (min-width:601px){
+ .playArea{min-height:300px}
+ .tablePanel{padding:6px}
+ .potArea{height:36px;flex-basis:36px}
+ .board{height:51px;flex-basis:51px}
+ .cards{height:43px}
+ .turnPanel{padding:6px}
+ .amountControl{padding:5px 7px;margin-bottom:4px}
+ .amountNudge button{height:22px}
+ .presets button{height:25px}
+ .actions button{height:33px;min-height:33px}
+ #nextBtn{height:33px;min-height:33px}
+}
 </style>
 </head>
 <body>
@@ -183,45 +260,46 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
       <div class="potTotal"><span>POT</span><b id="potValue">0</b></div>
     </div>
     <div id="board" class="board"></div>
-    <div id="players" class="players"></div>
-  </div>
+    <div class="playArea">
+      <div id="players" class="players"></div>
+      <div class="panel turnPanel">
+        <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
+        <div class="hint" id="hint"></div>
 
-  <div class="panel turnPanel">
-    <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
-    <div class="hint" id="hint"></div>
+        <div class="amountControl">
+          <div class="amountHead">
+            <label id="amountLabel" class="amountLabel" for="amountSlider">ベット額</label>
+            <output id="amountReadout" for="amountSlider">400</output>
+          </div>
+          <div class="amountCallRow"><span id="toCall" class="tocall"></span><span id="stepLabel" class="stepLabel">刻み幅 100</span></div>
+          <input id="amountSlider" type="range" min="200" max="20000" step="100" value="400" aria-label="ベットまたはレイズ額">
+          <div class="amountNudge">
+            <button id="minusStep" type="button" aria-label="金額を1刻み下げる">−</button>
+            <span>細かい調整</span>
+            <button id="plusStep" type="button" aria-label="金額を1刻み上げる">＋</button>
+          </div>
+          <div class="amountScale"><span id="amountMinLabel">最小 400</span><span id="amountMaxLabel">最大 20,000</span></div>
+          <input id="amount" type="hidden" value="400">
+        </div>
 
-    <div class="amountControl">
-      <div class="amountHead">
-        <label id="amountLabel" class="amountLabel" for="amountSlider">ベット額</label>
-        <output id="amountReadout" for="amountSlider">400</output>
+        <div class="presets">
+          <button data-size="min">最小</button>
+          <button data-size="half">1/2 POT</button>
+          <button data-size="pot">POT</button>
+          <button data-size="double">2× POT</button>
+        </div>
+
+        <div class="actions">
+          <button id="foldBtn" class="fold">フォールド</button>
+          <button id="callBtn">チェック</button>
+          <button id="betBtn" class="primary">ベット</button>
+          <button id="allinBtn">オールイン</button>
+        </div>
+
+        <button id="nextBtn" class="nextButton" style="display:none">次のHandへ</button>
+        <div class="restartArea"><span class="restartLabel">ゲームをリセット</span><button id="newBtn" class="new">最初からやり直す</button></div>
       </div>
-      <div class="amountCallRow"><span id="toCall" class="tocall"></span><span id="stepLabel" class="stepLabel">刻み幅 100</span></div>
-      <input id="amountSlider" type="range" min="200" max="20000" step="100" value="400" aria-label="ベットまたはレイズ額">
-      <div class="amountNudge">
-        <button id="minusStep" type="button" aria-label="金額を1刻み下げる">−</button>
-        <span>細かい調整</span>
-        <button id="plusStep" type="button" aria-label="金額を1刻み上げる">＋</button>
-      </div>
-      <div class="amountScale"><span id="amountMinLabel">最小 400</span><span id="amountMaxLabel">最大 20,000</span></div>
-      <input id="amount" type="hidden" value="400">
     </div>
-
-    <div class="presets">
-      <button data-size="min">最小</button>
-      <button data-size="half">1/2 POT</button>
-      <button data-size="pot">POT</button>
-      <button data-size="double">2× POT</button>
-    </div>
-
-    <div class="actions">
-      <button id="foldBtn" class="fold">フォールド</button>
-      <button id="callBtn">チェック</button>
-      <button id="betBtn" class="primary">ベット</button>
-      <button id="allinBtn">オールイン</button>
-    </div>
-
-    <button id="nextBtn" class="nextButton" style="display:none">次のHandへ</button>
-    <div class="restartArea"><span class="restartLabel">ゲームをリセット</span><button id="newBtn" class="new">最初からやり直す</button></div>
   </div>
 
   <div class="bottomDetails">
