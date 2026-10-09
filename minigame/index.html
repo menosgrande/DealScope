@@ -11,8 +11,10 @@ html,body{margin:0;width:100%;min-height:100%;height:auto;overflow-x:hidden;over
 button,input{font:inherit}
 main{width:min(620px,100%);min-height:100dvh;height:auto;margin:auto;padding:8px 10px;display:grid;grid-template-rows:24px minmax(350px,auto) auto auto;gap:6px;overflow:visible}
 .top{display:flex;justify-content:space-between;align-items:center}
-h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;font-size:11px}
-.topLinks{display:flex;align-items:center;gap:10px;flex-shrink:0}
+h1{font-size:15px;margin:0}a.backLink{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 8px;border:1px solid var(--line);border-radius:16px;background:var(--felt2);color:var(--ivory);text-decoration:none;font-size:11px;font-weight:650;white-space:nowrap;transition:background .15s,border-color .15s}
+a.backLink:hover{border-color:var(--brass);background:#1a493b}
+a.backLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.topLinks{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .panel{border:1px solid var(--line);border-radius:10px;background:var(--felt2);padding:7px}
 .tablePanel{min-height:350px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .metaRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 18px}
@@ -68,7 +70,7 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 .note{display:none}
 @media(max-width:390px){
  main{padding:6px 7px;grid-template-rows:22px minmax(340px,auto) auto auto;gap:5px}
- h1{font-size:14px}a.backLink{font-size:10px}
+ h1{font-size:14px}a.backLink{min-height:28px;padding:0 6px;font-size:10px}
  .panel{padding:6px}.metaRow{flex-basis:17px}.street{font-size:9px}.info{font-size:9px}
  .msg{font-size:12px;height:24px}.potArea{height:39px;flex-basis:39px}.board{height:57px;flex-basis:57px}
  .card,.cardBack{width:35px;height:50px;font-size:18px}.players{gap:4px}.player{padding:5px 6px}
@@ -342,7 +344,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
 </head>
 <body>
 <main>
-  <div class="top"><h1>DealScope / 4人トーナメント</h1><div class="topLinks"><a class="backLink" href="../glossary.html">用語集</a><a class="backLink" href="../">← 勝率計算</a></div></div>
+  <div class="top"><h1>DealScope / 4人トーナメント</h1><div class="topLinks"><a class="backLink" href="../glossary.html" aria-label="ポーカー用語を調べる">⌕ 用語集</a><a class="backLink" href="../">← 勝率計算</a></div></div>
 
   <div class="panel tablePanel">
     <div class="metaRow"><div id="street" class="street"></div><div id="info" class="info"></div></div>
