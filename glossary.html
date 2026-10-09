@@ -15,9 +15,11 @@ a{color:inherit}
 main{width:min(920px,100%);margin:0 auto;padding:14px 14px 40px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .brand{font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--mute);text-decoration:none}
-.nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
-.nav a{font-size:12px;text-decoration:none;color:var(--mute)}
-.nav a:hover{text-decoration:underline}
+.nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 10px;border:1px solid var(--line);border-radius:18px;background:var(--felt2);font-size:12px;font-weight:650;text-decoration:none;color:var(--ivory);white-space:nowrap;transition:background .15s,border-color .15s}
+.nav a:hover{border-color:var(--brass);background:#1a493b;text-decoration:none}
+.nav a[aria-current="page"]{border-color:var(--brass);background:var(--brass);color:var(--ink);font-weight:750}
+.nav a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .intro{padding:20px 0 18px;border-bottom:1px solid var(--line)}
 .eyebrow{font-size:10px;letter-spacing:.16em;color:var(--brass);font-weight:800}
 h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
@@ -58,7 +60,7 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
  #terms{grid-template-columns:minmax(0,1fr)}
  .term{padding:12px}
  .intro{padding-top:13px}
- .nav{gap:10px}
+ .nav{gap:5px} .nav a{min-height:32px;padding:0 8px;font-size:11px}
 }
 @media(min-width:621px) and (max-width:800px){#terms{grid-template-columns:minmax(0,1fr)}}
 </style>
@@ -69,8 +71,8 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
     <a class="brand" href="./">DealScope</a>
     <nav class="nav" aria-label="メインナビゲーション">
       <a href="./">勝率計算</a>
-      <a href="./minigame/">ミニゲーム</a>
-      <a href="./glossary.html" aria-current="page">用語集</a>
+      <a href="./minigame/">▶ ミニゲーム</a>
+      <a href="./glossary.html" aria-current="page" aria-label="現在のページ：ポーカー用語集">⌕ 用語集</a>
     </nav>
   </header>
   <section class="intro">
