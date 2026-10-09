@@ -43,6 +43,7 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
 .termTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .termTitles{min-width:0}
 .term h3{font-size:15px;line-height:1.35;margin:0;font-weight:750;overflow-wrap:anywhere}
+.termAbbr{color:var(--mute);font-size:.88em;font-weight:650;white-space:nowrap}
 .english{font-size:11px;color:var(--mute);line-height:1.4;margin-top:3px;overflow-wrap:anywhere}
 .category{display:inline-flex;align-items:center;align-self:flex-start;border:1px solid #376856;border-radius:4px;color:#a7c3b8;padding:2px 5px;font-size:9px;white-space:nowrap}
 .stars{font-size:12px;letter-spacing:1px;color:var(--brass);white-space:nowrap;flex-shrink:0}
@@ -128,12 +129,12 @@ function render(){
  var q=search.value.trim().toLocaleLowerCase();
  var cat=category.value;
  var list=data.terms.filter(function(t){
-  return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.english,t.definition,t.category].some(function(v){return String(v).toLocaleLowerCase().includes(q)}))
+  return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.abbreviation,t.english,t.definition,t.category].some(function(v){return String(v||'').toLocaleLowerCase().includes(q)}))
  }).sort(function(a,b){return a.term.localeCompare(b.term,'ja')||a.english.localeCompare(b.english,'en')});
  $('count').textContent=list.length.toLocaleString('ja-JP')+' / '+data.terms.length.toLocaleString('ja-JP')+'語';
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
  container.innerHTML=list.map(function(t){
-  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p></article>'
+  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p></article>'
  }).join('')
 }
 search.addEventListener('input',render);
