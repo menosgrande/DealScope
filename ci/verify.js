@@ -152,6 +152,53 @@ function testAnalysisLayer() {
   console.log('✓ Analysis Layer: player draws / board texture / input contract');
 }
 
+function testInputStateRoundTrips() {
+  const source = {
+    mode: 'known', n: 3, opp: 2,
+    players: [hand('As Kd'), hand('Qs Qh'), hand('Js Jh'), [-1, -1]],
+    board: [card('2c'), card('7h'), card('9d'), card('Tc'), -1],
+  };
+  const hash = S.encode(source);
+  const decoded = S.decode(hash);
+  assert(decoded, 'a valid known-hand URL should decode');
+  assert.equal(decoded.mode, 'known');
+  assert.equal(decoded.n, 3);
+  assert.deepEqual(decoded.players.slice(0, 3), source.players.slice(0, 3));
+  assert.deepEqual(decoded.board, source.board);
+  assert.equal(S.encode(decoded), hash, 'encoding a decoded state should be stable');
+
+  const random = {
+    mode: 'random', n: 4, opp: 3,
+    players: [hand('As Kd'), hand('Qs Qh'), hand('Js Jh'), hand('Ts Th')],
+    board: [card('2c'), card('7h'), card('9d'), -1, -1],
+  };
+  const randomDecoded = S.decode(S.encode(random));
+  assert(randomDecoded, 'a valid random-opponent URL should decode');
+  assert.equal(randomDecoded.mode, 'random');
+  assert.equal(randomDecoded.opp, 3);
+  assert.deepEqual(randomDecoded.players[0], random.players[0]);
+  assert.deepEqual(randomDecoded.board, random.board);
+  assert.deepEqual(randomDecoded.players[1], [-1, -1], 'hidden hands must not leak into a shared URL');
+
+  const duplicate = S.dedupe(
+    [card('As'), card('Kd'), -1, -1, -1],
+    [[card('As'), card('Qh')], [card('Kd'), card('Jc')], [-1, -1], [-1, -1]]
+  );
+  assert.equal(duplicate.board[0], card('As'));
+  assert.equal(duplicate.players[0][0], -1, 'board cards take precedence over duplicate hole cards');
+  assert.equal(duplicate.players[1][0], -1, 'earlier visible cards take precedence over later duplicates');
+
+  const saved = S.normalizeSaved({
+    mode: 'known', n: 2, opp: 1,
+    players: [hand('As Kd'), hand('Qs Qh'), hand('Js Jh'), [-1, -1]],
+    board: [card('2c'), card('7h'), card('9d'), -1, -1],
+  });
+  assert(saved, 'valid saved state should normalize');
+  assert.deepEqual(saved.players[2], hand('Js Jh'), 'non-visible player cards should remain saved');
+  assert.equal(S.normalizeSaved({ mode: 'invalid' }), null, 'invalid saved state should be rejected');
+  console.log('✓ input state: URL round-trip / hidden-hand privacy / duplicate precedence / saved-state validation');
+}
+
 function testBoardDeal() {
   const players=[hand('Ah Kd'), hand('Qs Qd'), [-1,-1], [-1,-1]];
   const empty=[-1,-1,-1,-1,-1];
