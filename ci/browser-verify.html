@@ -144,7 +144,7 @@
       throw new Error('hero analysis should occupy a separate column beside the player list');
     }
     const analysisLink = md.querySelector('#openCalculator');
-    if (!analysisLink || analysisLink.target !== '_blank' || !analysisLink.textContent.includes('勝率計算')) {
+    if (!analysisLink || analysisLink.target !== '_blank' || !analysisLink.textContent.includes('分析')) {
       throw new Error('central analysis should open the equity calculator in a new tab');
     }
     const analysisUrl = new URL(analysisLink.href, md.location.href);
