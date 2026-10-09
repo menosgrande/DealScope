@@ -244,26 +244,37 @@ function render(){
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
   var turnLabel=A.finished?'優勝！':A.handOver?(A.awards.some(function(a){return a.seat===0})?'このHandで勝利！':'このHandは終了'):A.awaiting?'あなたの番':'CPUが考えています…';
-  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var payableCall=Math.min(call,Math.max(0,A.players[0].stack));var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'Pot '+money(A.pot)+(A.awaiting?(call?'　Call '+money(payableCall)+(call>payableCall?'（オールイン）':''):'　Check'):'');
+  var heroAward=A.awards.find(function(a){return a.seat===0});var winner=A.awards.length?A.awards.map(function(a){return A.players[a.seat]}).filter(Boolean)[0]:null;var heroShowdown=A.players[0].showdownScore>0;var payableCall=Math.min(call,Math.max(0,A.players[0].stack));var turnMeta=A.finished?'ゲーム終了':A.handOver?(heroAward?(heroShowdown?'勝因：'+handDetail(A.players[0].showdownScore):'他のプレイヤーがフォールド'):winner?'勝者：'+winner.name:'このHand終了'):'POT '+money(A.pot);
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);$('nextBtn').style.display=A.handOver&&!A.finished?'block':'none';
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
-  $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ額はスライダーで調整します。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
-  $('toCall').textContent=A.awaiting?(call?'CALL '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（ALL-IN）':''):'CHECK'):' ';
+  $('hint').textContent=A.awaiting?(call?'必要なコール額を確認。レイズする場合は金額をスライダーで調整します。':'チェックは無料です。ベットする場合はスライダーか金額プリセットで調整します。'):(A.handOver?'結果を確認して「次のHandへ」。':A.finished?'「最初からやり直す」で再スタートできます。':'CPUが考えています…');
+  $('toCall').textContent=A.awaiting?(call?'コール必要額 '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'コール必要額 0'):' ';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
   $('callBtn').textContent=call?'コール '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'チェック';
-  $('betBtn').textContent=A.currentBet?'レイズ':'ベット';
   var rangeMin=Math.min(legal.minRaise,legal.max||legal.minRaise),rangeMax=Math.max(rangeMin,legal.max),rangeStep=Math.max(10,A.blinds[0]||10);
   var startAmount=clamp(legal.minRaise,rangeMin,rangeMax),snapAmount=clamp(rangeMin+Math.round((startAmount-rangeMin)/rangeStep)*rangeStep,rangeMin,rangeMax);
+  $('amountLabel').textContent=A.currentBet?'レイズ後の合計額':'ベット額';
   $('amountSlider').min=rangeMin;$('amountSlider').max=rangeMax;$('amountSlider').step=rangeStep;$('amountSlider').value=snapAmount;
   $('amount').value=$('amountSlider').value;$('amount').min=rangeMin;$('amount').max=rangeMax;
-  $('amountReadout').textContent=money(Number($('amount').value));$('amountMinLabel').textContent='最小 '+money(rangeMin);$('amountMaxLabel').textContent='最大 '+money(rangeMax);
+  $('amountReadout').textContent=money(Number($('amount').value));$('amountMinLabel').textContent='最小 '+money(rangeMin);$('amountMaxLabel').textContent='最大 '+money(rangeMax);$('stepLabel').textContent='刻み幅 '+money(rangeStep);
   $('amountSlider').disabled=!A.awaiting||!(legal.bet||legal.raise);
   $('betBtn').disabled=!A.awaiting||!(legal.bet||legal.raise);
+  var canSize=A.awaiting&&(legal.bet||legal.raise);
+  $('minusStep').disabled=!canSize||Number($('amountSlider').value)<=rangeMin;
+  $('plusStep').disabled=!canSize||Number($('amountSlider').value)>=rangeMax;
+  Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(btn){btn.disabled=!canSize});
+  $('callBtn').classList.toggle('primary',!!(legal.call||legal.check));
+  $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
+  $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
+  updateBetActionLabel();
 }
-function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value))}
-$('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value)); };
+function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
+function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel()}
+$('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value));$('minusStep').disabled=Number(this.value)<=Number(this.min);$('plusStep').disabled=Number(this.value)>=Number(this.max);updateBetActionLabel(); };
+$('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-Number($('amountSlider').step))};
+$('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+Number($('amountSlider').step))};
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\\n\\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
 restart()
 })();
