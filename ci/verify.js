@@ -228,7 +228,24 @@ function testMiniGamePotConservation() {
   assert.equal(er.distributed,1100);
   assert.equal(ea,eb);
   assert.deepEqual(edge.map(p=>p.stack),[0,1100,0]);
-  console.log('✓ mini game pot distribution conserves chips');
+
+  // A stronger short stack takes the main pot, while a weaker hand can
+  // legitimately receive the side pot when it alone matched the extra chips.
+  const board=hand('5d 7s 9h 2c Kd');
+  const hero={seat:0,name:'あなた',stack:0,contrib:100,fold:false,hand:hand('5s 5h')};
+  const dog={seat:1,name:'攻める狂犬',stack:0,contrib:200,fold:false,hand:hand('7h 9s')};
+  const folded={seat:2,name:'フォールド済み',stack:0,contrib:200,fold:true,hand:hand('3c 4c')};
+  const sidePlayers=[hero,dog,folded];
+  const sideScores=sidePlayers.map(p=>({p,s:E.evaluate(p.hand.concat(board))}));
+  assert.equal(sideScores.find(x=>x.p===hero).s>>>20,3,'Hero should have three of a kind');
+  assert.equal(sideScores.find(x=>x.p===dog).s>>>20,2,'the opponent should have two pair');
+  const side=Pots.settle(sidePlayers,sideScores);
+  const paid=Object.fromEntries(side.awards.map(a=>[a.player.seat,(side.awards.filter(x=>x.player===a.player).reduce((sum,x)=>sum+x.amount,0))]));
+  assert.equal(side.potCount,2,'main and side pots must be identified as separate contribution layers');
+  assert.equal(paid[0],300,'the three-of-a-kind hand wins the main pot');
+  assert.equal(paid[1],200,'the weaker two-pair hand only receives the side pot it is eligible for');
+  assert.equal(side.distributed,500);
+  console.log('✓ mini game pot distribution conserves chips and distinguishes side-pot winners');
 }
 function testMiniGameStateTransitions() {
   const players = [
