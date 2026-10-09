@@ -134,6 +134,41 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
  .turnPanel{padding:7px}.amountControl{padding:8px 8px 6px}.amountHead output{min-width:66px;font-size:15px}
  #amountSlider{height:22px}.presets{gap:4px}.presets button{height:28px}.actions{gap:5px}.actions button{height:38px}
 }
+
+/* Interaction-focused polish: clearer amount control and action priority */
+.turnCard{height:36px;padding:0 11px}
+.turnLabel{font-size:14px;letter-spacing:.01em}
+.turnMeta{font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{font-size:10px;min-height:16px}
+.amountControl{padding:10px 11px 8px;margin-bottom:8px}
+.amountHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.amountLabel{font-size:11px;font-weight:700;letter-spacing:.02em}
+.amountHead output{min-width:90px;padding:4px 9px;font-size:18px;border-radius:8px}
+.amountCallRow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:5px;min-height:14px}
+.amountCallRow .tocall{min-width:0;justify-content:flex-start;text-align:left;font-size:10px;font-weight:700;color:var(--brass)}
+.stepLabel{font-size:9px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+#amountSlider{height:28px;margin:5px 0 0}
+.amountNudge{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:9px;margin:0 0 3px}
+.amountNudge button{height:29px;border:1px solid var(--line);border-radius:7px;background:#173e32;color:var(--ivory);font-size:18px;font-weight:700;line-height:1;cursor:pointer}
+.amountNudge button:disabled{opacity:.3;cursor:not-allowed}
+.amountNudge button:not(:disabled):hover{border-color:var(--brass);background:#204b3c}
+.amountNudge span{text-align:center;color:var(--mute);font-size:9px}
+.amountScale{font-size:9px}
+.presets button{height:32px;color:var(--ivory);font-size:10px}
+.presets button:disabled{opacity:.3;cursor:not-allowed}
+.actions{gap:7px}
+.actions button{min-height:43px;height:43px;font-size:12px}
+.actions button.primary{border-color:var(--brass);background:var(--brass);color:#17140d;box-shadow:0 2px 0 #81682d,0 0 0 1px #d8b25226}
+.actions button:not(:disabled):hover{filter:brightness(1.08)}
+.actions button:focus-visible,.presets button:focus-visible,.amountNudge button:focus-visible,#amountSlider:focus-visible{outline:2px solid var(--ivory);outline-offset:2px}
+#allinBtn{border-color:#81544b;color:#f1b3a6}
+.actions #allinBtn.primary{background:#a94443;border-color:#e07a72;color:#fff5ed;box-shadow:0 2px 0 #6e2b2b}
+@media(max-width:390px){
+ .turnCard{height:33px}.turnLabel{font-size:13px}.hint{font-size:9px}
+ .amountControl{padding:8px 8px 7px}.amountHead output{min-width:78px;font-size:16px}
+ .amountNudge{grid-template-columns:38px 1fr 38px;gap:7px}.amountNudge button{height:28px}
+ .presets button{height:30px}.actions{gap:5px}.actions button{height:41px;min-height:41px;font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -157,20 +192,25 @@ h1{font-size:15px;margin:0}a.backLink{color:var(--mute);text-decoration:none;fon
 
     <div class="amountControl">
       <div class="amountHead">
-        <label class="amountLabel" for="amountSlider">ベット／レイズ額</label>
-        <span id="toCall" class="tocall"></span>
+        <label id="amountLabel" class="amountLabel" for="amountSlider">ベット額</label>
         <output id="amountReadout" for="amountSlider">400</output>
       </div>
+      <div class="amountCallRow"><span id="toCall" class="tocall"></span><span id="stepLabel" class="stepLabel">刻み幅 100</span></div>
       <input id="amountSlider" type="range" min="200" max="20000" step="100" value="400" aria-label="ベットまたはレイズ額">
+      <div class="amountNudge">
+        <button id="minusStep" type="button" aria-label="金額を1刻み下げる">−</button>
+        <span>細かい調整</span>
+        <button id="plusStep" type="button" aria-label="金額を1刻み上げる">＋</button>
+      </div>
       <div class="amountScale"><span id="amountMinLabel">最小 400</span><span id="amountMaxLabel">最大 20,000</span></div>
       <input id="amount" type="hidden" value="400">
     </div>
 
     <div class="presets">
       <button data-size="min">最小</button>
-      <button data-size="half">半分</button>
+      <button data-size="half">1/2 POT</button>
       <button data-size="pot">POT</button>
-      <button data-size="double">2P</button>
+      <button data-size="double">2× POT</button>
     </div>
 
     <div class="actions">
