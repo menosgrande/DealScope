@@ -84,7 +84,7 @@ function handAnalysisLines(p){
  return [{label:'現在の役',value:equityHandText(p)},{label:'ドロー',value:draw.join(' / ')},{label:'ボード',value:boardInfo.join(' ・ ')}]
 }
 function handAnalysisMarkup(p){
- return '<div class="equityInfo"><div class="equityInfoHeading">HAND DETAILS</div>'+handAnalysisLines(p).map(function(item){return '<div class="equityInfoLine"><span>'+item.label+'</span><b>'+item.value+'</b></div>'}).join('')+'</div>'
+ return '<div class="handInfo"><div class="handInfoHeading">HAND DETAILS</div>'+handAnalysisLines(p).map(function(item){return '<div class="handInfoLine"><span>'+item.label+'</span><b>'+item.value+'</b></div>'}).join('')+'</div>'
 }
 function heroAnalysisMarkup(){
  var p=A.players[0],valid=p&&p.hand&&p.hand.length===2&&p.hand.every(function(c){return c!=null&&c>=0});
