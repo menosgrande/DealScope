@@ -133,72 +133,46 @@
     if (amountReadout.textContent !== Number(slider.value).toLocaleString('ja-JP')) throw new Error('slider amount readout did not update');
     if (!betButton.textContent.includes(Number(slider.value).toLocaleString('ja-JP'))) throw new Error('bet action label did not follow slider value');
     if (!stepLabel.textContent.includes(Number(slider.step).toLocaleString('ja-JP'))) throw new Error('slider increment label did not update');
-    const allEquityPanels = md.querySelectorAll('details.equityDetails');
-    if (allEquityPanels.length !== 1 || allEquityPanels[0].getAttribute('data-equity-seat') !== '0') {
-      throw new Error('only Player 1 should have an equity foldout');
+    if (md.querySelectorAll('.player .equityDetails').length !== 0) {
+      throw new Error('equity info should not be embedded in player cards');
     }
-    const equityToggle = md.querySelector('details.equityDetails[data-equity-seat="0"] summary');
-    if (!equityToggle) throw new Error('player equity foldout is missing');
-    equityToggle.click();
+    const heroAnalysis = md.querySelector('#heroAnalysis');
+    const players = md.querySelector('#players');
+    if (!heroAnalysis || !players || heroAnalysis.parentElement !== players.parentElement) {
+      throw new Error('hero analysis should occupy a separate column beside the player list');
+    }
     let equityResult;
     try {
       equityResult = await waitFor(() => {
-        const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
-        const value = d && d.querySelector('[data-equity-result="0"]');
+        const value = md.querySelector('#heroAnalysis [data-equity-result="0"]');
         return value && value.textContent.trim().endsWith('%') && Number.isFinite(parseFloat(value.textContent)) ? value : null;
       }, 10000);
     } catch (e) {
-      const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
-      throw new Error('equity timeout: open=' + (d ? d.open : 'missing') + '; summary=' + (d ? d.querySelector('summary').textContent : '') + '; body=' + (d ? d.querySelector('.equityBody').textContent : '') + '; hand=' + (md.querySelector('#info') || {}).textContent + '; status=' + (md.querySelector('#turnLabel') || {}).textContent);
+      const panel = md.querySelector('#heroAnalysis');
+      throw new Error('separate equity panel timeout: content=' + (panel ? panel.textContent : 'missing') + '; hand=' + (md.querySelector('#info') || {}).textContent + '; status=' + (md.querySelector('#turnLabel') || {}).textContent);
     }
-    const equityDetails = md.querySelector('details.equityDetails[data-equity-seat="0"]');
-    const equityFill = equityDetails && equityDetails.querySelector('.equityBar i');
-    const equityMeta = equityDetails && equityDetails.querySelector('.equityMeta');
-    if (!equityDetails.open || !equityFill || !equityMeta) throw new Error('player equity details did not render');
-    const equityInfo = equityDetails.querySelector('.equityInfo');
-    const equityAside = equityDetails.querySelector('.equityAside');
-    const equityBodyStyle = md.defaultView.getComputedStyle(equityDetails.querySelector('.equityBody'));
-    if (!equityInfo || !equityAside || equityInfo.querySelectorAll('.equityInfoLine').length < 2) {
-      throw new Error('left-side hand detail is missing');
+    const equityPanel = md.querySelector('#heroAnalysis');
+    const equityFill = equityPanel && equityPanel.querySelector('.equityBar i');
+    const equityMeta = equityPanel && equityPanel.querySelector('.equityMeta');
+    const equityInfo = equityPanel && equityPanel.querySelector('.equityInfo');
+    const equityAside = equityPanel && equityPanel.querySelector('.equityAside');
+    const equityBodyStyle = equityPanel && md.defaultView.getComputedStyle(equityPanel.querySelector('.equityBody'));
+    if (!equityFill || !equityMeta || !equityInfo || !equityAside || equityInfo.querySelectorAll('.equityInfoLine').length < 2) {
+      throw new Error('separate equity panel details did not render');
     }
-    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
+    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\\s+/).length !== 2) {
       throw new Error('equity and hand detail should use a two-column layout');
     }
     if (!equityMeta.textContent.includes('4,096')) throw new Error('equity trial count is missing');
     if (Math.abs(parseFloat(equityResult.textContent) - parseFloat(equityFill.style.width)) > 0.1) {
       throw new Error('equity bar does not match the calculated percentage');
     }
-    const closeEquityToggle = md.querySelector('details.equityDetails[data-equity-seat="0"] summary');
-    closeEquityToggle.click();
-    await waitFor(() => {
-      const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
-      return d && !d.open;
-    }, 2000);
-
-    let seenHands = 0;
-    const miniStart = performance.now();
-    while (seenHands < 3 && performance.now() - miniStart < 12000) {
-      await new Promise(resolve => setTimeout(resolve, 40));
-      const info = md.querySelector('#info');
-      const m = info && info.textContent.match(/Hand #(\d+)/);
-      if (m) seenHands = Math.max(seenHands, Number(m[1]));
-      const next = md.querySelector('#nextBtn');
-      if (next && getComputedStyle(next).display !== 'none') { next.click(); continue; }
-      const turn = md.querySelector('#turnLabel');
-      if (turn && turn.textContent === 'あなたの番') {
-        const call = md.querySelector('#callBtn');
-        const fold = md.querySelector('#foldBtn');
-        const allin = md.querySelector('#allinBtn');
-        if (call && call.textContent.trim() === 'チェック' && fold && !fold.disabled) {
-          throw new Error('fold should be disabled when checking is available');
-        }
-        if (call && !call.disabled) call.click();
-        else if (allin && !allin.disabled) allin.click();
-      }
-    }
-    if (seenHands < 3) throw new Error('mini game stalled before Hand 3');
 
     mini.style.width = '900px';
+    const playGrid = md.defaultView.getComputedStyle(md.querySelector('.playArea'));
+    if (playGrid.gridTemplateColumns.trim().split(/\\s+/).length !== 3) {
+      throw new Error('desktop should have player, analysis, and action columns');
+    }
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
     if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 1) {
       throw new Error('desktop players should use compact four-row layout');
