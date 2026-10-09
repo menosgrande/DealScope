@@ -136,11 +136,17 @@
     const equityToggle = md.querySelector('details.equityDetails[data-equity-seat="0"] summary');
     if (!equityToggle) throw new Error('player equity foldout is missing');
     equityToggle.click();
-    const equityResult = await waitFor(() => {
+    let equityResult;
+    try {
+      equityResult = await waitFor(() => {
+        const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
+        const value = d && d.querySelector('[data-equity-result="0"]');
+        return value && value.textContent.trim().endsWith('%') && Number.isFinite(parseFloat(value.textContent)) ? value : null;
+      }, 10000);
+    } catch (e) {
       const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
-      const value = d && d.querySelector('[data-equity-result="0"]');
-      return value && value.textContent.trim().endsWith('%') && Number.isFinite(parseFloat(value.textContent)) ? value : null;
-    }, 10000);
+      throw new Error('equity timeout: open=' + (d ? d.open : 'missing') + '; summary=' + (d ? d.querySelector('summary').textContent : '') + '; body=' + (d ? d.querySelector('.equityBody').textContent : '') + '; hand=' + (md.querySelector('#info') || {}).textContent + '; status=' + (md.querySelector('#turnLabel') || {}).textContent);
+    }
     const equityDetails = md.querySelector('details.equityDetails[data-equity-seat="0"]');
     const equityFill = equityDetails && equityDetails.querySelector('.equityBar i');
     const equityMeta = equityDetails && equityDetails.querySelector('.equityMeta');
