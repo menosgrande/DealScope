@@ -18,9 +18,14 @@ var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'pr
 function cardToken(c){return c==null||c<0?'xx':R[c>>2]+'shdc'[c&3]}
 function trimTokens(cards){var tokens=cards.map(cardToken);while(tokens.length&&tokens[tokens.length-1]==='xx')tokens.pop();return tokens.join('')}
 function calculatorUrl(){
- var p=A.players[0];
+ var p=A.players[0],board=A.board||[];
  if(!p||!p.hand||p.hand.length!==2||p.hand.some(function(c){return c==null||c<0}))return '../index.html';
- var hands=trimTokens(p.hand)+'-??-??-??',board=A.board||[];
+ var revealed=A.handOver&&board.length===5
+  ? A.players.filter(function(q){return !q.out&&!q.fold&&q.showdownScore>0&&q.hand&&q.hand.length===2&&q.hand.every(function(c){return c!=null&&c>=0})})
+  : [];
+ var hands=revealed.length>=2
+  ? revealed.map(function(q){return trimTokens(q.hand)}).join('-')
+  : trimTokens(p.hand)+'-??-??-??';
  var segments=[
   trimTokens([0,1,2].map(function(i){return board[i]==null?-1:board[i]})),
   trimTokens([board[3]==null?-1:board[3]]),
@@ -28,6 +33,11 @@ function calculatorUrl(){
  ];
  while(segments.length&&!segments[segments.length-1])segments.pop();
  return '../index.html#'+hands+(segments.length?'/'+segments.join('/'):'')
+}
+function hasShowdownHands(){
+ return A.handOver&&A.board.length===5&&A.players.filter(function(p){
+  return !p.out&&!p.fold&&p.showdownScore>0&&p.hand&&p.hand.length===2&&p.hand.every(function(c){return c!=null&&c>=0})
+ }).length>=2
 }
 function equityHandText(p){
  if(p.showdownScore)return handDetail(p.showdownScore);
@@ -87,12 +97,14 @@ function handAnalysisMarkup(p){
  return '<div class="handInfo"><div class="handInfoHeading">HAND DETAILS</div>'+handAnalysisLines(p).map(function(item){return '<div class="handInfoLine"><span>'+item.label+'</span><b>'+item.value+'</b></div>'}).join('')+'</div>'
 }
 function heroAnalysisMarkup(){
- var p=A.players[0],valid=p&&p.hand&&p.hand.length===2&&p.hand.every(function(c){return c!=null&&c>=0});
+ var p=A.players[0],valid=p&&p.hand&&p.hand.length===2&&p.hand.every(function(c){return c!=null&&c>=0}),known=hasShowdownHands();
+ var launch=known?'ショウダウンのハンドを指定して分析':'相手想定で勝率を分析';
+ var note=known?'ショウダウンで公開されたハンドだけを指定します。フォールドした相手のカードは含めません。':'対戦中は相手のハンドを伏せ、ランダムハンドとして勝率を計算します。';
  return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>'+
   '<div class="analysisIntro">現在の手札と公開ボードを勝率計算ツールへ引き継ぎます。</div>'+
   (p?handAnalysisMarkup(p):'')+
-  (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>勝率計算で詳しく分析</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
-  '<div class="analysisNote">別タブで開きます。相手3人はランダムハンドとして計算します。</div>'
+  (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
+  '<div class="analysisNote">'+note+' 別タブで開きます。</div>'
 }
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
