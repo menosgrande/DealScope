@@ -311,7 +311,7 @@ function render(){
   $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
   $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
   updateBetActionLabel();
-  Array.prototype.forEach.call($('players').querySelectorAll('.equityDetails'),function(details){details.addEventListener('toggle',function(){var seat=Number(this.getAttribute('data-equity-seat'));equityExpanded[seat]=!!this.open;if(this.open){queueEquity(seat);var body=this.querySelector('.equityBody');if(body)body.innerHTML='<div class="equityPending">勝率を推定中…</div>'}})});
+  Array.prototype.forEach.call($('players').querySelectorAll('.equityDetails'),function(details){details.addEventListener('toggle',function(){var seat=Number(this.getAttribute('data-equity-seat'));equityExpanded[seat]=!!this.open;if(this.open){queueEquity(seat);var body=this.querySelector('.equityBody');if(body&&!equityCache[equityKey(seat)])body.innerHTML='<div class="equityPending">勝率を推定中…</div>'}})});
   for(var ei=0;ei<A.players.length;ei++)if(equityExpanded[ei])queueEquity(ei);
 }
 function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
