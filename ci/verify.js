@@ -8,6 +8,7 @@ const Pots = require('../minigame/pots.js');
 const Rules = require('../minigame/rules.js');
 const Draw = require('../analysis/drawAnalyzer.js');
 const Texture = require('../analysis/textureAnalyzer.js');
+const Glossary = require('../glossary-data.js');
 
 const expected5 = [1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40];
 
@@ -292,7 +293,24 @@ function testMiniGameStateTransitions() {
   console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation');
 }
 
+function testGlossaryData() {
+  const terms = Glossary.terms;
+  assert(Array.isArray(terms));
+  assert(terms.length >= 250, 'glossary should contain the broad reference vocabulary');
+  const names = terms.map(t => t.term);
+  assert.equal(new Set(names).size, names.length, 'glossary terms should be unique');
+  for (const t of terms) {
+    assert(t.term && t.english && t.category && t.definition, 'every glossary entry needs a term, English label, category, and definition');
+    assert(Number.isInteger(t.stars) && t.stars >= 1 && t.stars <= 5, 'importance must be rated from one to five stars');
+  }
+  for (const term of ['アンダーザガン','コール','サイドポット','エクイティ','ポットオッズ','GTO','MTT']) {
+    assert(names.includes(term), 'expected glossary term: ' + term);
+  }
+  console.log('✓ glossary data ' + terms.length + ' terms / categories / star ratings');
+}
+
 function main() {
+  testGlossaryData();
   testFiveCardDistribution();
   testEvaluatorOrdering();
   testSevenCardAndEnumeration();
