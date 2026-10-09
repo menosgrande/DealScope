@@ -246,6 +246,46 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .actions button{height:33px;min-height:33px}
  #nextBtn{height:33px;min-height:33px}
 }
+
+/* Compact desktop player rows: remove unused vertical space inside the 4 seats */
+@media(min-width:601px){
+ .playArea{min-height:316px}
+ .players{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(4,minmax(0,1fr));gap:4px;overflow:visible}
+ .player{min-height:0;padding:4px 6px 3px;border-radius:8px}
+ .phead{position:absolute;left:6px;right:5px;top:4px;height:17px;gap:4px;font-size:10px}
+ .phead small{max-width:44%;font-size:8px}
+ .cards{position:absolute;left:6px;bottom:4px;height:41px;width:calc(100% - 92px);justify-content:flex-start;align-items:center;gap:4px}
+ .cards .card,.cards .cardBack{width:29px;height:38px;font-size:16px;border-radius:5px}
+ .sideInfo{top:24px;right:6px;bottom:4px;width:78px;padding-left:6px;justify-content:center;gap:5px}
+ .stack{font-size:11px}
+ .betline{font-size:8px}
+ .made{left:6px;right:91px;bottom:1px;font-size:7px;white-space:nowrap}
+ .player:has(.made) .cards{bottom:14px;height:31px}
+ .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:25px;height:33px;font-size:14px}
+}
+@media(min-width:601px) and (max-height:700px){
+ .playArea{min-height:300px}
+ .player{padding-top:3px}
+ .phead{top:3px;height:16px}
+ .cards{height:38px;bottom:3px}
+ .cards .card,.cards .cardBack{width:27px;height:35px;font-size:15px}
+ .sideInfo{top:21px;bottom:3px}
+ .player:has(.made) .cards{bottom:13px;height:28px}
+ .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:23px;height:30px;font-size:13px}
+}
+@media(max-width:600px){
+ .players{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,1fr))}
+ .player{position:relative;padding:5px 6px}
+ .phead{position:static;height:18px;font-size:10px}
+ .phead small{max-width:unset}
+ .cards{position:static;height:47px;width:calc(100% - 70px);justify-content:center;gap:3px}
+ .cards .card,.cards .cardBack{width:31px;height:44px;font-size:17px}
+ .sideInfo{position:absolute;top:38px;right:5px;bottom:auto;width:63px;padding-left:4px;justify-content:flex-start;gap:6px}
+ .stack{font-size:11px}
+ .made{left:3px;right:72px;bottom:2px;font-size:8px;white-space:normal}
+ .player:has(.made) .cards{height:39px}
+ .player:has(.made) .cards .card,.player:has(.made) .cards .cardBack{width:28px;height:38px;font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -325,6 +365,6 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261009-poker18"></script>
+<script src="./minigame.js?v=20261009-poker19"></script>
 </body>
 </html>
