@@ -134,39 +134,43 @@
     if (!betButton.textContent.includes(Number(slider.value).toLocaleString('ja-JP'))) throw new Error('bet action label did not follow slider value');
     if (!stepLabel.textContent.includes(Number(slider.step).toLocaleString('ja-JP'))) throw new Error('slider increment label did not update');
     if (md.querySelectorAll('.player .equityDetails').length !== 0) {
-      throw new Error('equity info should not be embedded in player cards');
+      throw new Error('equity information should not be embedded in player cards');
     }
     const heroAnalysis = md.querySelector('#heroAnalysis');
     const players = md.querySelector('#players');
     if (!heroAnalysis || !players || heroAnalysis.parentElement !== players.parentElement) {
       throw new Error('hero analysis should occupy a separate column beside the player list');
     }
-    let equityResult;
-    try {
-      equityResult = await waitFor(() => {
-        const value = md.querySelector('#heroAnalysis [data-equity-result="0"]');
-        return value && value.textContent.trim().endsWith('%') && Number.isFinite(parseFloat(value.textContent)) ? value : null;
-      }, 10000);
-    } catch (e) {
-      const panel = md.querySelector('#heroAnalysis');
-      throw new Error('separate equity panel timeout: content=' + (panel ? panel.textContent : 'missing') + '; hand=' + (md.querySelector('#info') || {}).textContent + '; status=' + (md.querySelector('#turnLabel') || {}).textContent);
+    const analysisLink = md.querySelector('#openCalculator');
+    if (!analysisLink || analysisLink.target !== '_blank' || !analysisLink.textContent.includes('勝率計算')) {
+      throw new Error('central analysis should open the equity calculator in a new tab');
     }
-    const equityPanel = md.querySelector('#heroAnalysis');
-    const equityFill = equityPanel && equityPanel.querySelector('.equityBar i');
-    const equityMeta = equityPanel && equityPanel.querySelector('.equityMeta');
-    const equityInfo = equityPanel && equityPanel.querySelector('.equityInfo');
-    const equityAside = equityPanel && equityPanel.querySelector('.equityAside');
-    const equityBodyStyle = equityPanel && md.defaultView.getComputedStyle(equityPanel.querySelector('.equityBody'));
-    if (!equityFill || !equityMeta || !equityInfo || !equityAside || equityInfo.querySelectorAll('.equityInfoLine').length < 2) {
-      throw new Error('separate equity panel details did not render');
+    const analysisUrl = new URL(analysisLink.href, md.location.href);
+    if (analysisUrl.pathname !== '/index.html') throw new Error('analysis link should target the main calculator');
+    const transferred = frameWindow.DealState.decode(analysisUrl.hash);
+    if (!transferred || transferred.mode !== 'random' || transferred.opp !== 3) {
+      throw new Error('analysis URL should request three random opponents');
     }
-    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
-      throw new Error('equity and hand detail should use a two-column layout');
+    function visibleCardCode(node) {
+      const rank = node.querySelector('.rank');
+      const suit = node.querySelector('.suit');
+      const suitCode = {'♠':'s','♥':'h','♦':'d','♣':'c'};
+      if (!rank || !suit) throw new Error('visible card is missing rank or suit');
+      const ranks = '23456789TJQKA';
+      const r = ranks.indexOf(rank.textContent.trim());
+      const s = suitCode[suit.textContent.trim()];
+      if (r < 0 || !s) throw new Error('visible card could not be encoded');
+      return r * 4 + 'shdc'.indexOf(s);
     }
-    if (!equityMeta.textContent.includes('4,096')) throw new Error('equity trial count is missing');
-    if (Math.abs(parseFloat(equityResult.textContent) - parseFloat(equityFill.style.width)) > 0.1) {
-      throw new Error('equity bar does not match the calculated percentage');
+    const shownHeroHand = Array.from(md.querySelectorAll('#players .player.hero .cards .card')).map(visibleCardCode);
+    const shownBoard = Array.from(md.querySelectorAll('#board .card')).map(visibleCardCode);
+    if (shownHeroHand.length !== 2 || transferred.players[0][0] !== shownHeroHand[0] || transferred.players[0][1] !== shownHeroHand[1]) {
+      throw new Error('analysis URL did not preserve the Hero hand');
     }
+    if (JSON.stringify(transferred.board.filter(card => card >= 0)) !== JSON.stringify(shownBoard)) {
+      throw new Error('analysis URL did not preserve the public board');
+    }
+    if (!analysisUrl.hash.includes('-??-??-??')) throw new Error('unknown opponents should remain hidden in the analysis URL');
 
     mini.style.width = '900px';
     const playGrid = md.defaultView.getComputedStyle(md.querySelector('.playArea'));
