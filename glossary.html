@@ -130,7 +130,7 @@ function render(){
  var cat=category.value;
  var list=data.terms.filter(function(t){
   return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.abbreviation,t.english,t.definition,t.category].some(function(v){return String(v||'').toLocaleLowerCase().includes(q)}))
- }).sort(function(a,b){return a.term.localeCompare(b.term,'ja')||a.english.localeCompare(b.english,'en')});
+ }).sort(function(a,b){return a.category.localeCompare(b.category,'ja')||a.term.localeCompare(b.term,'ja')||a.english.localeCompare(b.english,'en')});
  $('count').textContent=list.length.toLocaleString('ja-JP')+' / '+data.terms.length.toLocaleString('ja-JP')+'語';
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
  container.innerHTML=list.map(function(t){
