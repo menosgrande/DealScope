@@ -158,7 +158,7 @@
     const equityResult = await waitFor(() => {
       const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
       const value = d && d.querySelector('[data-equity-result="0"]');
-      return value && /^\\d+(\\.\\d+)?%$/.test(value.textContent.trim()) ? value : null;
+      return value && value.textContent.trim().endsWith('%') && Number.isFinite(parseFloat(value.textContent)) ? value : null;
     }, 10000);
     const equityDetails = md.querySelector('details.equityDetails[data-equity-seat="0"]');
     const equityFill = equityDetails && equityDetails.querySelector('.equityBar i');
