@@ -141,7 +141,7 @@
 <section class="topic" id="flow"><h2>2. ゲームの流れ</h2>
 
 <p><strong>この章で分かること：</strong>カードが出る順番と、勝敗が決まるタイミング。</p>
-<p>プリフロップ（共通カードが出る前）は手札2枚だけです。フロップで3枚、ターンで4枚目、リバーで5枚目の共通カードが公開されます。</p>
+<p>プリフロップ（共通カードが出る前）は手札2枚だけです。フロップで共通カードが3枚公開されます。ターンで4枚目、リバーで5枚目が加わります。</p>
 <div class="street-track" aria-label="プリフロップからリバーまでのカード公開の流れ">
 <article class="street-step is-preflop"><div class="street-top"><span class="street-index">STAGE 01</span><strong>プリフロップ</strong></div><div class="street-body">
 <div class="street-zone street-shared is-empty"><div class="street-zone-label"><span>COMMUNITY CARDS</span><strong>共通ボード：0枚</strong></div><div class="street-board-empty" aria-label="共通ボードにはまだカードが出ていない"><strong>0枚</strong><small>カードはまだ公開されていない</small></div></div>
@@ -172,7 +172,7 @@
 <section class="topic" id="positions"><h2>4. ポジションとブラインド（SB・BB）</h2>
 
 <p><strong>この章で分かること：</strong>最初はBTN・SB・BBの3つだけ覚えれば大丈夫。</p>
-<p>ポジション（行動する順番に関わる席）は、まずボタンを目印に覚えます。UTG・HJ・COは、3つを理解してからで構いません。</p>
+<p>ポジション（行動する順番に関わる席）は、まずBTN（ボタン）・SB（小さいブラインド）・BB（大きいブラインド）の3つから覚えます。UTG（プリフロップで最初の席）・HJ（UTGの次）・CO（BTNの手前）は、あとで覚えれば十分です。</p>
 <div class="callout"><b>まず覚える3つ：</b>BTNはボタンの席、SBは小さいブラインド、BBは大きいブラインドです。例えばブラインドが50/100なら、SBは50、BBは100を先に出します。</div>
 <div class="position-cycle"><div class="position-cycle-head"><strong>① 席の並び</strong><span>6人卓の例・席の順番を示す図</span></div>
 <div class="position-cycle-track" aria-label="6人卓の席順：BTN、SB、BB、UTG、HJ、CO">
@@ -194,7 +194,7 @@
 <div class="position-definition"><strong>HJ</strong><span>UTGの次の席（6人卓の例）。</span></div>
 <div class="position-definition"><strong>CO — カットオフ</strong><span>BTNの1つ手前の席。</span></div>
 </div>
-<div class="position-order-panel"><h3>② プリフロップの行動順</h3><p><strong>要約：</strong>手札が配られた後は、UTGからBBへ進みます。</p>
+<div class="position-order-panel"><h3>② プリフロップの行動順</h3><p><strong>要約：</strong>手札が配られた後は、UTGから順に行動します。最後はBBの番です。</p>
 <div class="position-order-track" aria-label="プリフロップの行動順：UTG、HJ、CO、BTN、SB、BB">
 <div class="position-order-node is-first"><strong>UTG</strong><small>最初</small></div><span class="position-order-arrow" aria-hidden="true">→</span>
 <div class="position-order-node"><strong>HJ</strong></div><span class="position-order-arrow" aria-hidden="true">→</span>
@@ -254,7 +254,7 @@
 <section class="topic" id="equity"><h2>7. 勝率（エクイティ）の見方</h2>
 
 <p><strong>この章で分かること：</strong>表示されたパーセントが何を表すか。</p>
-<p><strong>今できている役と勝率は別です。</strong>役は現在のカードの強さ、勝率（エクイティ相当）はポットの期待取り分を表します。DealScopeでは、引き分け時の取り分も等分して計算に含めます。</p>
+<p><strong>今できている役と勝率は別です。</strong>役は現在のカードの強さです。DealScopeの勝率は、引き分けならポットを等分した取り分も含めた期待値です。</p>
 <p>例：手札が A♠ A♥でも、相手の手札や残りの共通カードで結果は変わります。今の役だけでは、最終的な取り分は決まりません。</p>
 <div class="cards"><article class="card"><h3>ハンド指定</h3><p>相手の手札を指定して計算します。例：自分がA♠ K♠、相手がQ♥ Q♦と分かっている場面です。</p></article><article class="card"><h3>相手想定</h3><p>相手の手札をランダムに配った場合を推定します。相手のプレイ傾向や、実際の持ち札を読み取る機能ではありません。</p></article></div>
 <div class="equity-visual" role="img" aria-label="2人対戦で自分の期待取り分が70パーセント、相手が30パーセントという説明用の例">
@@ -271,7 +271,7 @@
 <section class="topic" id="terms"><h2>8. 分からない用語を調べる</h2>
 
 <p><strong>この章で分かること：</strong>初めて見る略語を用語集で調べる方法。</p>
-<p>UTG・BTN・OOPなどの略語や専門用語は、用語集で短い意味を確認できます。例：BBは「ビッグブラインド」、OOPは「相手より先に行動するポジション」を表す用語です。</p>
+<p>UTG・BTN・OOPなどの略語は、用語集で意味を確認できます。例えば、BBは「ビッグブラインド」です。OOPは、相手より先に行動するポジションを表します。</p>
 <div class="pills"><a href="./glossary.html?q=BB">BBを調べる</a><a href="./glossary.html?q=UTG">UTGを調べる</a><a href="./glossary.html?q=OOP">OOPを調べる</a><a href="./glossary.html">用語集を開く</a><a href="./">勝率計算に戻る</a></div>
 
 </section>
