@@ -47,7 +47,8 @@ function settle(all,scores){
    winners:winners.length?winners:lastWinners,
    awards:awards,
    distributed:distributed,
-   contributed:contributed
+   contributed:contributed,
+   potCount:levels.length
  };
 }
 var api={settle:settle};
