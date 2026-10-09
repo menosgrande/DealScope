@@ -152,6 +152,23 @@
     }
     if (seenHands < 3) throw new Error('mini game stalled before Hand 3');
 
+    const equityToggle = md.querySelector('details.equityDetails[data-equity-seat="0"] summary');
+    if (!equityToggle) throw new Error('player equity foldout is missing');
+    equityToggle.click();
+    const equityResult = await waitFor(() => {
+      const d = md.querySelector('details.equityDetails[data-equity-seat="0"]');
+      const value = d && d.querySelector('[data-equity-result="0"]');
+      return value && /^\\d+(\\.\\d+)?%$/.test(value.textContent.trim()) ? value : null;
+    }, 10000);
+    const equityDetails = md.querySelector('details.equityDetails[data-equity-seat="0"]');
+    const equityFill = equityDetails && equityDetails.querySelector('.equityBar i');
+    const equityMeta = equityDetails && equityDetails.querySelector('.equityMeta');
+    if (!equityDetails.open || !equityFill || !equityMeta) throw new Error('player equity details did not render');
+    if (!equityMeta.textContent.includes('4,096')) throw new Error('equity trial count is missing');
+    if (Math.abs(parseFloat(equityResult.textContent) - parseFloat(equityFill.style.width)) > 0.1) {
+      throw new Error('equity bar does not match the calculated percentage');
+    }
+
     mini.style.width = '900px';
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
     if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 1) {
