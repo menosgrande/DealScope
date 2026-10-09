@@ -28,9 +28,9 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 .pill{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:17px;
   border:1px solid var(--line);background:none;color:var(--mute);font-size:13px}
 .pill.icon{width:34px;padding:0;font-weight:700}
-.miniLink{display:inline-flex;align-items:center;height:34px;padding:0 3px;color:var(--mute);font-size:12px;text-decoration:none;white-space:nowrap}
-.miniLink:hover{text-decoration:underline}
-.miniLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:4px}
+.miniLink{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 9px;border:1px solid var(--line);border-radius:17px;background:var(--felt2);color:var(--ivory);font-size:12px;font-weight:650;text-decoration:none;white-space:nowrap;transition:background .15s,border-color .15s}
+.miniLink:hover{border-color:var(--brass);background:#1a493b;text-decoration:none}
+.miniLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:17px}
 
 .ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;margin-bottom:12px}
 .setting{min-width:0}
@@ -133,6 +133,7 @@ body.picking .playerGrid{padding-top:8px}
 }
 @media (max-width:380px){
   .top .btns{gap:4px}
+  .top .miniLink{padding:0 6px;font-size:11px}
   .top .pill{padding:0 7px;font-size:12px}
   .top .pill.icon{width:32px}
 
@@ -302,8 +303,8 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div class="top">
     <h1>DealScope</h1>
     <div class="btns">
-      <a class="miniLink" href="./minigame/">ミニゲーム</a>
-      <a class="miniLink" href="./glossary.html">用語集</a>
+      <a class="miniLink" href="./minigame/" aria-label="ミニゲームを遊ぶ">▶ ミニゲーム</a>
+      <a class="miniLink" href="./glossary.html" aria-label="ポーカー用語を調べる">⌕ 用語集</a>
       <button id="share" class="pill icon" aria-label="この局面を共有" title="この局面を共有">↗</button>
       <button id="copy" class="pill">リンクをコピー</button>
       <button id="helpBtn" class="pill icon" aria-label="使い方">?</button>
