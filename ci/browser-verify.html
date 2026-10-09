@@ -160,7 +160,7 @@
     if (!equityFill || !equityMeta || !equityInfo || !equityAside || equityInfo.querySelectorAll('.equityInfoLine').length < 2) {
       throw new Error('separate equity panel details did not render');
     }
-    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\\s+/).length !== 2) {
+    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
       throw new Error('equity and hand detail should use a two-column layout');
     }
     if (!equityMeta.textContent.includes('4,096')) throw new Error('equity trial count is missing');
@@ -170,7 +170,7 @@
 
     mini.style.width = '900px';
     const playGrid = md.defaultView.getComputedStyle(md.querySelector('.playArea'));
-    if (playGrid.gridTemplateColumns.trim().split(/\\s+/).length !== 3) {
+    if (playGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
       throw new Error('desktop should have player, analysis, and action columns');
     }
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
