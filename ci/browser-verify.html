@@ -154,12 +154,12 @@
 
     mini.style.width = '900px';
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (desktopGrid.gridTemplateColumns.trim().split(/\\s+/).length !== 1) {
+    if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 1) {
       throw new Error('desktop players should use compact four-row layout');
     }
     mini.style.width = '390px';
     const mobileGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (mobileGrid.gridTemplateColumns.trim().split(/\\s+/).length !== 2) {
+    if (mobileGrid.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
       throw new Error('mobile players should retain two-column layout');
     }
 
