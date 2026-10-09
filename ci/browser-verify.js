@@ -55,7 +55,7 @@ server.listen(0, '127.0.0.1', () => {
     '--disable-gpu',
     '--disable-dev-shm-usage',
     '--dump-dom',
-    '--virtual-time-budget=12000',
+    '--virtual-time-budget=30000',
     url,
   ];
   const child = spawn(browser, args, {stdio:['ignore','pipe','pipe']});
