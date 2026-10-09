@@ -15,7 +15,7 @@ var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
 var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false};
-var equityExpanded=[false,false,false,false],equityCache=Object.create(null),equityJobs=Object.create(null),EQUITY_TRIALS=4096;
+var equityCache=Object.create(null),equityJobs=Object.create(null),EQUITY_TRIALS=4096;
 function equityKey(seat){
  var p=A.players[seat],opponents=contenders().filter(function(q){return q.seat!==seat}).length;
  return [A.handNo,seat,p.hand.join(','),A.board.join(','),opponents].join('|')
@@ -94,20 +94,20 @@ function equityBodyMarkup(seat,p,key){
  }
  return '<div class="equityBody">'+equityDetailMarkup(p)+right+'</div>'
 }
-function equityMarkup(seat,p){
- if(seat!==0)return '';
- var key=equityKey(seat),cached=equityCache[key],summary=p.out?'脱落':p.fold?'対象外':A.handOver?'結果確認':cached?cached.equity[0].toFixed(1)+'%':'未計算';
- return '<details class="equityDetails" data-equity-seat="0" '+(equityExpanded[0]?'open':'')+'><summary><span>勝率情報</span><b data-equity-summary="0">'+summary+'</b><i aria-hidden="true">▾</i></summary>'+equityBodyMarkup(0,p,key)+'</details>'
+function heroAnalysisMarkup(){
+ var p=A.players[0];
+ if(!p)return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>';
+ return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>'+equityBodyMarkup(0,p,equityKey(0))
 }
 function queueEquity(seat){
  if(seat!==0)return;
  var p=A.players[seat],key=equityKey(seat);
- if(!equityExpanded[seat]||!equityEligible(seat,p)||equityCache[key]||equityJobs[key])return;
+ if(!equityEligible(seat,p)||equityCache[key]||equityJobs[key])return;
  var opponents=contenders().filter(function(q){return q.seat!==seat}).length;
  var gen=E.monteCarloVsRandomGen(p.hand.slice(),A.board.slice(),opponents,EQUITY_TRIALS);
  equityJobs[key]=true;
  function step(){
-  if(equityKey(seat)!==key||!equityExpanded[seat]||!equityEligible(seat,A.players[seat])){delete equityJobs[key];return}
+  if(equityKey(seat)!==key||!equityEligible(seat,A.players[seat])){delete equityJobs[key];return}
   var next=gen.next();
   if(!next.done){window.setTimeout(step,0);return}
   equityCache[key]=next.value;delete equityJobs[key];render()
@@ -339,8 +339,10 @@ function render(){
    var badge=award?'<span class="resultBadge">+'+money(award.amount)+'</span>':'';
    var bet=A.roundBet[p.seat]||0,chipCount=bet<=0?0:Math.min(5,Math.max(1,Math.ceil(Math.log2(bet/Math.max(1,A.blinds[1]/2)+1))));
    var placedChips=chipCount?'<span class="betChips" aria-label="このストリートの投入チップ">'+Array.from({length:chipCount},function(){return '<span class="betChip"></span>'}).join('')+'</span>':'';
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">POT <b>'+money(bet)+'</b></span></div></div>'+equityMarkup(p.seat,p)+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">POT <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
   }).join('');
+  $('heroAnalysis').innerHTML=heroAnalysisMarkup();
+  queueEquity(0);
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
   var turnLabel=A.finished?'優勝！':A.handOver?(A.awards.some(function(a){return a.seat===0})?'このHandで勝利！':'このHandは終了'):A.awaiting?'あなたの番':'CPUが考えています…';
@@ -369,8 +371,7 @@ function render(){
   $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
   $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
   updateBetActionLabel();
-  Array.prototype.forEach.call($('players').querySelectorAll('.equityDetails'),function(details){details.addEventListener('toggle',function(){var seat=Number(this.getAttribute('data-equity-seat'));equityExpanded[seat]=!!this.open;if(this.open){queueEquity(seat);var body=this.querySelector('.equityBody');if(body&&!equityCache[equityKey(seat)])body.innerHTML='<div class="equityPending">勝率を推定中…</div>'}})});
-  for(var ei=0;ei<A.players.length;ei++)if(equityExpanded[ei])queueEquity(ei);
+  queueEquity(0);
 }
 function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
 function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel()}
