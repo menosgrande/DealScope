@@ -149,10 +149,11 @@ function equity(p){
 }
 function minRaise(){return A.currentBet===0?A.blinds[1]:A.currentBet+Math.max(A.blinds[1],A.lastRaise||A.blinds[1])}
 function legalActions(p){
- var r={fold:true,check:false,call:false,bet:false,raise:false,allin:false,callAmount:0,minRaise:minRaise(),max:p?p.stack+A.roundBet[p.seat]:0};
+ var r={fold:false,check:false,call:false,bet:false,raise:false,allin:false,callAmount:0,minRaise:minRaise(),max:p?p.stack+A.roundBet[p.seat]:0};
  if(!p||p.out||p.fold||p.allin)return r;
  r.callAmount=Math.max(0,A.currentBet-A.roundBet[p.seat]);
  r.check=r.callAmount===0;
+ r.fold=r.callAmount>0;
  r.call=r.callAmount>0&&p.stack>0;
  r.allin=p.stack>0;
  if(r.callAmount===0)r.bet=p.stack>=A.blinds[1];
@@ -215,7 +216,7 @@ function roundDone(){return Rules.roundComplete(A)}
 function act(seat,a,n){
  var p=A.players[seat];if(p.out||p.fold||p.allin)return false;
  var call=Math.max(0,A.currentBet-A.roundBet[seat]),text='';
- if(a==='fold'){p.fold=true;text='フォールド'}
+ if(a==='fold'){if(call===0)return false;p.fold=true;text='フォールド'}
  else if(a==='check'){if(call)return false;text='チェック'}
  else if(a==='call'){var paid=Math.min(call,p.stack);contribute(p,paid);text=call?'コール'+(paid<call?'（オールイン）':''):'チェック'}
  else if(a==='bet'){
