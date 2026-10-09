@@ -15,6 +15,48 @@ var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
 var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false};
+var equityExpanded=[false,false,false,false],equityCache=Object.create(null),equityJobs=Object.create(null),EQUITY_TRIALS=4096;
+function equityKey(seat){
+ var p=A.players[seat],opponents=contenders().filter(function(q){return q.seat!==seat}).length;
+ return [A.handNo,seat,p.hand.join(','),A.board.join(','),opponents].join('|')
+}
+function equityEligible(seat,p){
+ return !A.handOver&&!p.out&&!p.fold&&p.hand.length===2&&contenders().some(function(q){return q.seat===seat})&&contenders().filter(function(q){return q.seat!==seat}).length>0
+}
+function equityHandText(p){
+ if(p.showdownScore)return handDetail(p.showdownScore);
+ if(A.board.length>=3&&p.hand.length===2)return handDetail(E.evaluate(A.board.concat(p.hand)));
+ return 'フロップ後に役を表示'
+}
+function equityBodyMarkup(seat,p,key){
+ var opponents=contenders().filter(function(q){return q.seat!==seat}).length;
+ if(p.out)return '<div class="equityMessage">このプレイヤーはトーナメントから脱落しています。</div>';
+ if(p.fold)return '<div class="equityMessage">このHandはフォールド済みです。</div>';
+ if(A.handOver){var won=A.awards.some(function(a){return a.seat===seat});return '<div class="equityMessage">'+(won?'このHandで勝利しました。':'このHandは終了しました。')+'</div><div class="equityHand">'+(p.showdownScore?'役：'+handDetail(p.showdownScore):'結果を確認できます')+'</div>'}
+ if(!equityEligible(seat,p))return '<div class="equityMessage">現在は推定できません。</div>';
+ var cached=equityCache[key];
+ if(!cached)return '<div class="equityPending">'+(equityJobs[key]?'勝率を推定中…':'開くと推定を開始します。')+'</div>';
+ var pct=cached.equity[0];
+ return '<div class="equityStats"><span>推定エクイティ</span><b data-equity-result="'+seat+'">'+pct.toFixed(1)+'%</b></div><div class="equityBar" aria-label="推定エクイティ '+pct.toFixed(1)+'%"><i style="width:'+Math.max(0,Math.min(100,pct)).toFixed(1)+'%"></i></div><div class="equityMeta">ランダムな相手'+opponents+'人・'+money(cached.trials)+'試行（引き分けは取り分換算）</div><div class="equityHand">現在の役：'+equityHandText(p)+'</div>'
+}
+function equityMarkup(seat,p){
+ var key=equityKey(seat),cached=equityCache[key],summary=p.out?'脱落':p.fold?'対象外':A.handOver?'結果確認':cached?cached.equity[0].toFixed(1)+'%':'未計算';
+ return '<details class="equityDetails" data-equity-seat="'+seat+'" '+(equityExpanded[seat]?'open':'')+'><summary><span>勝率情報</span><b data-equity-summary="'+seat+'">'+summary+'</b><i aria-hidden="true">▾</i></summary><div class="equityBody">'+equityBodyMarkup(seat,p,key)+'</div></details>'
+}
+function queueEquity(seat){
+ var p=A.players[seat],key=equityKey(seat);
+ if(!equityExpanded[seat]||!equityEligible(seat,p)||equityCache[key]||equityJobs[key])return;
+ var opponents=contenders().filter(function(q){return q.seat!==seat}).length;
+ var gen=E.monteCarloVsRandomGen(p.hand.slice(),A.board.slice(),opponents,EQUITY_TRIALS);
+ equityJobs[key]=true;
+ function step(){
+  if(equityKey(seat)!==key||!equityExpanded[seat]||!equityEligible(seat,A.players[seat])){delete equityJobs[key];return}
+  var next=gen.next();
+  if(!next.done){window.setTimeout(step,0);return}
+  equityCache[key]=next.value;delete equityJobs[key];render()
+ }
+ window.setTimeout(step,0)
+}
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
@@ -239,7 +281,7 @@ function render(){
    var badge=award?'<span class="resultBadge">+'+money(award.amount)+'</span>':'';
    var bet=A.roundBet[p.seat]||0,chipCount=bet<=0?0:Math.min(5,Math.max(1,Math.ceil(Math.log2(bet/Math.max(1,A.blinds[1]/2)+1))));
    var placedChips=chipCount?'<span class="betChips" aria-label="このストリートの投入チップ">'+Array.from({length:chipCount},function(){return '<span class="betChip"></span>'}).join('')+'</span>':'';
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">POT <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">POT <b>'+money(bet)+'</b></span></div></div>'+equityMarkup(p.seat,p)+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
   }).join('');
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
   var p=A.players[0],legal=legalActions(p),call=legal.callAmount;
@@ -269,6 +311,8 @@ function render(){
   $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
   $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
   updateBetActionLabel();
+  Array.prototype.forEach.call($('players').querySelectorAll('.equityDetails'),function(details){details.addEventListener('toggle',function(){var seat=Number(this.getAttribute('data-equity-seat'));equityExpanded[seat]=!!this.open;if(this.open){queueEquity(seat);var body=this.querySelector('.equityBody');if(body)body.innerHTML='<div class="equityPending">勝率を推定中…</div>'}})});
+  for(var ei=0;ei<A.players.length;ei++)if(equityExpanded[ei])queueEquity(ei);
 }
 function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
 function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel()}
