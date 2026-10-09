@@ -203,8 +203,8 @@
     const glossarySearch = gd.querySelector('#search');
     glossarySearch.value = 'サイドポット';
     glossarySearch.dispatchEvent(new glossaryFrame.contentWindow.Event('input', {bubbles:true}));
-    await waitFor(() => gd.querySelectorAll('#terms .term').length === 1, 2000);
-    if (!gd.querySelector('#terms .term').textContent.includes('サイドポット')) {
+    await waitFor(() => gd.querySelectorAll('#terms .term').length > 0, 2000);
+    if (!Array.from(gd.querySelectorAll('#terms .term')).some(el => el.querySelector('h3').textContent === 'サイドポット')) {
       throw new Error('glossary Japanese search did not find side pot');
     }
     glossarySearch.value = 'Equity';
