@@ -252,7 +252,13 @@ function showdown(){
  var awardMap={};settlement.awards.forEach(function(a){awardMap[a.player.seat]=(awardMap[a.player.seat]||0)+a.amount});
  A.awards=Object.keys(awardMap).map(function(seat){return{seat:Number(seat),amount:awardMap[seat]}});
  var unique=[];settlement.winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
- var total=all.reduce(function(s,p){return s+(p.contrib||0)},0),winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z.s)+'」'}).join(' / ');A.message=unique.length===1?'勝者：'+winnerText+'・'+money(total)+'獲得':'引き分け：'+winnerText+'・'+money(total)+'を分配';
+ var total=all.reduce(function(s,p){return s+(p.contrib||0)},0);
+ var winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z.s)+'」'}).join(' / ');
+ var payoutPlayers=Object.keys(awardMap).map(function(seat){return A.players[Number(seat)]}).filter(Boolean);
+ var payoutText=payoutPlayers.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z?z.s:0)+'」 +'+money(awardMap[p.seat])}).join(' / ');
+ if(unique.length===1)A.message='勝者：'+winnerText+'・'+money(awardMap[unique[0].seat]||0)+'獲得（総額 '+money(total)+'）';
+ else if(settlement.potCount===1)A.message='引き分け：'+winnerText+'・'+money(total)+'を分配';
+ else A.message='ポット別配当：'+payoutText+'（総額 '+money(total)+'）';
  A.pot=0;endHand()
 }
 function endHand(){
