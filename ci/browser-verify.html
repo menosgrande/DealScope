@@ -161,7 +161,7 @@
     if (!equityInfo || !equityAside || equityInfo.querySelectorAll('.equityInfoLine').length < 2) {
       throw new Error('left-side hand detail is missing');
     }
-    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\\s+/).length !== 2) {
+    if (equityBodyStyle.display !== 'grid' || equityBodyStyle.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
       throw new Error('equity and hand detail should use a two-column layout');
     }
     if (!equityMeta.textContent.includes('4,096')) throw new Error('equity trial count is missing');
@@ -187,7 +187,11 @@
       const turn = md.querySelector('#turnLabel');
       if (turn && turn.textContent === 'あなたの番') {
         const call = md.querySelector('#callBtn');
+        const fold = md.querySelector('#foldBtn');
         const allin = md.querySelector('#allinBtn');
+        if (call && call.textContent.trim() === 'チェック' && fold && !fold.disabled) {
+          throw new Error('fold should be disabled when checking is available');
+        }
         if (call && !call.disabled) call.click();
         else if (allin && !allin.disabled) allin.click();
       }
