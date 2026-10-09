@@ -248,16 +248,22 @@ function render(){
   var turnCard=$('turnCard');turnCard.classList.toggle('active',A.awaiting&&!A.finished&&!A.handOver);$('nextBtn').style.display=A.handOver&&!A.finished?'block':'none';
   $('turnLabel').textContent=turnLabel;$('turnMeta').textContent=turnMeta;
   $('hint').textContent=A.awaiting?(call?'Call額を確認し、フォールド / コール / レイズを選びます。スタック不足ならコールで自動的にオールインします。レイズ時の入力は「レイズ後の合計額」です。':'Checkするか、ベット額を決めてベットします。'):(A.handOver?'このHandの勝敗と役を確認してから次へ進みます。':A.finished?'もう一度遊ぶなら「最初からやり直す」。':'CPUが考えています…');
-  $('toCall').textContent=A.awaiting?(call?'Call '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'Check'):' ';$('amount').previousElementSibling.textContent=A.currentBet?'レイズ後の合計額':'ベット額';
+  $('toCall').textContent=A.awaiting?(call?'CALL '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（ALL-IN）':''):'CHECK'):' ';
   $('foldBtn').disabled=!A.awaiting||!legal.fold;
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
   $('callBtn').textContent=call?'コール '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'チェック';
   $('betBtn').textContent=A.currentBet?'レイズ':'ベット';
-  $('amount').min=legal.minRaise;$('amount').max=Math.max(legal.minRaise,legal.max);
-  $('amount').value=clamp(legal.minRaise,legal.minRaise,Math.max(legal.minRaise,legal.max));
+  var rangeMin=Math.min(legal.minRaise,legal.max||legal.minRaise),rangeMax=Math.max(rangeMin,legal.max),rangeStep=Math.max(10,A.blinds[0]||10);
+  var startAmount=clamp(legal.minRaise,rangeMin,rangeMax),snapAmount=clamp(rangeMin+Math.round((startAmount-rangeMin)/rangeStep)*rangeStep,rangeMin,rangeMax);
+  $('amountSlider').min=rangeMin;$('amountSlider').max=rangeMax;$('amountSlider').step=rangeStep;$('amountSlider').value=snapAmount;
+  $('amount').value=$('amountSlider').value;$('amount').min=rangeMin;$('amount').max=rangeMax;
+  $('amountReadout').textContent=money(Number($('amount').value));$('amountMinLabel').textContent='最小 '+money(rangeMin);$('amountMaxLabel').textContent='最大 '+money(rangeMax);
+  $('amountSlider').disabled=!A.awaiting||!(legal.bet||legal.raise);
   $('betBtn').disabled=!A.awaiting||!(legal.bet||legal.raise);
 }
-$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\\n\\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);$('amount').value=Math.min(p.stack+A.roundBet[0],target)}});
+function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value))}
+$('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value)); };
+$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\\n\\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
 restart()
 })();
