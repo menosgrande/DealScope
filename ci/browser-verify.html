@@ -191,8 +191,9 @@
     glossaryFrame.id = 'glossary';
     glossaryFrame.src = '/glossary.html';
     glossaryFrame.style = 'width:390px;height:1000px;border:0;position:absolute;left:-9999px';
+    const glossaryLoaded = new Promise(resolve => glossaryFrame.addEventListener('load', resolve, {once:true}));
     document.body.appendChild(glossaryFrame);
-    await new Promise(resolve => glossaryFrame.addEventListener('load', resolve, {once:true}));
+    await glossaryLoaded;
     const gd = glossaryFrame.contentDocument;
     await waitFor(() => gd && gd.querySelector('#search') && gd.querySelector('#terms .term'), 5000);
     const glossaryTerms = gd.querySelectorAll('#terms .term');
