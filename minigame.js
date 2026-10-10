@@ -119,7 +119,7 @@ function showdown(){
  var winners=[];
  // Imported start pot is a separate, shared pot: never mix it into contribution-derived side pots.
  if(A.basePot>0){var eligibleBase=all.filter(function(p){return !p.fold});if(eligibleBase.length){var bestBase=Math.max.apply(null,eligibleBase.map(function(p){return scores.find(function(x){return x.p===p}).s}));var baseWinners=eligibleBase.filter(function(p){return scores.find(function(x){return x.p===p}).s===bestBase});var baseEach=Math.floor(A.basePot/baseWinners.length),baseRem=A.basePot%baseWinners.length;baseWinners.forEach(function(p,i){p.stack+=baseEach+(i<baseRem?1:0);winners.push(p)})}A.basePot=0}
- var levels=[].concat(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
+ var levels=Array.from(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
  var prev=0;
  levels.forEach(function(level){
    var participants=all.filter(function(p){return (p.contrib||0)>=level});
