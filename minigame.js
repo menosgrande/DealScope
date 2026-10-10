@@ -64,6 +64,7 @@ function ai(p){
  return rnd()<t.call||v>odds?{a:'call'}:{a:'fold'}
 }
 function initDeck(){A.deck=shuffle(Array.from({length:52},function(_,i){return i}))}
+function nextLiveSeat(i){for(var k=1;k<=4;k++){var j=(i+k)%4;if(A.players[j]&&!A.players[j].out)return j}return i}
 function deal(){return A.deck.pop()}
 function blind(p,n){var x=Math.min(n,p.stack);p.stack-=x;p.contrib=x;A.roundBet[p.seat]=x;A.pot+=x;if(!p.stack)p.allin=true}
 function contribute(p,n){n=Math.max(0,Math.min(n,p.stack));p.stack-=n;A.roundBet[p.seat]+=n;p.contrib=(p.contrib||0)+n;A.pot+=n;if(!p.stack)p.allin=true;return n}
@@ -110,32 +111,37 @@ function street(){
  A.currentBet=0;A.lastRaise=A.blinds[1];A.roundBet=[0,0,0,0];A.acted=A.players.map(function(p){return p.out||p.fold||p.allin});A.actor=nextSeat(A.dealer);A.message=A.street==='flop'?'Flop':A.street==='turn'?'Turn':'River';render();advance()
 }
 function foldWin(){
- var c=contenders();if(c.length!==1)return false;var p=c[0];p.stack+=A.pot;A.message=p.name+' が '+money(A.pot)+' を獲得';A.pot=0;endHand();return true
+ var c=contenders();if(c.length!==1)return false;var p=c[0];var won=A.pot;p.stack+=won;A.message=p.name+' が '+money(won)+' を獲得';A.pot=0;A.basePot=0;endHand();return true
 }
 function showdown(){
  var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
  A.players.forEach(function(p){var z=scores.find(function(x){return x.p===p});p.showdownScore=z?z.s:0});
+ var winners=[];
+ // Imported start pot is a separate, shared pot: never mix it into contribution-derived side pots.
+ if(A.basePot>0){var eligibleBase=all.filter(function(p){return !p.fold});if(eligibleBase.length){var bestBase=Math.max.apply(null,eligibleBase.map(function(p){return scores.find(function(x){return x.p===p}).s}));var baseWinners=eligibleBase.filter(function(p){return scores.find(function(x){return x.p===p}).s===bestBase});var baseEach=Math.floor(A.basePot/baseWinners.length),baseRem=A.basePot%baseWinners.length;baseWinners.forEach(function(p,i){p.stack+=baseEach+(i<baseRem?1:0);winners.push(p)})}A.basePot=0}
  var levels=[].concat(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
- var prev=0,winners=[];
+ var prev=0;
  levels.forEach(function(level){
    var participants=all.filter(function(p){return (p.contrib||0)>=level});
    var pot=(level-prev)*participants.length;
    if(pot<=0)return;
    var eligible=participants.filter(function(p){return !p.fold});
+   prev=level;
    if(!eligible.length)return;
    var best=Math.max.apply(null,eligible.map(function(p){var z=scores.find(function(x){return x.p===p});return z.s}));
    var w=eligible.filter(function(p){var z=scores.find(function(x){return x.p===p});return z.s===best});
    var base=Math.floor(pot/w.length),rem=pot%w.length;
    w.forEach(function(p,i){p.stack+=base+(i<rem?1:0)});
    winners=winners.concat(w);
-   prev=level
  });
  var unique=[];winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
  A.message=unique.length===1?unique[0].name+' がポットを獲得（'+money(A.players.reduce(function(s,p){return s+(p.contrib||0)},0))+'）':'ショーダウン完了。勝者：'+unique.map(function(p){return p.name}).join(' / ');
- A.pot=0;endHand()
+ A.pot=0;A.basePot=0;endHand()
 }
 function endHand(){
- A.players.forEach(function(p){p.contrib=0;p.roundBet=0;p.allin=false;p.fold=false});A.handOver=true;render();
+ A.players.forEach(function(p){p.contrib=0;p.roundBet=0});A.handOver=true;A.awaiting=false;
+ if(bridgeImported){A.waitingNext=true;render();return}
+ A.players.forEach(function(p){p.allin=false;p.fold=false});render();
  setTimeout(function(){A.handOver=false;A.players.forEach(function(p){if(p.stack<=0)p.out=true});if(alive().length<=1)finish();else resetHand()},900)
 }
 function finish(){A.finished=true;var w=alive()[0];A.message=w?w.name+' の優勝！':'ゲーム終了';render()}
@@ -155,13 +161,14 @@ function human(a){
  A.awaiting=false;advance()
 }
 function restart(){
- A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;
+ bridgeImported=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;A.basePot=0;A.waitingNext=false;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:1000,out:false,hand:[],fold:false,allin:false})});
- resetHand()
+ $('bridgeSetup').hidden=true;$('gamePanel').hidden=false;$('actionPanel').hidden=false;$('logPanel').hidden=false;
+ $('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;resetHand()
 }
 function card(c){return '<span class="card '+((c&3)===0||((c&3)===1)?'red':'')+'">'+R[c>>2]+S[c&3]+'</span>'}
 function render(){
- $('msg').textContent=A.message||'';$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1])+'　Pot '+money(A.pot);
+ $('msg').textContent=A.message||'';$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1])+'　Pot '+money(A.pot)+(bridgeImported&&bridgeStartEquity.length?'　開始時の解析勝率 '+bridgeStartEquity[0].toFixed(1)+'%':'');
  $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
  $('players').innerHTML=A.players.map(function(p){
    var st=p.out?'脱落':p.fold?'Fold':p.allin?'All-in':p.seat===A.actor&&!A.handOver?'行動中':'';
@@ -172,9 +179,78 @@ function render(){
  var p=A.players[0],call=p?Math.max(0,A.currentBet-A.roundBet[0]):0;
  $('hint').textContent=A.awaiting?(call?'コール '+money(call)+'。ベット/レイズ額はストリートの合計額。':'チェックまたはベット。'):(A.finished?'':'CPUが考えています…');
  $('foldBtn').disabled=!A.awaiting;$('callBtn').disabled=!A.awaiting;$('betBtn').disabled=!A.awaiting;$('allinBtn').disabled=!A.awaiting;
+ $('nextHandBtn').hidden=!A.waitingNext;$('returnAnalysisBtn').hidden=!A.waitingNext;
+ $('newBtn').hidden=bridgeImported||A.waitingNext;
  $('callBtn').textContent=call?'コール '+money(call):'チェック';$('betBtn').textContent=A.currentBet?'レイズ':'ベット';
  var min=minRaise(),max=p?p.stack+A.roundBet[0]:0;$('amount').min=min;$('amount').max=Math.max(min,max);$('amount').value=clamp(min,min,Math.max(min,max))
 }
+function setError(msg){$('setupError').textContent=msg;$('setupError').hidden=!msg}
+function bridgeStreet(count){return count===0?'preflop':count===3?'flop':count===4?'turn':'river'}
+function validBridgePayload(d){
+ if(!d||d.version!==1||!d.snapshot||!['known','random'].includes(d.snapshot.mode))return false;
+ var s=d.snapshot,n=s.mode==='random'?1+s.opp:s.n;
+ if(!Number.isInteger(n)||n<2||n>4||!Array.isArray(s.players)||s.players.length!==4||!Array.isArray(s.board)||s.board.length!==5)return false;
+ var bc=s.board.filter(function(c){return c>=0}).length;
+ if(![0,3,4,5].includes(bc))return false;
+ for(var i=0;i<(s.mode==='random'?1:s.n);i++)if(!Array.isArray(s.players[i])||s.players[i].length!==2||s.players[i].some(function(c){return !Number.isInteger(c)||c<0||c>51}))return false;
+ var cards=[];s.board.forEach(function(c){if(c>=0)cards.push(c)});
+ for(var i=0;i<(s.mode==='random'?1:s.n);i++)s.players[i].forEach(function(c){if(c>=0)cards.push(c)});
+ return new Set(cards).size===cards.length&&d.equity&&d.equity.length>0;
+}
+function showBridgeSetup(){
+ $('bridgeSetup').hidden=false;$('gamePanel').hidden=true;$('actionPanel').hidden=true;$('logPanel').hidden=true;
+ $('newBtn').hidden=true;
+ if(!validBridgePayload(bridgePayload)){setError('受け取った局面データが不正です。解析画面からもう一度開始してください。');$('startImported').disabled=true;return}
+ var s=bridgePayload.snapshot,bc=s.board.filter(function(c){return c>=0}).length,n=bridgePayload.activeCount;
+ $('setupSummary').textContent=(s.mode==='known'?'ハンド指定':'相手想定')+' / '+n+'人 / '+bridgeStreet(bc)+'開始 / 開始時の解析勝率 '+bridgePayload.equity.map(function(x,i){return (s.mode==='random'?'Hero':('P'+(i+1)))+' '+Number(x).toFixed(1)+'%'}).join('・');
+ $('setupPot').value=bc===0?'0':'10000';$('setupPot').disabled=bc===0;
+ $('stackFields').innerHTML='';
+ for(var i=0;i<n;i++){var label=i===0?'あなた':NAMES[i];var row=document.createElement('label');row.className='stackField';row.innerHTML='<span>'+label+' の開始時残りスタック</span><input type="number" min="0" max="1000000000" step="1" value="1000" data-stack-seat="'+i+'">';$('stackFields').appendChild(row)}
+}
+function startImported(){
+ setError('');
+ if(!validBridgePayload(bridgePayload)){setError('局面データが不正です。解析画面からやり直してください。');return}
+ var s=bridgePayload.snapshot,bc=s.board.filter(function(c){return c>=0}).length,n=bridgePayload.activeCount;
+ var pot=bc===0?0:Number($('setupPot').value);
+ if(!Number.isSafeInteger(pot)||pot<0||pot>1000000000){setError('開始ポットは0〜1,000,000,000の整数で入力してください。');return}
+ var stacks=[],inputs=$('stackFields').querySelectorAll('input[data-stack-seat]');
+ for(var i=0;i<inputs.length;i++){var v=Number(inputs[i].value);if(inputs[i].value.trim()===''||!Number.isSafeInteger(v)||v<0||v>1000000000){setError('各スタックは0〜1,000,000,000の整数で入力してください。');return}stacks.push(v)}
+ if(stacks.reduce(function(a,b){return a+b},pot)>1000000000){setError('スタックと開始ポットの合計は1,000,000,000以下にしてください。');return}
+ bridgeImported=true;bridgeStartEquity=bridgePayload.equity.map(Number);bridgeInitialPot=pot;bridgeStartStacks=stacks.slice();
+ A.players=[];A.finished=false;A.handNo=1;A.blinds=[10,20];A.lastRaise=20;A.currentBet=0;A.pot=pot;A.basePot=pot;A.history=[];A.handOver=false;A.waitingNext=false;A.awaiting=false;
+ var sCount=s.mode==='random'?1+s.opp:s.n, types=['tag','lag','tp','lp'];
+ for(var i=0;i<4;i++){var participating=i<sCount;A.players.push({seat:i,name:NAMES[i],type:types[i],stack:participating?stacks[i]:0,out:!participating,hand:[],fold:false,allin:false,contrib:0,showdownScore:0,position:''})}
+ A.board=s.board.filter(function(c){return c>=0});
+ var fixed=[];
+ if(s.mode==='known'){for(var i=0;i<s.n;i++){A.players[i].hand=s.players[i].slice();fixed=fixed.concat(A.players[i].hand)}}
+ else{A.players[0].hand=s.players[0].slice();fixed=fixed.concat(A.players[0].hand)}
+ fixed=fixed.concat(A.board);
+ A.deck=shuffle(Array.from({length:52},function(_,i){return i}).filter(function(c){return fixed.indexOf(c)<0}));
+ if(s.mode==='random')for(var i=1;i<sCount;i++)A.players[i].hand=[deal(),deal()];
+ A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.street=bridgeStreet(bc);A.dealer=sCount-1;
+ if(bc===0){
+   A.pot=0;A.basePot=0;
+   var sb,bb;
+   if(sCount===2){sb=A.dealer;bb=nextSeat(sb)}else{sb=nextSeat(A.dealer);bb=nextSeat(sb)}
+   A.players[sb].position='SB';A.players[bb].position='BB';A.players[A.dealer].position='BTN';
+   A.players.forEach(function(p){if(p.out)return;if(!p.position)p.position='UTG'});
+   blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=Math.max(A.roundBet[sb],A.roundBet[bb]);A.actor=nextSeat(bb);
+ }else{
+   A.players.forEach(function(p){if(!p.out)p.position=p.seat===A.dealer?'BTN':p.seat===nextSeat(A.dealer)?'SB':p.seat===nextSeat(nextSeat(A.dealer))?'BB':'UTG'});
+   A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=nextSeat(A.dealer);
+ }
+ A.message='解析局面から開始 / '+A.street.toUpperCase()+' / 開始ポット '+money(A.pot);
+ $('bridgeSetup').hidden=true;$('gamePanel').hidden=false;$('actionPanel').hidden=false;$('logPanel').hidden=false;
+ $('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;$('newBtn').hidden=true;
+ try{sessionStorage.removeItem('dealscope-analysis-game-v1')}catch(e){}
+ render();advance()
+}
+function returnAnalysis(){
+ if(!A.waitingNext&&!A.finished&&!confirm('進行中のハンドを終了して解析画面へ戻りますか？'))return;
+ location.href='./';
+}
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){human('call')};$('betBtn').onclick=function(){human(A.currentBet?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('newBtn').onclick=restart;
-restart()
+$('startImported').onclick=startImported;$('cancelImported').onclick=function(){location.href='./'};$('nextHandBtn').onclick=function(){if(!A.waitingNext)return;A.waitingNext=false;A.handOver=false;bridgeImported=false;A.basePot=0;A.pot=0;A.players.forEach(function(p){if(p.stack<=0)p.out=true});$('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;$('newBtn').hidden=false;resetHand()};
+$('returnAnalysisBtn').onclick=returnAnalysis;
+if(hasBridge)showBridgeSetup();else restart()
 })();
