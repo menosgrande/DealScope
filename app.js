@@ -709,7 +709,8 @@
     hands.forEach((h) => h.forEach((c) => cards.push(c)));
     d.board.forEach((c) => { if (c >= 0) cards.push(c); });
     let error = '';
-    if (!validBoard) error = 'Boardは未入力、Flop 3枚、Turn 4枚、River 5枚のいずれかにしてください。';
+    if (d.mode === 'random' && d.opp > 3) error = 'ミニゲームは最大4人です。「相手想定」は相手3人以下にしてください。';
+    else if (!validBoard) error = 'Boardは未入力、Flop 3枚、Turn 4枚、River 5枚のいずれかにしてください。';
     else if (hands.some((h) => h.length !== 2 || h.some((c) => !Number.isInteger(c) || c < 0 || c > 51))) error = '参加する全プレイヤーのハンド2枚を入力してください。';
     else if (new Set(cards).size !== cards.length) error = '同じカードが複数箇所にあります。カードを確認してください。';
     else if (cards.length + (d.mode === 'random' ? 2 * d.opp : 0) > 52) error = '参加人数と入力カード数が不正です。';
