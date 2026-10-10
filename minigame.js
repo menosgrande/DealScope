@@ -209,6 +209,16 @@ function showBridgeSetup(){
  if(!validBridgePayload(bridgePayload)){setError('受け取った局面データが不正です。解析画面からもう一度開始してください。');$('startImported').disabled=true;return}
  var s=bridgePayload.snapshot,bc=s.board.filter(function(c){return c>=0}).length,n=bridgePayload.activeCount;
  $('setupSummary').textContent=(s.mode==='known'?'ハンド指定':'相手想定')+' / '+n+'人 / '+bridgeStreet(bc)+'開始 / 開始時の解析勝率 '+bridgePayload.equity.map(function(x,i){return (s.mode==='random'?'Hero':('P'+(i+1)))+' '+Number(x).toFixed(1)+'%'}).join('・');
+ // 解析画面から実際に引き継ぐカードを開始前に明示する。相手想定の相手札は開始時に配る。
+ var preview='<div class="previewGroup"><div class="previewLabel">BOARD · '+(bc===0?'未配布':bridgeStreet(bc).toUpperCase())+'</div><div class="previewCards">'+(bc?s.board.filter(function(c){return c>=0}).map(card).join(''):'<span class="previewEmpty">プリフロップから開始</span>')+'</div></div>';
+ preview+='<div class="previewGroup"><div class="previewLabel">PLAYERS · '+(s.mode==='known'?'指定ハンドを引き継ぎ':'Heroのハンドを引き継ぎ')+'</div>';
+ var shown=s.mode==='known'?s.n:1;
+ for(var pi=0;pi<shown;pi++){
+   preview+='<div class="previewPlayer"><b>'+(pi===0?'あなた':NAMES[pi])+'</b><div class="previewCards">'+s.players[pi].map(card).join('')+'</div></div>';
+ }
+ if(s.mode==='random')preview+='<div class="previewPlayer"><b>CPUの相手</b><span class="previewEmpty">開始時にランダム配布</span></div>';
+ preview+='</div>';
+ $('setupPreview').innerHTML=preview;
  $('setupPot').value=bc===0?'0':'10000';$('setupPot').disabled=bc===0;$('setupDefaultPot').textContent=bc===0?'開始ポット: 0（プリフロップは通常のブラインドから開始）':'開始ポット: 10,000（既定値）。変更する場合は詳細設定を開いてください。';
  $('stackFields').innerHTML='';
  for(var i=0;i<n;i++){var label=i===0?'あなた':NAMES[i];var row=document.createElement('label');row.className='stackField';row.innerHTML='<span>'+label+' の開始時残りスタック</span><input type="number" min="0" max="1000000000" step="1" value="1000" data-stack-seat="'+i+'">';$('stackFields').appendChild(row)}
