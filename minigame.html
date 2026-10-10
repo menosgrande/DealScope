@@ -20,19 +20,29 @@ h1{font-size:16px;margin:0}.back{color:var(--mute);text-decoration:none;font-siz
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions button{height:42px;border:1px solid var(--line);border-radius:9px;background:#173e32;color:var(--ivory);font-weight:700}.actions button:disabled{opacity:.3}.actions .fold{color:#e29ba2}.actions .primary{background:var(--brass);color:#17140d;border-color:var(--brass)}
 .amount{display:flex;gap:7px;margin-bottom:7px}.amount input{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:8px;background:#092219;color:var(--ivory);padding:0 10px;font-size:14px}.new{width:100%;height:38px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--mute);margin-top:8px}
 .note{font-size:10px;color:var(--mute);line-height:1.6;margin-top:12px}
+#advancedSetup{margin:8px 0 12px;font-size:12px;color:var(--mute)}#stackFields{display:grid;gap:7px;margin-top:8px}.stackField{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:8px;font-size:12px}.stackField input{width:100%;height:34px;background:#092219;color:var(--ivory);border:1px solid var(--line);border-radius:7px;padding:0 8px}#bridgeSetup .actions{margin-top:10px}#bridgeSetup .actions button{min-width:0}#setupError{color:#ff9ba2}
 @media(max-width:390px){main{padding-left:8px;padding-right:8px}.card{width:39px;height:56px}.players{gap:5px}.player{padding:7px}.phead small{font-size:9px}.actions button{height:40px}}
 </style>
 </head>
 <body>
 <main>
 <div class="top"><h1>DealScope / 4人トーナメント</h1><a class="back" href="./">← Calculator</a></div>
-<div class="panel">
+<div class="panel" id="bridgeSetup" hidden>
+  <div class="msg">解析局面から開始</div>
+  <p class="note" id="setupSummary"></p>
+  <label class="note" for="setupPot">開始ポット（Flop以降の既定値: 10,000）</label>
+  <input id="setupPot" type="number" min="0" step="1" value="10000" style="width:100%;height:38px;margin:5px 0 10px;background:#092219;color:var(--ivory);border:1px solid var(--line);border-radius:8px;padding:0 10px">
+  <details id="advancedSetup"><summary>詳細設定（残りスタック・開始ポット）</summary><div id="stackFields"></div><p class="note">開始ポットは過去のベット履歴を再現せず、独立した共通ポットとして扱います。</p></details>
+  <p class="note" id="setupError" role="alert" hidden></p>
+  <div class="actions"><button id="startImported" class="primary">この設定で開始</button><button id="cancelImported">解析画面へ戻る</button></div>
+</div>
+<div class="panel" id="gamePanel">
   <div id="info" class="info"></div>
   <div id="msg" class="msg"></div>
   <div id="board" class="board"></div>
   <div id="players" class="players"></div>
 </div>
-<div class="panel">
+<div class="panel" id="actionPanel">
   <div class="hint" id="hint"></div>
   <div class="amount"><input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ額"></div>
   <div class="actions">
@@ -41,9 +51,10 @@ h1{font-size:16px;margin:0}.back{color:var(--mute);text-decoration:none;font-siz
     <button id="betBtn" class="primary">ベット</button>
     <button id="allinBtn">オールイン</button>
   </div>
+  <button id="nextHandBtn" class="new" hidden>次のハンドへ</button><button id="returnAnalysisBtn" class="new" hidden>解析画面へ戻る</button>
   <button id="newBtn" class="new">最初からやり直す</button>
 </div>
-<div class="panel log" id="log"></div>
+<div class="panel log" id="logPanel"><div id="log"></div></div>
 <p class="note">これはDealScope本体とは別の遊び用ミニゲームです。CPUはGTO解ではなく、TAG / LAG / タイト・パッシブ / ルーズ・パッシブの傾向を、ハンド強度・ボード・ポット・スタック・確率的な揺らぎに反映します。</p>
 </main>
 <script src="./engine.js"></script>
