@@ -161,6 +161,7 @@ function human(a){
  A.awaiting=false;advance()
 }
 function restart(){
+ clearDangerousConfirmation();
  $('gameTitle').textContent='DealScope / 4人トーナメント';
  bridgeImported=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;A.basePot=0;A.waitingNext=false;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:1000,out:false,hand:[],fold:false,allin:false})});
@@ -268,7 +269,36 @@ function returnAnalysis(){
  if(bridgeImported&&!A.waitingNext&&!A.finished&&!confirm('進行中のハンドを終了して解析画面へ戻りますか？'))return;
  location.href='./';
 }
-$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){human('call')};$('betBtn').onclick=function(){human(A.currentBet?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('newBtn').onclick=restart;
+var dangerousConfirmation=null;
+function clearDangerousConfirmation(){
+ if(!dangerousConfirmation)return;
+ clearTimeout(dangerousConfirmation.timer);
+ var el=$(dangerousConfirmation.id);
+ if(el)el.textContent=dangerousConfirmation.original;
+ dangerousConfirmation=null;
+}
+function confirmDangerousAction(id,label,callback){
+ var el=$(id);
+ if(dangerousConfirmation&&dangerousConfirmation.id===id){
+  clearTimeout(dangerousConfirmation.timer);
+  dangerousConfirmation=null;
+  callback();
+  return;
+ }
+ clearDangerousConfirmation();
+ dangerousConfirmation={id:id,original:el.textContent,timer:null};
+ el.textContent='もう一度押して確定';
+ dangerousConfirmation.timer=setTimeout(function(){
+  if(!dangerousConfirmation||dangerousConfirmation.id!==id)return;
+  el.textContent=label;
+  dangerousConfirmation=null;
+ },2500);
+}
+$('foldBtn').onclick=function(){confirmDangerousAction('foldBtn','フォールド',function(){human('fold')})};
+$('callBtn').onclick=function(){clearDangerousConfirmation();human('call')};
+$('betBtn').onclick=function(){clearDangerousConfirmation();human(A.currentBet?'raise':'bet')};
+$('allinBtn').onclick=function(){confirmDangerousAction('allinBtn','オールイン',function(){human('allin')})};
+$('newBtn').onclick=function(){confirmDangerousAction('newBtn','最初からやり直す',restart)};
 $('startImported').onclick=startImported;$('cancelImported').onclick=function(){location.href='./'};$('nextHandBtn').onclick=function(){if(!A.waitingNext)return;A.waitingNext=false;A.handOver=false;bridgeImported=false;A.basePot=0;A.pot=0;A.players.forEach(function(p){if(p.stack<=0)p.out=true});$('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;$('newBtn').hidden=false;resetHand()};
 $('returnAnalysisBtn').onclick=returnAnalysis;$('backLink').addEventListener('click',function(e){e.preventDefault();returnAnalysis()});
 if(hasBridge)showBridgeSetup();else restart()
