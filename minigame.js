@@ -161,6 +161,7 @@ function human(a){
  A.awaiting=false;advance()
 }
 function restart(){
+ $('gameTitle').textContent='DealScope / 4人トーナメント';
  bridgeImported=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[10,20];A.pot=0;A.basePot=0;A.waitingNext=false;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:1000,out:false,hand:[],fold:false,allin:false})});
  $('bridgeSetup').hidden=true;$('gamePanel').hidden=false;$('actionPanel').hidden=false;$('logPanel').hidden=false;
@@ -204,6 +205,7 @@ function validBridgePayload(d){
  return new Set(cards).size===cards.length&&Array.isArray(d.equity)&&d.equity.length===equityCount&&d.equity.every(function(x){return Number.isFinite(x)&&x>=0&&x<=100});
 }
 function showBridgeSetup(){
+ $('gameTitle').textContent='DealScope / 解析局面ミニゲーム';
  $('bridgeSetup').hidden=false;$('gamePanel').hidden=true;$('actionPanel').hidden=true;$('logPanel').hidden=true;
  $('newBtn').hidden=true;
  if(!validBridgePayload(bridgePayload)){setError('受け取った局面データが不正です。解析画面からもう一度開始してください。');$('startImported').disabled=true;return}
@@ -232,6 +234,7 @@ function startImported(){
  var stacks=[],inputs=$('stackFields').querySelectorAll('input[data-stack-seat]');
  for(var i=0;i<inputs.length;i++){var v=Number(inputs[i].value);if(inputs[i].value.trim()===''||!Number.isSafeInteger(v)||v<0||v>1000000000){setError('各スタックは0〜1,000,000,000の整数で入力してください。');return}stacks.push(v)}
  if(stacks.reduce(function(a,b){return a+b},pot)>1000000000){setError('スタックと開始ポットの合計は1,000,000,000以下にしてください。');return}
+ $('gameTitle').textContent='DealScope / 局面ミニゲーム';
  bridgeImported=true;bridgeStartEquity=bridgePayload.equity.map(Number);bridgeInitialPot=pot;bridgeStartStacks=stacks.slice();
  A.players=[];A.finished=false;A.handNo=1;A.blinds=[10,20];A.lastRaise=20;A.currentBet=0;A.pot=pot;A.basePot=pot;A.history=[];A.handOver=false;A.waitingNext=false;A.awaiting=false;
  var sCount=s.mode==='random'?1+s.opp:s.n, types=['tag','lag','tp','lp'];
