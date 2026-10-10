@@ -238,11 +238,11 @@ function startImported(){
    A.pot=0;A.basePot=0;
    var sb,bb;
    if(sCount===2){sb=A.dealer;bb=nextSeat(sb)}else{sb=nextSeat(A.dealer);bb=nextSeat(sb)}
-   A.players[sb].position='SB';A.players[bb].position='BB';A.players[A.dealer].position='BTN';
+   A.players[sb].position=sCount===2&&sb===A.dealer?'BTN/SB':'SB';A.players[bb].position='BB';if(sCount>2)A.players[A.dealer].position='BTN';
    A.players.forEach(function(p){if(p.out)return;if(!p.position)p.position='UTG'});
    blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=Math.max(A.roundBet[sb],A.roundBet[bb]);A.actor=nextSeat(bb);
  }else{
-   A.players.forEach(function(p){if(!p.out)p.position=p.seat===A.dealer?'BTN':p.seat===nextSeat(A.dealer)?'SB':p.seat===nextSeat(nextSeat(A.dealer))?'BB':'UTG'});
+   A.players.forEach(function(p){if(!p.out)p.position=sCount===2?(p.seat===A.dealer?'BTN/SB':'BB'):p.seat===A.dealer?'BTN':p.seat===nextSeat(A.dealer)?'SB':p.seat===nextSeat(nextSeat(A.dealer))?'BB':'UTG'});
    A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=nextSeat(A.dealer);
  }
  A.message='解析局面から開始 / '+A.street.toUpperCase()+' / 開始ポット '+money(A.pot);
@@ -252,11 +252,11 @@ function startImported(){
  render();advance()
 }
 function returnAnalysis(){
- if(!A.waitingNext&&!A.finished&&!confirm('進行中のハンドを終了して解析画面へ戻りますか？'))return;
+ if(bridgeImported&&!A.waitingNext&&!A.finished&&!confirm('進行中のハンドを終了して解析画面へ戻りますか？'))return;
  location.href='./';
 }
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){human('call')};$('betBtn').onclick=function(){human(A.currentBet?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('newBtn').onclick=restart;
 $('startImported').onclick=startImported;$('cancelImported').onclick=function(){location.href='./'};$('nextHandBtn').onclick=function(){if(!A.waitingNext)return;A.waitingNext=false;A.handOver=false;bridgeImported=false;A.basePot=0;A.pot=0;A.players.forEach(function(p){if(p.stack<=0)p.out=true});$('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;$('newBtn').hidden=false;resetHand()};
-$('returnAnalysisBtn').onclick=returnAnalysis;
+$('returnAnalysisBtn').onclick=returnAnalysis;$('backLink').addEventListener('click',function(e){e.preventDefault();returnAnalysis()});
 if(hasBridge)showBridgeSetup();else restart()
 })();
