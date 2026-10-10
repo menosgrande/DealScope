@@ -732,7 +732,16 @@
   }
   $('playScenario').addEventListener('click', launchMiniGame);
 
-  load();
+  let restoredBridge = false;
+  try {
+    const rawReturn = sessionStorage.getItem('dealscope-analysis-return-v1');
+    if (rawReturn) {
+      sessionStorage.removeItem('dealscope-analysis-return-v1');
+      const returned = S.normalizeSaved(JSON.parse(rawReturn));
+      if (returned) { adopt(returned); restoredBridge = true; }
+    }
+  } catch (e) { /* 不正な復元データは通常の保存復元へフォールバック */ }
+  if (!restoredBridge) load();
   buildGrid();
   ensureActive();
   render();
