@@ -189,14 +189,19 @@ function bridgeStreet(count){return count===0?'preflop':count===3?'flop':count==
 function validBridgePayload(d){
  if(!d||d.version!==1||!d.snapshot||!['known','random'].includes(d.snapshot.mode))return false;
  var s=d.snapshot,n=s.mode==='random'?1+s.opp:s.n;
- if(!Number.isInteger(n)||n<2||n>4||!Array.isArray(s.players)||s.players.length!==4||!Array.isArray(s.board)||s.board.length!==5)return false;
+ if(!Number.isInteger(n)||n<2||n>4||d.activeCount!==n||!Array.isArray(s.players)||s.players.length!==4||!Array.isArray(s.board)||s.board.length!==5)return false;
+ if(s.mode==='known'&&(!Number.isInteger(s.n)||s.n<2||s.n>4))return false;
+ if(s.mode==='random'&&(!Number.isInteger(s.opp)||s.opp<1||s.opp>3))return false;
+ if(s.board.some(function(c){return !Number.isInteger(c)||(c!==-1&&(c<0||c>51))}))return false;
  var bc=s.board.filter(function(c){return c>=0}).length;
  if(![0,3,4,5].includes(bc))return false;
- if(!(bc===0?s.board.every(function(c){return c<0}):bc===3?s.board.slice(0,3).every(function(c){return c>=0})&&s.board.slice(3).every(function(c){return c<0}):bc===4?s.board.slice(0,4).every(function(c){return c>=0})&&s.board[4]<0:s.board.every(function(c){return c>=0})))return false;
- for(var i=0;i<(s.mode==='random'?1:s.n);i++)if(!Array.isArray(s.players[i])||s.players[i].length!==2||s.players[i].some(function(c){return !Number.isInteger(c)||c<0||c>51}))return false;
+ if(!(bc===0?s.board.every(function(c){return c===-1}):bc===3?s.board.slice(0,3).every(function(c){return c>=0})&&s.board.slice(3).every(function(c){return c===-1}):bc===4?s.board.slice(0,4).every(function(c){return c>=0})&&s.board[4]===-1:s.board.every(function(c){return c>=0})))return false;
+ var shown=s.mode==='random'?1:s.n;
+ for(var i=0;i<shown;i++)if(!Array.isArray(s.players[i])||s.players[i].length!==2||s.players[i].some(function(c){return !Number.isInteger(c)||c<0||c>51}))return false;
  var cards=[];s.board.forEach(function(c){if(c>=0)cards.push(c)});
- for(var i=0;i<(s.mode==='random'?1:s.n);i++)s.players[i].forEach(function(c){if(c>=0)cards.push(c)});
- return new Set(cards).size===cards.length&&d.equity&&d.equity.length>0;
+ for(var i=0;i<shown;i++)s.players[i].forEach(function(c){cards.push(c)});
+ var equityCount=s.mode==='random'?1:s.n;
+ return new Set(cards).size===cards.length&&Array.isArray(d.equity)&&d.equity.length===equityCount&&d.equity.every(function(x){return Number.isFinite(x)&&x>=0&&x<=100});
 }
 function showBridgeSetup(){
  $('bridgeSetup').hidden=false;$('gamePanel').hidden=true;$('actionPanel').hidden=true;$('logPanel').hidden=true;
