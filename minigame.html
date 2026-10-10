@@ -30,9 +30,10 @@ h1{font-size:16px;margin:0}.back{color:var(--mute);text-decoration:none;font-siz
 <div class="panel" id="bridgeSetup" hidden>
   <div class="msg">解析局面から開始</div>
   <p class="note" id="setupSummary"></p>
-  <label class="note" for="setupPot">開始ポット（Flop以降の既定値: 10,000）</label>
-  <input id="setupPot" type="number" min="0" step="1" value="10000" style="width:100%;height:38px;margin:5px 0 10px;background:#092219;color:var(--ivory);border:1px solid var(--line);border-radius:8px;padding:0 10px">
-  <details id="advancedSetup"><summary>詳細設定（残りスタック・開始ポット）</summary><div id="stackFields"></div><p class="note">開始ポットは過去のベット履歴を再現せず、独立した共通ポットとして扱います。</p></details>
+  <p class="note" id="setupDefaultPot"></p>
+  <details id="advancedSetup"><summary>詳細設定（残りスタック・開始ポット）</summary>
+  <label class="note" for="setupPot">開始ポット</label><input id="setupPot" type="number" min="0" max="1000000000" step="1" value="10000" style="width:100%;height:38px;margin:5px 0 10px;background:#092219;color:var(--ivory);border:1px solid var(--line);border-radius:8px;padding:0 10px">
+  <div id="stackFields"></div><p class="note">開始ポットは過去のベット履歴を再現せず、独立した共通ポットとして扱います。</p></details>
   <p class="note" id="setupError" role="alert" hidden></p>
   <div class="actions"><button id="startImported" class="primary">この設定で開始</button><button id="cancelImported">解析画面へ戻る</button></div>
 </div>
