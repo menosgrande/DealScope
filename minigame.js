@@ -13,7 +13,10 @@ var TYPES={
 };
 var NAMES=['あなた','冷静なプロ','攻める狂犬','慎重派'];
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[10,20],street:'preflop',currentBet:0,lastRaise:20,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[10,20],street:'preflop',currentBet:0,lastRaise:20,actor:0,acted:[],roundBet:[],pot:0,basePot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,waitingNext:false};
+var bridgePayload=null, bridgeImported=false, bridgeStartEquity=[], bridgeInitialPot=0, bridgeStartStacks=[]; 
+try{bridgePayload=JSON.parse(sessionStorage.getItem('dealscope-analysis-game-v1')||'null')}catch(e){bridgePayload=null}
+var hasBridge=!!(bridgePayload&&bridgePayload.version===1&&bridgePayload.snapshot);
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
