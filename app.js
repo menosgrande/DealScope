@@ -680,6 +680,58 @@
     }
   });
 
+  // Integration boundary: the mini-game receives a cloned snapshot and a fixed start-time equity only.
+  window.DealScopeBridge = {
+    snapshot: () => JSON.parse(JSON.stringify(snapshot())),
+    result: () => ({ mode: res.mode, eq: res.eq.slice(), approx: !!res.approx }),
+    restore: (d) => {
+      const normalized = S.normalizeSaved(d);
+      if (!normalized) return false;
+      adopt(normalized);
+      state.open = false;
+      state.deleteTarget = null;
+      render();
+      recompute();
+      return true;
+    }
+  };
+
+  function launchMiniGame() {
+    const d = snapshot();
+    const boardCount = d.board.filter((c) => c >= 0).length;
+    const validBoard = boardCount === 0 ||
+      (boardCount === 3 && d.board.slice(0, 3).every((c) => c >= 0) && d.board.slice(3).every((c) => c < 0)) ||
+      (boardCount === 4 && d.board.slice(0, 4).every((c) => c >= 0) && d.board[4] < 0) ||
+      (boardCount === 5 && d.board.every((c) => c >= 0));
+    const activeCount = d.mode === 'random' ? 1 + d.opp : d.n;
+    const hands = d.mode === 'random' ? d.players.slice(0, 1) : d.players.slice(0, d.n);
+    const cards = [];
+    hands.forEach((h) => h.forEach((c) => cards.push(c)));
+    d.board.forEach((c) => { if (c >= 0) cards.push(c); });
+    let error = '';
+    if (!validBoard) error = 'Boardは未入力、Flop 3枚、Turn 4枚、River 5枚のいずれかにしてください。';
+    else if (hands.some((h) => h.length !== 2 || h.some((c) => !Number.isInteger(c) || c < 0 || c > 51))) error = '参加する全プレイヤーのハンド2枚を入力してください。';
+    else if (new Set(cards).size !== cards.length) error = '同じカードが複数箇所にあります。カードを確認してください。';
+    else if (cards.length + (d.mode === 'random' ? 2 * d.opp : 0) > 52) error = '参加人数と入力カード数が不正です。';
+    else if (res.mode !== 'done' || res.eq.length < (d.mode === 'random' ? 1 : d.n)) error = '勝率の計算が完了してから開始してください。';
+    if (error) { $('bridgeError').textContent = error; $('bridgeError').hidden = false; return; }
+    const payload = {
+      version: 1, snapshot: JSON.parse(JSON.stringify(d)),
+      equity: res.eq.slice(0, d.mode === 'random' ? 1 : d.n),
+      approx: !!res.approx, activeCount,
+      createdAt: Date.now()
+    };
+    try {
+      sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(payload.snapshot));
+      sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(payload));
+      location.href = './minigame.html';
+    } catch (e) {
+      $('bridgeError').textContent = '局面を渡せませんでした。ブラウザのセッション保存設定を確認してください。';
+      $('bridgeError').hidden = false;
+    }
+  }
+  $('playScenario').addEventListener('click', launchMiniGame);
+
   load();
   buildGrid();
   ensureActive();
