@@ -716,14 +716,18 @@
     else if (cards.length + (d.mode === 'random' ? 2 * d.opp : 0) > 52) error = '参加人数と入力カード数が不正です。';
     else if (res.mode !== 'done' || res.eq.length < (d.mode === 'random' ? 1 : d.n)) error = '勝率の計算が完了してから開始してください。';
     if (error) { $('bridgeError').textContent = error; $('bridgeError').hidden = false; return; }
+    const gameSnapshot = JSON.parse(JSON.stringify(d));
+    // Do not send hidden/stale hands from inactive analysis seats into the game payload.
+    const shownCount = d.mode === 'random' ? 1 : d.n;
+    for (let i = shownCount; i < gameSnapshot.players.length; i++) gameSnapshot.players[i] = [-1, -1];
     const payload = {
-      version: 1, snapshot: JSON.parse(JSON.stringify(d)),
+      version: 1, snapshot: gameSnapshot,
       equity: res.eq.slice(0, d.mode === 'random' ? 1 : d.n),
       approx: !!res.approx, activeCount,
       createdAt: Date.now()
     };
     try {
-      sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(payload.snapshot));
+      sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(d));
       sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(payload));
       location.href = './minigame.html';
     } catch (e) {
