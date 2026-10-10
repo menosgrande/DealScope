@@ -281,6 +281,7 @@ function confirmDangerousAction(id,label,callback){
  var el=$(id);
  if(dangerousConfirmation&&dangerousConfirmation.id===id){
   clearTimeout(dangerousConfirmation.timer);
+  el.textContent=dangerousConfirmation.original;
   dangerousConfirmation=null;
   callback();
   return;
