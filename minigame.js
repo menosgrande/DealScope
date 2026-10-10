@@ -192,6 +192,7 @@ function validBridgePayload(d){
  if(!Number.isInteger(n)||n<2||n>4||!Array.isArray(s.players)||s.players.length!==4||!Array.isArray(s.board)||s.board.length!==5)return false;
  var bc=s.board.filter(function(c){return c>=0}).length;
  if(![0,3,4,5].includes(bc))return false;
+ if(!(bc===0?s.board.every(function(c){return c<0}):bc===3?s.board.slice(0,3).every(function(c){return c>=0})&&s.board.slice(3).every(function(c){return c<0}):bc===4?s.board.slice(0,4).every(function(c){return c>=0})&&s.board[4]<0:s.board.every(function(c){return c>=0})))return false;
  for(var i=0;i<(s.mode==='random'?1:s.n);i++)if(!Array.isArray(s.players[i])||s.players[i].length!==2||s.players[i].some(function(c){return !Number.isInteger(c)||c<0||c>51}))return false;
  var cards=[];s.board.forEach(function(c){if(c>=0)cards.push(c)});
  for(var i=0;i<(s.mode==='random'?1:s.n);i++)s.players[i].forEach(function(c){if(c>=0)cards.push(c)});
@@ -203,7 +204,7 @@ function showBridgeSetup(){
  if(!validBridgePayload(bridgePayload)){setError('受け取った局面データが不正です。解析画面からもう一度開始してください。');$('startImported').disabled=true;return}
  var s=bridgePayload.snapshot,bc=s.board.filter(function(c){return c>=0}).length,n=bridgePayload.activeCount;
  $('setupSummary').textContent=(s.mode==='known'?'ハンド指定':'相手想定')+' / '+n+'人 / '+bridgeStreet(bc)+'開始 / 開始時の解析勝率 '+bridgePayload.equity.map(function(x,i){return (s.mode==='random'?'Hero':('P'+(i+1)))+' '+Number(x).toFixed(1)+'%'}).join('・');
- $('setupPot').value=bc===0?'0':'10000';$('setupPot').disabled=bc===0;
+ $('setupPot').value=bc===0?'0':'10000';$('setupPot').disabled=bc===0;$('setupDefaultPot').textContent=bc===0?'開始ポット: 0（プリフロップは通常のブラインドから開始）':'開始ポット: 10,000（既定値）。変更する場合は詳細設定を開いてください。';
  $('stackFields').innerHTML='';
  for(var i=0;i<n;i++){var label=i===0?'あなた':NAMES[i];var row=document.createElement('label');row.className='stackField';row.innerHTML='<span>'+label+' の開始時残りスタック</span><input type="number" min="0" max="1000000000" step="1" value="1000" data-stack-seat="'+i+'">';$('stackFields').appendChild(row)}
 }
@@ -219,7 +220,7 @@ function startImported(){
  bridgeImported=true;bridgeStartEquity=bridgePayload.equity.map(Number);bridgeInitialPot=pot;bridgeStartStacks=stacks.slice();
  A.players=[];A.finished=false;A.handNo=1;A.blinds=[10,20];A.lastRaise=20;A.currentBet=0;A.pot=pot;A.basePot=pot;A.history=[];A.handOver=false;A.waitingNext=false;A.awaiting=false;
  var sCount=s.mode==='random'?1+s.opp:s.n, types=['tag','lag','tp','lp'];
- for(var i=0;i<4;i++){var participating=i<sCount;A.players.push({seat:i,name:NAMES[i],type:types[i],stack:participating?stacks[i]:0,out:!participating,hand:[],fold:false,allin:false,contrib:0,showdownScore:0,position:''})}
+ for(var i=0;i<4;i++){var participating=i<sCount;A.players.push({seat:i,name:NAMES[i],type:types[i],stack:participating?stacks[i]:0,out:!participating,hand:[],fold:false,allin:participating&&stacks[i]===0,contrib:0,showdownScore:0,position:''})}
  A.board=s.board.filter(function(c){return c>=0});
  var fixed=[];
  if(s.mode==='known'){for(var i=0;i<s.n;i++){A.players[i].hand=s.players[i].slice();fixed=fixed.concat(A.players[i].hand)}}
