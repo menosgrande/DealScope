@@ -26,3 +26,5 @@ jobs:
         run: node ci/browser-verify.js
       - name: Run analysis-to-mini-game bridge checks
         run: node tests/analysis-minigame-bridge.test.cjs
+      - name: Run active mini-game EV checks
+        run: node tests/minigame-ev-active.test.cjs
