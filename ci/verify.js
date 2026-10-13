@@ -373,6 +373,17 @@ function testMiniGameEVMath() {
   }));
   assert.equal(result.rows.find(r => r.kind === 'call').evBB, 8.6);
 
+  // Folded chips remain dead money and stay contestable by Hero.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, contrib: 100, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: [8, 9], stack: 0, contrib: 190, out: false, fold: true, type: 'tp', allin: false }
+    ],
+    pot: 300, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 16.6);
+
   // A single live opponent can have a raise EV estimate.
   result = MiniGameEV.estimate(state(), 40);
   assert.equal(result.raiseEVSuppressed, false);
