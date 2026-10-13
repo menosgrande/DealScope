@@ -247,10 +247,10 @@ function showdown(){
  var total=all.reduce(function(s,p){return s+(p.contrib||0)},0);
  var winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z.s)+'」'}).join(' / ');
  var payoutPlayers=Object.keys(awardMap).map(function(seat){return A.players[Number(seat)]}).filter(Boolean);
- var payoutText=payoutPlayers.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z?z.s:0)+'」 +'+money(awardMap[p.seat])}).join(' / ');
+ var payoutText=payoutPlayers.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'：獲得 '+money(awardMap[p.seat])+'（'+handDetail(z?z.s:0)+'）'}).join('\n');
  if(unique.length===1)A.message='勝者：'+winnerText+'・'+money(awardMap[unique[0].seat]||0)+'獲得（総額 '+money(total)+'）';
  else if(settlement.potCount===1)A.message='引き分け：'+winnerText+'・'+money(total)+'を分配';
- else A.message='ポット別配当：'+payoutText+'（総額 '+money(total)+'）';
+ else A.message='ポット別配当（総額 '+money(total)+'）\n'+payoutText;
  A.pot=0;endHand()
 }
 function endHand(){
