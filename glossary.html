@@ -70,6 +70,140 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
  .nav{gap:5px} .nav a{min-height:32px;padding:0 8px;font-size:11px}
 }
 @media(min-width:621px) and (max-width:800px){#terms{grid-template-columns:minmax(0,1fr)}}
+
+/* Visual refinement: preserve the existing felt-and-brass identity and all controls. */
+:root{
+ --felt:#0a241e;--felt2:#12372d;--line:#2c5a4b;--ivory:#f5f1e7;
+ --mute:#a0bdb1;--brass:#e0bd68;--ink:#17221d;
+ --card-edge:rgba(180,211,194,.15);
+}
+html,body{
+ background:
+  radial-gradient(ellipse at 50% -15%,rgba(52,111,84,.32),transparent 52%),
+  linear-gradient(180deg,#0c2a22 0%,var(--felt) 55%,#081d18 100%);
+}
+main{max-width:1000px;padding-top:18px}
+.top{margin-bottom:14px}
+.brand{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#c0d5ca}
+.nav a{
+ min-height:36px;padding:0 12px;border-color:rgba(143,176,163,.22);
+ background:rgba(20,61,50,.68);backdrop-filter:blur(8px);
+ transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.nav a:hover{transform:translateY(-1px);box-shadow:0 5px 14px #06171155}
+.nav a[aria-current="page"]{box-shadow:0 3px 12px #d8b25222}
+.intro{
+ position:relative;padding:25px 0 21px;border-bottom:1px solid rgba(143,176,163,.22);
+}
+.eyebrow{font-size:10px;letter-spacing:.22em}
+h1{font-size:clamp(27px,4.4vw,38px);letter-spacing:.015em;margin:9px 0 10px}
+.lead{max-width:720px;font-size:13px;line-height:1.85;color:#b4c9bf}
+.stats{gap:8px;margin-top:17px}
+.stat{
+ border:1px solid rgba(143,176,163,.22);border-radius:999px;padding:7px 12px;
+ background:rgba(18,55,45,.62);color:#afc6bb;
+}
+.stat b{font-size:12px}
+.stat:first-child b{color:var(--brass);font-size:15px}
+.controls{padding:19px 0 12px;grid-template-columns:minmax(0,1fr) 245px;gap:12px}
+.searchWrap label,.controlLabel{font-size:10px;letter-spacing:.09em;font-weight:750;margin-bottom:7px}
+.searchWrap input,.filterSelect{
+ height:46px;border-radius:11px;border-color:rgba(143,176,163,.28);
+ background:rgba(18,55,45,.82);padding:0 14px;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 3px 12px rgba(0,0,0,.08);
+ transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.searchWrap input:hover,.filterSelect:hover{border-color:rgba(224,189,104,.55)}
+.searchWrap input:focus,.filterSelect:focus{
+ border-color:var(--brass);background:#153d31;
+ box-shadow:0 0 0 3px rgba(224,189,104,.12);outline:none;
+}
+.searchWrap input::placeholder{color:#8ca99b}
+.filterSelect{cursor:pointer}
+.filters{gap:7px;padding:2px 0 17px}
+.filterCaption{font-size:10px;letter-spacing:.08em;font-weight:750;margin-right:5px}
+.filterBtn{
+ height:32px;padding:0 12px;border-color:rgba(143,176,163,.24);
+ background:rgba(18,55,45,.36);color:#b3c8be;font-size:11px;
+ transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.filterBtn:hover{border-color:rgba(224,189,104,.72);background:rgba(224,189,104,.08);transform:translateY(-1px)}
+.filterBtn[aria-pressed=true]{
+ background:linear-gradient(135deg,#f0d78f 0%,var(--brass) 100%);
+ border-color:#f0d78f;color:#19231d;box-shadow:0 3px 10px rgba(224,189,104,.14);
+}
+.listHead{border-top-color:rgba(143,176,163,.22);padding:15px 0 11px}
+.listHead h2{font-size:14px;letter-spacing:.025em}
+#count{padding:4px 9px;border:1px solid rgba(143,176,163,.18);border-radius:999px;background:#12372d80}
+#terms{gap:11px}
+.term{
+ position:relative;overflow:hidden;gap:9px;padding:15px;
+ background:linear-gradient(145deg,rgba(22,63,51,.96),rgba(15,47,38,.98));
+ border:1px solid var(--card-edge);border-radius:13px;
+ box-shadow:0 5px 16px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.025);
+ transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.term::before{
+ content:"";position:absolute;inset:0 auto 0 0;width:2px;
+ background:linear-gradient(180deg,rgba(224,189,104,.65),rgba(224,189,104,0));
+ opacity:.0;transition:opacity .18s ease;
+}
+.term:hover{
+ transform:translateY(-2px);border-color:rgba(224,189,104,.34);
+ box-shadow:0 10px 24px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.035);
+}
+.term:hover::before{opacity:1}
+.termTop{gap:10px}
+.term h3{font-size:16px;line-height:1.45;letter-spacing:.005em}
+.termAbbr{color:#c2d2c8;font-size:.82em}
+.english{font-size:11px;color:#9fb8ac;letter-spacing:.015em;margin-top:4px}
+.category{
+ border-color:rgba(143,190,169,.24);border-radius:999px;
+ color:#b8d0c3;background:rgba(143,190,169,.07);
+ padding:3px 8px;font-size:10px;font-weight:650;letter-spacing:.015em;
+}
+.stars{font-size:12px;letter-spacing:1.3px;color:#e7c66e;padding-top:2px}
+.stars .empty{color:#426957}
+.definition{font-size:12px;line-height:1.8;color:#e9eee6}
+.example{
+ margin-top:1px;padding:9px 11px;border-left:2px solid #d7b35b;
+ border-radius:0 8px 8px 0;background:rgba(7,29,23,.45);
+ color:#dce7dc;line-height:1.75;
+}
+.example b{color:#e7c66e}
+.relatedTerms{line-height:1.9;color:#adc3b7}
+.relatedTerms b{margin-right:3px;color:#91ad9f}
+.relatedTerms a{
+ display:inline-block;margin:2px 5px 2px 0;padding:1px 7px;
+ border:1px solid rgba(224,189,104,.2);border-radius:999px;
+ background:rgba(224,189,104,.055);color:#e2c779;
+ transition:background .15s ease,border-color .15s ease;
+}
+.relatedTerms a:hover{background:rgba(224,189,104,.13);border-color:rgba(224,189,104,.55);text-decoration:none}
+.guideLink{padding-top:9px;border-top-color:rgba(143,176,163,.18)}
+.guideLink a{color:#e2c779}
+.guideLink a:hover{color:#f4dda0}
+.noResults{border-color:rgba(143,176,163,.3);background:rgba(18,55,45,.35);padding:36px 15px}
+.source{border-top-color:rgba(143,176,163,.2);color:#93afa2}
+.source a{color:#e2c779}
+@media(max-width:620px){
+ main{padding:10px 12px 30px}
+ .top{align-items:flex-start;gap:8px}
+ .brand{padding-top:8px}
+ .nav a{min-height:33px;padding:0 9px}
+ .intro{padding:17px 0 16px}
+ h1{font-size:28px}
+ .controls{grid-template-columns:minmax(0,1fr);padding-top:16px}
+ .filters{gap:6px}
+ .filterBtn{padding:0 10px}
+ #terms{gap:9px}
+ .term{padding:14px;border-radius:12px}
+ .term h3{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+
 </style>
 </head>
 <body>
