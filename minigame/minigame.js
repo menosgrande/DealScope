@@ -14,6 +14,7 @@ var TYPES={
 var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
+var sessionStartStack=20000;
 var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false,knownScenarioEV:false};
 function cardToken(c){return c==null||c<0?'xx':R[c>>2]+'shdc'[c&3]}
 function trimTokens(cards){var tokens=cards.map(cardToken);while(tokens.length&&tokens[tokens.length-1]==='xx')tokens.pop();return tokens.join('')}
@@ -369,12 +370,13 @@ function startImported(payload){
 }
 
 function restart(){
- A.knownScenarioEV=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;
+ A.knownScenarioEV=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;sessionStartStack=20000;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:20000,out:false,hand:[],fold:false,allin:false})});
  resetHand()
 }
 function card(c){var suit=c&3,cls=['spade','heart','diamond','club'][suit];return '<span class="card '+cls+'"><span class="rank">'+R[c>>2]+'</span><span class="suit">'+S[suit]+'</span></span>'}
 function render(){
+ var profitNode=$('sessionProfit');if(profitNode){var profit=(A.players[0]?A.players[0].stack:sessionStartStack)-sessionStartStack;profitNode.textContent=(profit>0?'+':profit<0?'−':'±')+money(Math.abs(profit));profitNode.classList.toggle('positive',profit>0);profitNode.classList.toggle('negative',profit<0);}
  $('msg').textContent=A.message||'';$('street').textContent=A.street==='preflop'?'PREFLOP':A.street.toUpperCase();$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);
  var chipCount=A.pot<=0?0:Math.min(10,Math.max(1,Math.ceil(Math.log2(A.pot/Math.max(1,A.blinds[1])+1)*2)));$('potValue').textContent=money(A.pot);$('potChips').innerHTML=Array.from({length:chipCount},function(_,i){return '<span class="chip" style="bottom:'+(i*3)+'px"></span>'}).join('');
  $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
