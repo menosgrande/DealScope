@@ -396,6 +396,45 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .player{max-height:none}
  .heroAnalysis,.turnPanel{max-height:none}
 }
+
+/* Accessibility and small-screen readability refinements */
+main{
+ padding-top:calc(8px + env(safe-area-inset-top));
+ padding-right:calc(10px + env(safe-area-inset-right));
+ padding-bottom:calc(8px + env(safe-area-inset-bottom));
+ padding-left:calc(10px + env(safe-area-inset-left));
+}
+.msg{height:auto;min-height:27px;padding:3px 2px;overflow:visible;flex:0 0 auto;line-height:1.35;overflow-wrap:anywhere}
+.hint{height:auto;min-height:16px;overflow:visible;overflow-wrap:anywhere}
+.street,.info{font-size:11px}
+.phead small{font-size:10px}
+.typeTag{font-size:9px}
+.resultBadge{font-size:10px}
+.stack .sideLabel{font-size:10px}
+.betline{font-size:10px}
+.made{font-size:10px}
+.potTotal{font-size:11px}
+.amountScale,.stepLabel{font-size:10px}
+.presets button{min-height:32px;height:32px;font-size:11px}
+a.backLink{min-height:40px;font-size:12px}
+.logBox summary,.helpBox summary{height:auto;min-height:36px;padding:9px 8px;font-size:11px}
+.log,.helpBody{font-size:10px}
+.player{border-color:#477568}
+.player.hero,.player.winner,.player.current{border-color:var(--brass)}
+.actions button{min-height:44px;height:44px}
+#nextBtn,.nextButton{min-height:44px;height:44px}
+.amountNudge button{min-height:32px;height:32px}
+@media(max-width:390px){
+ main{padding-top:calc(6px + env(safe-area-inset-top));padding-right:calc(7px + env(safe-area-inset-right));padding-bottom:calc(6px + env(safe-area-inset-bottom));padding-left:calc(7px + env(safe-area-inset-left))}
+ .street,.info{font-size:10px}
+ .phead small{font-size:9px}
+ .stack .sideLabel{font-size:9px}
+ .betline{font-size:9px}
+ .made{font-size:9px}
+ .presets button{min-height:32px;height:32px;font-size:10px}
+ .logBox summary,.helpBox summary{min-height:36px}
+}
+
 </style>
 </head>
 <body>
@@ -404,7 +443,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
 
   <div class="panel tablePanel">
     <div class="metaRow"><div id="street" class="street"></div><div id="info" class="info"></div></div>
-    <div id="msg" class="msg"></div>
+    <div id="msg" class="msg" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="potArea" aria-label="現在のポット">
       <div class="potStack" id="potChips"></div>
       <div class="potTotal"><span>POT</span><b id="potValue">0</b></div>
