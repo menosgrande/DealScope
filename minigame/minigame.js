@@ -349,6 +349,7 @@ function validImportedPayload(payload){
 function startImported(payload){
  var d=payload.snapshot,board=d.board.slice(),activeCount=d.mode==='random'?1+(Number(d.opp)||1):Number(d.n);
  var settings=payload.settings||{},startingStack=Number(settings.stack)||20000,smallBlind=Number(settings.smallBlind)||100,bigBlind=Number(settings.bigBlind)||200,startPot=Number.isFinite(Number(settings.startPot))?Math.max(0,Number(settings.startPot)):300;
+ sessionStartStack=startingStack;
  var used=board.filter(function(c){return c>=0}),knownHands=d.mode==='random'?d.players.slice(0,1):d.players.slice(0,activeCount);
  knownHands.forEach(function(hand){used=used.concat(hand)});
  A.players=[];
