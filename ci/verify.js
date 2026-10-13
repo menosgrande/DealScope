@@ -9,6 +9,7 @@ const Rules = require('../minigame/rules.js');
 const Draw = require('../analysis/drawAnalyzer.js');
 const Texture = require('../analysis/textureAnalyzer.js');
 const Glossary = require('../glossary-data.js');
+const MiniGameEV = require('../minigame/ev.js');
 
 const expected5 = [1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40];
 
@@ -358,7 +359,54 @@ function testGlossaryData() {
   console.log('✓ glossary data ' + terms.length + ' terms / categories / star ratings');
 }
 
+function testMiniGameEVMath() {
+  const engine = { monteCarloVsRandom: () => ({ equity: [80] }) };
+  function state(overrides) {
+    return Object.assign({
+      players: [
+        { seat: 0, hand: [0, 1], stack: 100, out: false, fold: false },
+        { seat: 1, hand: [4, 5], stack: 100, out: false, fold: false, type: 'tag', allin: false },
+        { seat: 2, hand: [8, 9], stack: 100, out: false, fold: false, type: 'tp', allin: false }
+      ],
+      board: [], street: 'preflop', handNo: 1, actor: 0, awaiting: true,
+      pot: 100, blinds: [5, 10], currentBet: 20, roundBet: [0, 20, 0, 0],
+      legal: { minRaise: 40 }, engine
+    }, overrides || {});
+  }
+
+  // Hand-computable call: equity 80%, pot 100, call 20 => 0.8*(100+20)-20 = 76 chips = 7.6 BB.
+  let result = MiniGameEV.estimate(state());
+  assert.equal(result.status, 'ok');
+  assert.equal(result.equityPct, 80);
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 7.6);
+
+  // Hand-computable check: equity 80%, pot 100 => 80 chips = 8 BB.
+  result = MiniGameEV.estimate(state({ currentBet: 0, roundBet: [0, 0, 0, 0] }));
+  assert.equal(result.rows.find(r => r.kind === 'check').evBB, 8);
+
+  // Short all-in call: Hero can add 10, but the opponent has 100 in this street.
+  // 90 unmatched chips are excluded from Hero's eligible pot: 200 - 90 = 110.
+  // EV = 0.8*(110+10)-10 = 86 chips = 8.6 BB, not an impossible full call.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 10, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: [8, 9], stack: 100, out: false, fold: false, type: 'tp', allin: false }
+    ],
+    pot: 200, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  const shortAllIn = result.rows.find(r => r.kind === 'allin');
+  assert(shortAllIn, 'short all-in call should be represented');
+  assert.equal(shortAllIn.evBB, 8.6);
+
+  // A hand with no Hero cards must not return numeric EV rows.
+  result = MiniGameEV.estimate(state({ players: [{ seat: 0, hand: [-1, -1], stack: 100 }] }));
+  assert.notEqual(result.status, 'ok');
+  console.log('✓ mini-game EV: independent arithmetic checks / short-stack eligibility');
+}
+
 function main() {
+  testMiniGameEVMath();
   testGlossaryData();
   testFiveCardDistribution();
   testEvaluatorOrdering();
