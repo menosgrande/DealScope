@@ -25,6 +25,50 @@ h1{font-size:16px;margin:0}.back{color:var(--mute);text-decoration:none;font-siz
 #bridgeSetup{padding:14px}#bridgeSetup>.msg{font-size:16px;font-weight:750;margin:2px 0 12px}#setupSummary{font-size:12px;line-height:1.65;margin:0 0 10px;color:var(--ivory)}#setupDefaultPot{margin:8px 0;color:var(--mute)}.setupPreview{display:grid;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0a211a}.previewGroup{min-width:0}.previewLabel{font-size:11px;color:var(--mute);margin-bottom:6px}.previewCards{display:flex;align-items:center;flex-wrap:wrap;gap:5px;min-height:32px}.previewPlayer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #2a5a4b66}.previewPlayer:first-child{border-top:0}.previewPlayer b{font-size:12px;font-weight:600}.previewPlayer .previewCards{flex-shrink:0}.previewCards .card{width:31px;height:43px;font-size:15px;border-radius:5px}.previewEmpty{font-size:12px;color:var(--mute)}#advancedSetup{border-top:1px solid var(--line);padding-top:10px}#advancedSetup summary{cursor:pointer;color:var(--ivory);font-weight:650}#setupPot{display:block;box-sizing:border-box}#bridgeSetup .actions button{height:42px;border-radius:10px}#bridgeSetup .actions #startImported{box-shadow:0 2px 0 #0002}#setupError{font-size:12px;line-height:1.6;padding:8px;border-radius:8px;background:#7b252a22}
 .handAnalysis summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-weight:750;font-size:13px}.handAnalysis summary::-webkit-details-marker{display:none}.handAnalysis summary:after{content:'＋';color:var(--brass);font-size:18px}.handAnalysis[open] summary:after{content:'−'}.evMeta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid #2a5a4b66;font-size:12px}.evMeta span{color:var(--mute)}.evMeta b{text-align:right}.evRows{margin-top:10px}.evRow{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:36px;border-bottom:1px solid #2a5a4b66;font-size:12px}.evHeader{color:var(--mute);font-size:10px;min-height:26px}.evRow b{font-variant-numeric:tabular-nums}.evRow .positive{color:#8fe0b0}.evRow .negative{color:#ff9ba2}.evRow .neutral{color:var(--ivory)}.evStatus{font-size:12px;color:var(--mute);line-height:1.6}.evDisclaimer{font-size:10px;color:var(--mute);line-height:1.6;margin:10px 0 0}
 @media(max-width:390px){main{padding-left:8px;padding-right:8px}.card{width:39px;height:56px}.players{gap:5px}.player{padding:7px}.phead small{font-size:9px}.actions button{height:40px}}
+
+/* 2026-10 mini-game usability pass */
+.amountLabel{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;color:var(--mute);margin:0 0 6px}
+.amountLabel output{font-size:16px;font-weight:800;color:var(--ivory);font-variant-numeric:tabular-nums}
+.amount{align-items:center}
+.amount button{width:42px;flex:0 0 42px;border:1px solid var(--line);border-radius:8px;background:#173e32;color:var(--ivory);font-size:20px;font-weight:700}
+.amount input{text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.amountRange{width:100%;margin:1px 0 12px;accent-color:var(--brass);cursor:pointer}
+.player{min-height:0;padding:8px}
+.phead{min-height:24px;flex-wrap:wrap}
+.phead b{min-width:0;overflow-wrap:anywhere}
+.phead small{white-space:nowrap}
+.cards{height:60px}
+.player .card{width:34px;height:49px;font-size:17px}
+.player .back{width:34px;height:49px;font-size:16px}
+.playerStats{display:flex;justify-content:space-between;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid #2a5a4b66;color:var(--mute);font-size:10px}
+.playerStats span{min-width:0}
+.playerStats b{display:block;color:var(--ivory);font-size:11px;font-variant-numeric:tabular-nums}
+.player .stack{margin-top:4px;font-size:14px}
+.player .made{padding:3px 4px;border-radius:5px;background:#d8b25218}
+#info{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 10px;line-height:1.6}
+#board{min-height:72px}
+#actionPanel .hint{line-height:1.6}
+.actions button{font-size:13px}
+#foldBtn{border-color:#87434a;background:#45272a}
+#callBtn{background:#173e32}
+#betBtn{background:var(--brass);color:#17140d}
+#allinBtn{border-color:#8b5d37;background:#493321;color:#ffe1b5}
+#newBtn{border-color:#87434a;color:#ffb0b6}
+#handAnalysis{margin-top:10px}
+.handAnalysis[open]{border-color:#537c6c}
+.evMeta b{max-width:62%;overflow-wrap:anywhere}
+.evRows{border:1px solid #2a5a4b;border-radius:8px;overflow:hidden}
+.evRow{padding:0 9px}
+.evRow:nth-child(odd){background:#09221955}
+.evHeader{background:#092219!important}
+.evDisclaimer{padding:8px;border-radius:7px;background:#09221955}
+@media(max-width:390px){
+ .player .card,.player .back{width:29px;height:43px;font-size:15px}
+ .playerStats{font-size:9px}
+ .playerStats b{font-size:10px}
+ .amount button{width:36px;flex-basis:36px}
+}
+
 </style>
 </head>
 <body>
@@ -49,7 +93,7 @@ h1{font-size:16px;margin:0}.back{color:var(--mute);text-decoration:none;font-siz
 </div>
 <div class="panel" id="actionPanel">
   <div class="hint" id="hint"></div>
-  <div class="amount"><input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ額"></div>
+  <label class="amountLabel" for="amount">ベット／レイズ後の合計額 <output id="amountValue" for="amount">20</output></label><div class="amount"><button id="amountDown" type="button" aria-label="金額を小さく">−</button><input id="amount" type="number" step="10" min="20" value="20" aria-label="ベットまたはレイズ後の合計額"><button id="amountUp" type="button" aria-label="金額を大きく">＋</button></div><input id="amountRange" class="amountRange" type="range" min="20" max="1000" step="10" value="20" aria-label="ベットまたはレイズ後の合計額">
   <div class="actions">
     <button id="foldBtn" class="fold">フォールド</button>
     <button id="callBtn">チェック</button>
