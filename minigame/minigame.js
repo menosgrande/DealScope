@@ -169,7 +169,6 @@ function ai(p){
  var bb=Math.max(1,A.blinds[1]||1);
  var pot=Math.max(0,A.pot);
  var callOdds=call>0?call/Math.max(1,pot+call):0;
- var stackBB=stack/bb;
  var effectiveStack=stack;
  liveOpponents.forEach(function(q){
   if(!q.allin&&q.stack>0)effectiveStack=Math.min(effectiveStack,Math.max(0,q.stack+(Number(A.roundBet[q.seat])||0)));
@@ -185,14 +184,13 @@ function ai(p){
  var positionAdjust=late?0.055:early?-0.045:blindPos?0.025:0;
  var noise=(rnd()-0.5)*(preflop?0.055:0.035);
  var strength=clamp(eq+positionAdjust+noise,0,1);
- var history=A.history||[];
  var facedRaise=preflop&&A.currentBet>bb*1.5;
  var typeKey=p.type||'tag';
  var looseness=typeKey==='lp'?0.075:typeKey==='lag'?0.035:typeKey==='tp'?-0.055:0;
  var raiseBias=typeKey==='lag'?0.13:typeKey==='tag'?0.055:typeKey==='tp'?-0.10:-0.12;
  var callBias=typeKey==='lp'?0.07:typeKey==='tp'?0.035:0;
  var foldThreshold=preflop
-  ? (facedRaise?(typeKey==='tp'?0.69:typeKey==='tag'?0.61:typeKey==='lag'?0.52:0.47):(typeKey==='tp'?0.51:typeKey==='tag'?0.42:typeKey==='lag'?0.33:0.30))
+  ? clamp(0.59-(Number(t.vpip)||0.2)*0.43+(facedRaise?0.14:0)+(typeKey==='tp'?0.015:0),0.28,0.82)
   : 0;
  var min=minRaise();
  var maxTarget=totalStack;
@@ -215,7 +213,7 @@ function ai(p){
   if(call===0){
    // Big blind checks for free; otherwise avoid turning every unopened pot into a raise.
    if(p.position==='BB'&&A.currentBet===A.roundBet[p.seat])return {a:'check'};
-   var openThreshold=typeKey==='tp'?0.60:typeKey==='tag'?0.52:typeKey==='lag'?0.43:0.41;
+   var openThreshold=clamp(0.60-(Number(t.vpip)||0.2)*0.43+(typeKey==='tp'?0.015:0),0.30,0.72);
    if(preScore<openThreshold&&rnd()>t.bluff*0.45)return {a:'check'};
    var openChance=clamp((preScore-openThreshold)*1.8+(t.post||0.5)*0.28+raiseBias,0.08,0.82);
    if(canRespond&&rnd()<openChance){
@@ -235,7 +233,7 @@ function ai(p){
   }
   if(call>=stack){
    if(canRespond&&preScore>0.76&&effectiveBB<=12&&rnd()<0.72)return {a:'allin'};
-   return {a:'fold'}
+   return preScore>=threshold?{a:'call'}:{a:'fold'}
   }
   if(effectiveBB<=8&&preScore>0.78&&canRespond&&rnd()<0.22)return {a:'allin'};
   if(preScore+looseness+callBias>=threshold||callOdds>0.22&&preScore>threshold-0.08)return {a:'call'};
