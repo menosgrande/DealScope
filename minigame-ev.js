@@ -36,7 +36,7 @@ function sampleEquity(state,opponents){
  }catch(e){return null}
 }
 function foldProbability(opponents,betSize,pot){
- if(!opponents.length)return 1;
+ if(!opponents.length)return 0;
  var ratio=betSize/Math.max(1,pot+betSize),allFold=1;
  opponents.forEach(function(p){
   var t=TYPES[p.type]||TYPES.tag;
@@ -54,7 +54,8 @@ function estimate(state){
  var p=state.players&&state.players[0];
  if(!p||!p.hand||p.hand.length!==2)return {status:'ハンド情報がありません'};
  if(!state.awaiting||state.actor!==0)return {status:'あなたのアクション待ちで分析できます'};
- var opponents=state.players.filter(function(q){return q.seat!==0&&!q.out&&!q.fold&&!q.allin&&q.stack>0});
+ var opponents=state.players.filter(function(q){return q.seat!==0&&!q.out&&!q.fold});
+ var responders=opponents.filter(function(q){return !q.allin&&q.stack>0});
  var equity=sampleEquity(state,Math.max(1,opponents.length));
  if(equity===null)return {status:'エクイティを計算できません'};
  var pot=Math.max(0,state.pot),bb=Math.max(1,state.blinds[1]||1);
@@ -75,7 +76,7 @@ function estimate(state){
   var invest=Math.min(maxInvest,Math.max(0,target-(state.roundBet[0]||0)));
   var actualTarget=(state.roundBet[0]||0)+invest;
   var opponentCall=Math.max(0,actualTarget-state.currentBet);
-  var foldP=foldProbability(opponents,invest,pot);
+  var foldP=foldProbability(responders,invest,pot);
   rows.push({name:name,ev:actionValue(equity,pot,invest,opponentCall,foldP),kind:'raise'});
  }
  if(call===0){addRaise('ベット ×0.5 pot',2);addRaise('ベット ×1 pot',3)}
@@ -83,7 +84,7 @@ function estimate(state){
  var allinInvest=maxInvest;
  var allinTarget=(state.roundBet[0]||0)+allinInvest;
  var allinCall=Math.max(0,allinTarget-state.currentBet);
- var allinFold=foldProbability(opponents,allinInvest,pot);
+ var allinFold=foldProbability(responders,allinInvest,pot);
  rows.push({name:'オールイン',ev:actionValue(equity,pot,allinInvest,allinCall,allinFold),kind:'allin'});
  rows=rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}});
  return {
