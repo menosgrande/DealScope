@@ -390,6 +390,34 @@ function testMiniGameEVMath() {
   assert.equal(result.raiseEVSuppressed, true);
   assert(!result.rows.some(r => r.kind === 'raise' || r.kind === 'allin'),
     'multiway raise/all-in EV must not be shown with mismatched equity');
+  // Imported known-hand flop: 77 versus K6 and a set of 44 on T-2-4.
+  const knownHands = [hand('7c 7d'), hand('6d Kc'), hand('4h 4d')];
+  const knownBoard = hand('Th 2d 4c');
+  const exactExpected = E.exactSync(knownHands, knownBoard);
+  result = MiniGameEV.estimate({
+    players: [
+      { seat: 0, hand: knownHands[0], stack: 10000, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: knownHands[1], stack: 10000, contrib: 0, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: knownHands[2], stack: 10000, contrib: 0, out: false, fold: false, type: 'tp', allin: false }
+    ],
+    board: knownBoard, street: 'flop', handNo: 1, actor: 0, awaiting: true,
+    pot: 300, blinds: [100, 200], currentBet: 0, roundBet: [0, 0, 0, 0],
+    legal: { minRaise: 200 }, knownHands: true, engine: E
+  });
+  assert.equal(result.status, 'ok');
+  assert.equal(result.equityMode, 'known');
+  assert.equal(result.exact, true, 'flop known-hand equity should enumerate all runouts exactly');
+  assert.equal(result.equityPct, Math.round(exactExpected.equity[0] * 10) / 10);
+  const duplicateResult = MiniGameEV.estimate({
+    players: [
+      { seat: 0, hand: knownHands[0], stack: 10000, out: false, fold: false },
+      { seat: 1, hand: knownHands[0], stack: 10000, out: false, fold: false, type: 'tag', allin: false }
+    ],
+    board: knownBoard, actor: 0, awaiting: true, pot: 100, blinds: [100, 200],
+    currentBet: 0, roundBet: [0, 0, 0, 0], legal: { minRaise: 200 },
+    knownHands: true, engine: E
+  });
+  assert.notEqual(duplicateResult.status, 'ok', 'duplicate known cards must be rejected');
   console.log('✓ mini-game EV arithmetic / side-pot boundary / multiway suppression');
 }
 
