@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;min-height:100%;height:auto;overflow-x:hidden;overflow-y:auto;background:var(--felt);color:var(--ivory);font-family:system-ui,"Yu Gothic UI","Noto Sans JP",sans-serif}
 button,input{font:inherit}
-main{width:min(620px,100%);min-height:100dvh;height:auto;margin:auto;padding:8px 10px;display:grid;grid-template-rows:24px minmax(350px,auto) auto auto;gap:6px;overflow:visible}
+main{width:min(620px,100%);min-height:100dvh;height:auto;margin:auto;padding:8px 10px;display:grid;grid-template-rows:auto auto minmax(350px,auto) auto auto;gap:6px;overflow:visible}
 .top{display:flex;justify-content:space-between;align-items:center}
 h1{font-size:15px;margin:0}a.backLink{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 8px;border:1px solid var(--line);border-radius:16px;background:var(--felt2);color:var(--ivory);text-decoration:none;font-size:11px;font-weight:650;white-space:nowrap;transition:background .15s,border-color .15s}
 a.backLink:hover{border-color:var(--brass);background:#1a493b}
@@ -397,6 +397,10 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .heroAnalysis,.turnPanel{max-height:none}
 }
 
+/* Session profit and accessibility refinements */
+.sessionStats{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:#0c2921;font-size:11px;color:var(--mute)}
+.sessionStats strong{font-size:15px;font-variant-numeric:tabular-nums;color:var(--ivory)}
+.sessionStats strong.positive{color:#8fe0ad}.sessionStats strong.negative{color:#ff9298}
 /* Accessibility and small-screen readability refinements */
 main{
  padding-top:calc(8px + env(safe-area-inset-top));
@@ -440,6 +444,7 @@ a.backLink{min-height:40px;font-size:12px}
 <body>
 <main>
   <div class="top"><h1>DealScope / 4人トーナメント</h1><div class="topLinks"><a class="backLink" href="../glossary.html" aria-label="ポーカー用語を調べる">⌕ 用語集</a><a class="backLink" href="../">← 勝率計算</a></div></div>
+  <div class="sessionStats" aria-label="ゲーム開始からの収支"><span>累計収支</span><strong id="sessionProfit">±0</strong></div>
 
   <div class="panel tablePanel">
     <div class="metaRow"><div id="street" class="street"></div><div id="info" class="info"></div></div>
