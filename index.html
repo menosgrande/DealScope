@@ -219,6 +219,15 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .potOddsAdjust button:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
 .potOddsInputs input:focus{outline:none}
 .moneyInput:focus-within{outline:2px solid var(--brass);outline-offset:1px}
+.evAnalysis{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.evAnalysis summary{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--mute);cursor:pointer;list-style:none}
+.evAnalysis summary::-webkit-details-marker{display:none}
+.evAnalysis summary::after{content:"＋";font-size:16px;color:var(--mute)}
+.evAnalysis[open] summary::after{content:"−"}
+.evAnalysisBadge{font-size:9px;letter-spacing:.04em;border:1px solid var(--line);border-radius:4px;padding:2px 5px;color:var(--brass);white-space:nowrap}
+.evAnalysisPanel{padding:9px 2px 2px;font-size:12px;line-height:1.55;color:var(--mute)}
+.evAnalysisPanel p{margin:0 0 6px}
+.evAnalysisPanel p:last-child{margin-bottom:0}
 .potOddsResult{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;text-align:center;font-variant-numeric:tabular-nums}
 .potOddsResult div{display:flex;flex-direction:column;align-items:center}
 .potOddsResult b{font-size:22px;line-height:1.05;color:var(--ivory);font-weight:700}

@@ -10,6 +10,7 @@
   const POT_ODDS_KEY = 'dealscope-pot-odds-v1';
   let potOddsState = { pot: '', call: '' };
   let potOddsOpen = false;
+  let evAnalysisOpen = false;
   try {
     const savedOdds = JSON.parse(localStorage.getItem(POT_ODDS_KEY));
     if (savedOdds && typeof savedOdds === 'object') potOddsState = { pot: savedOdds.pot ?? '', call: savedOdds.call ?? '' };
@@ -398,6 +399,18 @@
       '</details>';
   }
 
+  function renderEvAnalysis() {
+    if (!isRandom()) return '';
+    return '<details id="evAnalysisBox" class="evAnalysis"' + (evAnalysisOpen ? ' open' : '') + '>' +
+      '<summary><span>EVアクション分析</span><span class="evAnalysisBadge">β EXPERIMENT</span></summary>' +
+      '<div class="evAnalysisPanel">' +
+        '<p>Fold・Check・Call・RaiseなどのEVをBB単位で比較するための実験欄です。</p>' +
+        '<p>計算にはポット・コール額・ブラインドに加え、相手のフォールド／コール反応モデルが必要です。</p>' +
+        '<p>現時点ではEV計算モデル未接続のため、数値や推奨アクションは表示しません。架空のEV値で判断を誘導しない設計です。</p>' +
+      '</div>' +
+      '</details>';
+  }
+
   function renderResults() {
     for (let i = 0; i < count(); i++) {
       let txt = '—', w = 0;
@@ -416,7 +429,7 @@
             `<div class="bar"><i style="width:${w}%"></i></div>` + renderDrawBadges(i);
           const potMount = $('players').querySelector('.potOddsMount');
           if (potMount && i === 0) {
-            potMount.innerHTML = renderPotOdds();
+            potMount.innerHTML = renderPotOdds() + renderEvAnalysis();
             const potDetails = potMount.querySelector('#potOddsBox');
             if (potDetails) {
               potDetails.addEventListener('toggle', () => {
@@ -425,6 +438,12 @@
                   const first = potDetails.querySelector('#potInput');
                   if (first) first.focus();
                 }
+              });
+            }
+            const evDetails = potMount.querySelector('#evAnalysisBox');
+            if (evDetails) {
+              evDetails.addEventListener('toggle', () => {
+                evAnalysisOpen = evDetails.open;
               });
             }
             updatePotOddsDisplay();
