@@ -101,10 +101,11 @@ function heroAnalysisMarkup(){
  return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>'+
   '<div class="analysisIntro">現在の手札と公開ボードを勝率計算ツールへ引き継ぎます。</div>'+
   (p?handAnalysisMarkup(p):'')+
-  '<div id="actionEvPanel" class="actionEvPanel"></div>'+
+  '<details id="actionEvDetails" class="actionEvDetails"'+(actionEVOpen?' open':'')+'><summary>アクションEV <span>簡易推定・参考値</span></summary><div id="actionEvPanel" class="actionEvPanel"></div></details>'+
   (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
   '<div class="analysisNote">'+note+' 別タブで開きます。</div>'
 }
+var actionEVOpen=false;
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
 function $(id){return document.getElementById(id)}
@@ -370,8 +371,9 @@ function render(){
   renderActionEV();
 }
 function renderActionEV(){
- var box=$('actionEvPanel');
+ var box=$('actionEvPanel'),details=$('actionEvDetails');
  if(!box)return;
+ if(details&&!details.dataset.evToggleBound){details.addEventListener('toggle',function(){actionEVOpen=details.open});details.dataset.evToggleBound='1'}
  if(window.DealMiniGameEV)box.innerHTML=window.DealMiniGameEV.renderMarkup({
   players:A.players,board:A.board,street:A.street,handNo:A.handNo,actor:A.actor,awaiting:A.awaiting,
   currentBet:A.currentBet,roundBet:A.roundBet,pot:A.pot,blinds:A.blinds,legal:legalActions(A.players[0]),engine:E
