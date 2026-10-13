@@ -155,7 +155,9 @@ function render(){
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
  container.innerHTML=list.map(function(t){
   var section=guideSection(t);var guideLink=section?'<p class="guideLink"><a href="./beginner-guide.html#'+section+'">初心者ガイドで詳しく見る →</a></p>':'';
-  var example=t.example?'<p class="example"><b>例：</b>'+escapeHtml(t.example)+'</p>':'';\n  var related=t.related&&t.related.length?'<p class="relatedTerms"><b>関連用語：</b>'+t.related.map(function(name){return '<a href="./glossary.html?q='+encodeURIComponent(name)+'">'+escapeHtml(name)+'</a>'}).join('')+'</p>':'';\n  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p>'+example+related+guideLink+'</article>'
+  var example=t.example?'<p class="example"><b>例：</b>'+escapeHtml(t.example)+'</p>':'';
+  var related=t.related&&t.related.length?'<p class="relatedTerms"><b>関連用語：</b>'+t.related.map(function(name){return '<a href="./glossary.html?q='+encodeURIComponent(name)+'">'+escapeHtml(name)+'</a>'}).join('')+'</p>':'';
+  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p>'+example+related+guideLink+'</article>'
  }).join('')
 }
 search.addEventListener('input',render);
