@@ -377,6 +377,21 @@ main{grid-template-rows:24px auto auto;gap:7px}
 
 
 /* Keep hole-card dimensions stable when the made-hand label appears. */
+
+
+/* Keep the desktop seat column independent from the expandable action-EV panel. */
+@media(min-width:601px){
+ .playArea{height:316px;min-height:316px}
+ .players,.heroAnalysis,.turnPanel{min-height:0;max-height:100%}
+ .heroAnalysis{overflow-y:auto}
+}
+@media(min-width:601px) and (max-height:700px){
+ .playArea{height:300px;min-height:300px}
+}
+@media(max-width:600px){
+ .playArea{height:auto;max-height:none}
+ .players,.heroAnalysis,.turnPanel{max-height:none}
+}
 </style>
 </head>
 <body>
@@ -463,18 +478,4 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="./minigame.js?v=20261013-returnsetup2"></script>
 </body>
 </html>
-
-/* Keep the desktop seat column independent from the expandable action-EV panel. */
-@media(min-width:601px){
- .playArea{height:316px;min-height:316px}
- .players,.heroAnalysis,.turnPanel{min-height:0;max-height:100%}
- .heroAnalysis{overflow-y:auto}
-}
-@media(min-width:601px) and (max-height:700px){
- .playArea{height:300px;min-height:300px}
-}
-@media(max-width:600px){
- .playArea{height:auto;max-height:none}
- .players,.heroAnalysis,.turnPanel{max-height:none}
-}
 
