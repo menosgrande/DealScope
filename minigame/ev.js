@@ -80,12 +80,17 @@ function estimate(state,selectedTarget){
  }
  var minRaise=Number(state.legal&&state.legal.minRaise)||Math.max(bb,(Number(state.currentBet)||0)+bb);
  var maxTarget=roundBet+stack;
- if(maxTarget>(Number(state.currentBet)||0)){
-  if(maxTarget>=(Number(state.currentBet)||0)+bb&&Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
-   var chosen=Math.min(maxTarget,Math.max(minRaise,Number(selectedTarget)));
-   addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
-  }
-  if(maxTarget>0&&(!Number.isFinite(Number(selectedTarget))||Math.abs(maxTarget-Number(selectedTarget))>bb/2)){
+ var currentBetForRaise=Number(state.currentBet)||0;
+ if(maxTarget>roundBet){
+  if(maxTarget>currentBetForRaise){
+   if(maxTarget>=currentBetForRaise+bb&&Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
+    var chosen=Math.min(maxTarget,Math.max(minRaise,Number(selectedTarget)));
+    addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
+   }
+   if(!Number.isFinite(Number(selectedTarget))||Math.abs(maxTarget-Number(selectedTarget))>bb/2){
+    addBet('オールイン',maxTarget);
+   }
+  }else{
    addBet('オールイン',maxTarget);
   }
  }
