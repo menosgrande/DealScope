@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0e2f26">
+<meta name="theme-color" content="#0a241e">
 <title>DealScope — ポーカー用語集</title>
 <style>
 :root{--felt:#0e2f26;--felt2:#143d32;--line:#2a5a4b;--ivory:#f3efe3;--mute:#8fb0a3;--brass:#d8b252;--ink:#1b1b1b}
@@ -204,6 +204,23 @@ h1{font-size:clamp(27px,4.4vw,38px);letter-spacing:.015em;margin:9px 0 10px}
  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
 
+
+/* Small-screen and accessibility fixes */
+@media(max-width:380px){
+ .top{display:block}
+ .brand{display:inline-block;margin-bottom:10px}
+ .nav{justify-content:flex-start}
+ .nav a{font-size:10px;padding:0 8px}
+ .termTop{gap:6px}
+ .stars{font-size:11px;letter-spacing:.7px}
+ .termAbbr{white-space:normal}
+}
+.filterBtn{min-height:36px}
+button,select,input{-webkit-tap-highlight-color:rgba(224,189,104,.14)}
+@media(hover:none){
+ .term:hover,.nav a:hover,.filterBtn:hover{transform:none;box-shadow:none}
+}
+
 </style>
 </head>
 <body>
@@ -239,11 +256,11 @@ h1{font-size:clamp(27px,4.4vw,38px);letter-spacing:.015em;margin:9px 0 10px}
     </div>
     <div class="filters" role="group" aria-label="重要度で絞り込む">
       <span class="filterCaption">重要度</span>
-      <button class="filterBtn" type="button" data-stars="0" aria-pressed="true">すべて</button>
-      <button class="filterBtn" type="button" data-stars="5" aria-pressed="false">★★★★★</button>
-      <button class="filterBtn" type="button" data-stars="4" aria-pressed="false">★★★★以上</button>
-      <button class="filterBtn" type="button" data-stars="3" aria-pressed="false">★★★以上</button>
-      <button class="filterBtn" type="button" data-stars="2" aria-pressed="false">★★以上</button>
+      <button class="filterBtn" type="button" data-stars="0" aria-label="重要度の絞り込みを解除" aria-pressed="true">すべて</button>
+      <button class="filterBtn" type="button" data-stars="5" aria-label="重要度5のみ表示" aria-pressed="false">★★★★★</button>
+      <button class="filterBtn" type="button" data-stars="4" aria-label="重要度4以上を表示" aria-pressed="false">★★★★以上</button>
+      <button class="filterBtn" type="button" data-stars="3" aria-label="重要度3以上を表示" aria-pressed="false">★★★以上</button>
+      <button class="filterBtn" type="button" data-stars="2" aria-label="重要度2以上を表示" aria-pressed="false">★★以上</button>
     </div>
   </section>
   <section aria-labelledby="resultsTitle">
@@ -283,7 +300,7 @@ function render(){
  var q=search.value.trim().toLocaleLowerCase();
  var cat=category.value;
  var list=data.terms.filter(function(t){
-  return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.abbreviation,t.english,t.definition,t.category].some(function(v){return String(v||'').toLocaleLowerCase().includes(q)}))
+  return (!cat||t.category===cat)&&(!starFilter||t.stars>=starFilter)&&(!q||[t.term,t.abbreviation,t.english,t.definition,t.category,t.example,(t.related||[]).join(' ')].some(function(v){return String(v||'').toLocaleLowerCase().includes(q)}))
  }).sort(function(a,b){return a.category.localeCompare(b.category,'ja')||a.term.localeCompare(b.term,'ja')||a.english.localeCompare(b.english,'en')});
  $('count').textContent=list.length.toLocaleString('ja-JP')+' / '+data.terms.length.toLocaleString('ja-JP')+'語';
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
