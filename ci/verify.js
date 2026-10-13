@@ -420,7 +420,7 @@ function testMiniGameEVMath() {
   }), 40);
   assert.equal(result.raiseEVSuppressed, false);
   assert(result.rows.some(r => r.kind === 'raise'), 'multiway raise EV should be shown as an estimate');
-  assert(result.rows.some(r => r.kind === 'allin'), 'multiway all-in EV should be shown as an estimate');
+  assert(result.rows.some(r => r.name === 'オールイン'), 'multiway all-in EV should be shown as an estimate');
   // Imported known-hand flop: 77 versus K6 and a set of 44 on T-2-4.
   const knownHands = [hand('7c 7d'), hand('6d Kc'), hand('4h 4d')];
   const knownBoard = hand('Th 2d 4c');
