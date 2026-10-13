@@ -319,6 +319,54 @@ function human(a){
  if(a!=='bet'&&a!=='raise'&&!act(0,a,n))return;
  A.awaiting=false;advance()
 }
+
+function validImportedPayload(payload){
+ if(!payload||payload.version!==1||!payload.snapshot)return false;
+ var d=payload.snapshot,board=d.board;
+ if(!Array.isArray(board)||board.length!==5||!board.every(function(c){return Number.isInteger(c)&&c>=-1&&c<52}))return false;
+ var boardCount=board.filter(function(c){return c>=0}).length;
+ if(boardCount!==0&&boardCount!==3&&boardCount!==4&&boardCount!==5)return false;
+ if(boardCount===3&&(!board.slice(0,3).every(function(c){return c>=0})||board.slice(3).some(function(c){return c>=0})))return false;
+ if(boardCount===4&&(!board.slice(0,4).every(function(c){return c>=0})||board[4]>=0))return false;
+ if(boardCount===5&&!board.every(function(c){return c>=0}))return false;
+ var count=d.mode==='random'?1+(Number(d.opp)||1):Number(d.n);
+ if(!Number.isInteger(count)||count<2||count>4||!Array.isArray(d.players)||d.players.length<count)return false;
+ var known=[];
+ for(var i=0;i<(d.mode==='random'?1:count);i++){
+  var hand=d.players[i];
+  if(!Array.isArray(hand)||hand.length!==2||!hand.every(function(c){return Number.isInteger(c)&&c>=0&&c<52}))return false;
+  known=known.concat(hand);
+ }
+ known=known.concat(board.filter(function(c){return c>=0}));
+ return new Set(known).size===known.length;
+}
+function startImported(payload){
+ var d=payload.snapshot,board=d.board.slice(),activeCount=d.mode==='random'?1+(Number(d.opp)||1):Number(d.n);
+ var used=board.filter(function(c){return c>=0}),knownHands=d.mode==='random'?d.players.slice(0,1):d.players.slice(0,activeCount);
+ knownHands.forEach(function(hand){used=used.concat(hand)});
+ A.players=[];
+ for(var i=0;i<4;i++){
+  A.players.push({seat:i,name:NAMES[i],type:['tag','lag','tp','lp'][i],stack:20000,out:i>=activeCount,hand:[],fold:false,allin:false,contrib:0,showdownScore:0});
+ }
+ A.handNo=1;A.dealer=activeCount-1;A.blinds=[100,200];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
+ A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.pot=0;A.history=[];A.message='解析局面を引き継ぎました';A.awaiting=false;A.finished=false;A.handOver=false;A.awards=[];A.raiseLocked=[false,false,false,false];A.epoch++;A.pending=false;
+ A.deck=shuffle(Array.from({length:52},function(_,i){return i}).filter(function(c){return used.indexOf(c)<0}));
+ for(var j=0;j<activeCount;j++){
+  var hand=knownHands[j];
+  A.players[j].hand=hand?hand.slice():[deal(),deal()];
+ }
+ A.board=board.filter(function(c){return c>=0});
+ if(A.street==='preflop'){
+  var sb=nextSeat(A.dealer),bb=nextSeat(sb);
+  blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.roundBet[bb];A.actor=nextSeat(bb);
+ }else{
+  // ポット額は解析画面から取得できないため、ミニゲームの初期ポットを使う。
+  A.pot=300;A.actor=nextSeat(A.dealer);
+ }
+ A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':''});
+ render();advance();
+}
+
 function restart(){
  A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:20000,out:false,hand:[],fold:false,allin:false})});
@@ -388,5 +436,7 @@ $('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountRead
 $('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-Number($('amountSlider').step))};
 $('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+Number($('amountSlider').step))};
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],sizing=window.DealMiniGameBetSizing;if(!p||!A.awaiting||!sizing)return;var target=sizing.target(b.dataset.size,betSizingContext());setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
-restart()
+ var imported=null;
+ try{imported=JSON.parse(sessionStorage.getItem('dealscope-analysis-game-v1')||'null');sessionStorage.removeItem('dealscope-analysis-game-v1')}catch(e){}
+ if(imported&&validImportedPayload(imported))startImported(imported);else restart();
 })();
