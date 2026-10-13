@@ -28,6 +28,15 @@ assert.equal(EV.handLabel([card('Qs'),card('9s')]), 'Q9s（スーテッド）');
 
 assert.equal(EV.handLabel([card('Qh'),card('Qd')]), 'QQ（ポケットペア）');
 
+function headsUpState(target) {
+  const s = state(target);
+  s.players = s.players.slice(0, 2);
+  s.roundBet = [0, 200, 0, 0];
+  s.players[1].stack = 19900;
+  return s;
+}
+
+
 const openPreflop = {street:'preflop',currentBet:200,bigBlind:200,pot:500,minRaise:400};
 assert.equal(BetSizing.target('small',openPreflop),500,'preflop open size uses 2.5 BB');
 assert.equal(BetSizing.target('medium',openPreflop),600,'preflop open size uses 3 BB');
@@ -43,8 +52,8 @@ assert.equal(BetSizing.target('min',facingRaise),2000,'minimum re-raise respects
 assert.deepEqual(BetSizing.definitions(facingRaise).map(x=>x.label),['最小','2.5×','3×','4×']);
 
 
-const small = EV.estimate(state(400),400);
-const large = EV.estimate(state(10000),10000);
+const small = EV.estimate(headsUpState(400),400);
+const large = EV.estimate(headsUpState(10000),10000);
 assert.equal(small.status,'ok');
 assert.equal(large.status,'ok');
 assert(small.rows.some(r => r.name.includes('入力額でレイズ')));
@@ -52,7 +61,10 @@ assert(small.rows.some(r => r.name === 'フォールド' && r.evBB === 0));
 const smallEV=small.rows.find(r=>r.name.includes('入力額でレイズ')).evBB;
 const largeEV=large.rows.find(r=>r.name.includes('入力額でレイズ')).evBB;
 assert.notEqual(smallEV,largeEV,'changing the selected raise target must affect the estimated EV');
-assert(EV.renderMarkup(state(400),400).includes('アクション別EV'));
+assert(EV.renderMarkup(headsUpState(400),400).includes('アクション別EV'));
+const multiway = EV.estimate(state(400),400);
+assert.equal(multiway.raiseEVSuppressed,true,'multiway raise EV must be suppressed until caller-count-specific equity is available');
+assert(!multiway.rows.some(r => r.kind === 'raise' || r.kind === 'allin'),'multiway raise/all-in values must not be shown');
 const fs = require('node:fs');
 const html = fs.readFileSync(require('node:path').join(__dirname, '../minigame/index.html'), 'utf8');
 const js = fs.readFileSync(require('node:path').join(__dirname, '../minigame/minigame.js'), 'utf8');
