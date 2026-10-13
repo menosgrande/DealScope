@@ -402,7 +402,29 @@ function testMiniGameEVMath() {
   // A hand with no Hero cards must not return numeric EV rows.
   result = MiniGameEV.estimate(state({ players: [{ seat: 0, hand: [-1, -1], stack: 100 }] }));
   assert.notEqual(result.status, 'ok');
-  console.log('✓ mini-game EV: independent arithmetic checks / short-stack eligibility');
+  // Imported known-hand flop: 77 versus K6 and a set of 44 on T-2-4.
+  // The EV panel must use the specified opponent cards and exact runouts, not random hands.
+  const knownHands = [hand('7c 7d'), hand('6d Kc'), hand('4h 4d')];
+  const knownBoard = hand('Th 2d 4c');
+  const exactExpected = E.exactSync(knownHands, knownBoard);
+  result = MiniGameEV.estimate({
+    players: [
+      { seat: 0, hand: knownHands[0], stack: 10000, out: false, fold: false },
+      { seat: 1, hand: knownHands[1], stack: 10000, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: knownHands[2], stack: 10000, out: false, fold: false, type: 'tp', allin: false }
+    ],
+    board: knownBoard, street: 'flop', handNo: 1, actor: 0, awaiting: true,
+    pot: 300, blinds: [100, 200], currentBet: 0, roundBet: [0, 0, 0, 0],
+    legal: { minRaise: 200 }, knownHands: true, engine: E
+  });
+  assert.equal(result.status, 'ok');
+  assert.equal(result.equityMode, 'known');
+  assert.equal(result.exact, true, 'flop known-hand equity should enumerate all runouts exactly');
+  assert.equal(result.equityPct, Math.round(exactExpected.equity[0] * 10) / 10,
+    'EV panel must use the exact equity of 77 vs K6 and 44 on T-2-4');
+  console.log('✓ mini-game EV: known-hand scenario uses exact equity');
+  console.log('  77 vs K6 / 44 on T-2-4 equity: ' + result.equityPct.toFixed(1) + '%');
+
 }
 
 function main() {
