@@ -143,13 +143,16 @@ function minRaise(){return A.currentBet===0?A.blinds[1]:A.currentBet+Math.max(A.
 function legalActions(p){
  var r={fold:false,check:false,call:false,bet:false,raise:false,allin:false,callAmount:0,minRaise:minRaise(),max:p?Math.max(0,Number(p.stack)||0)+(Number(A.roundBet[p.seat])||0):0};
  if(!p||p.out||p.fold||p.allin)return r;
+ var canRespond=A.players.some(function(q){return q&&q.seat!==p.seat&&!q.out&&!q.fold&&!q.allin&&Number(q.stack)>0});
  r.callAmount=Math.max(0,A.currentBet-A.roundBet[p.seat]);
  r.check=r.callAmount===0;
  r.fold=r.callAmount>0;
  r.call=r.callAmount>0&&p.stack>0;
- r.allin=p.stack>0;
- if(r.callAmount===0)r.bet=p.stack>=A.blinds[1];
- else r.raise=!A.raiseLocked[p.seat]&&r.max>=r.minRaise;
+ // Aggressive actions are illegal when every opponent is already all-in or folded.
+ // A short stack that cannot cover a call uses the Call button, labelled as all-in.
+ r.allin=p.stack>0&&canRespond;
+ if(r.callAmount===0)r.bet=canRespond&&p.stack>=A.blinds[1];
+ else r.raise=canRespond&&!A.raiseLocked[p.seat]&&r.max>=r.minRaise;
  return r;
 }
 function amount(p,n){var max=p.stack+A.roundBet[p.seat];return Math.min(max,Math.max(0,Math.floor(n/A.blinds[1])*A.blinds[1]))}
@@ -207,6 +210,8 @@ function resetHand(){
 function roundDone(){return Rules.roundComplete(A)}
 function act(seat,a,n){
  var p=A.players[seat];if(p.out||p.fold||p.allin)return false;
+ var legal=legalActions(p);
+ if((a==='bet'&&!legal.bet)||(a==='raise'&&!legal.raise)||(a==='allin'&&!legal.allin))return false;
  var call=Math.max(0,A.currentBet-A.roundBet[seat]),text='';
  if(a==='fold'){if(call===0)return false;p.fold=true;text='フォールド'}
  else if(a==='check'){if(call)return false;text='チェック'}

@@ -381,23 +381,35 @@ function testMiniGameEVMath() {
   }));
   assert.equal(result.rows.find(r => r.kind === 'call').evBB, 8.6);
 
-  // Folded chips remain dead money and stay contestable by Hero.
+  // Side-pot eligibility is capped at Hero's post-call total contribution.
+  // Contributions: Hero 0, live opponent 100, folded player 190; pot = 290.
+  // Hero can contest only 10 from each contributor, plus the new 10-chip call.
   result = MiniGameEV.estimate(state({
     players: [
       { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
       { seat: 1, hand: [4, 5], stack: 100, contrib: 100, out: false, fold: false, type: 'tag', allin: false },
       { seat: 2, hand: [8, 9], stack: 0, contrib: 190, out: false, fold: true, type: 'tp', allin: false }
     ],
-    pot: 300, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+    pot: 290, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
   }));
-  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 16.6);
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 1.4);
+
+  // An all-in opponent's unmatched excess must not inflate Hero's call EV.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 0, contrib: 100, out: false, fold: false, type: 'tag', allin: true }
+    ],
+    pot: 100, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 0.6);
 
   // A single live opponent can have a raise EV estimate.
   result = MiniGameEV.estimate(state(), 40);
   assert.equal(result.raiseEVSuppressed, false);
   assert(result.rows.some(r => r.kind === 'raise'), 'heads-up raise EV should be available');
 
-  // Multiway raise/all-in EV is suppressed until caller-count-specific equity is implemented.
+  // Multiway raises now show an explicitly approximate EV using independent fold chances.
   result = MiniGameEV.estimate(state({
     players: [
       { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
@@ -406,9 +418,9 @@ function testMiniGameEVMath() {
     ],
     pot: 100, currentBet: 20, roundBet: [0, 20, 20, 0], legal: { minRaise: 40 }
   }), 40);
-  assert.equal(result.raiseEVSuppressed, true);
-  assert(!result.rows.some(r => r.kind === 'raise' || r.kind === 'allin'),
-    'multiway raise/all-in EV must not be shown with mismatched equity');
+  assert.equal(result.raiseEVSuppressed, false);
+  assert(result.rows.some(r => r.kind === 'raise'), 'multiway raise EV should be shown as an estimate');
+  assert(result.rows.some(r => r.name === 'オールイン'), 'multiway all-in EV should be shown as an estimate');
   // Imported known-hand flop: 77 versus K6 and a set of 44 on T-2-4.
   const knownHands = [hand('7c 7d'), hand('6d Kc'), hand('4h 4d')];
   const knownBoard = hand('Th 2d 4c');
