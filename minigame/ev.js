@@ -45,16 +45,34 @@ function estimate(state,selectedTarget){
  var stack=Math.max(0,Number(hero.stack)||0);
  var responders=opponents.filter(function(p){return !p.allin&&p.stack>0});
  var rows=[{name:'フォールド',ev:0,kind:'fold'}];
+ function eligiblePot(basePot, roundBets, heroTarget){
+  // Chips above Hero's all-in level are side-pot chips Hero cannot win.
+  var excess=0;
+  (roundBets||[]).forEach(function(amount,index){
+   if(index!==0)excess+=Math.max(0,(Number(amount)||0)-heroTarget);
+  });
+  return Math.max(0,basePot-excess);
+ }
  if(call>0){
-  var callInvest=Math.min(call,stack);
-  rows.push({name:'コール '+Math.round(callInvest).toLocaleString('ja-JP'),ev:equity*(pot+callInvest)-callInvest,kind:'call'});
+  var callInvest=Math.min(call,stack),callTarget=roundBet+callInvest;
+  var callPot=eligiblePot(pot,state.roundBet,callTarget);
+  rows.push({name:'コール '+Math.round(callInvest).toLocaleString('ja-JP'),ev:equity*(callPot+callInvest)-callInvest,kind:'call'});
  }else{
   rows.push({name:'チェック',ev:equity*pot,kind:'check'});
  }
  function addBet(name,target){
-  target=clamp(Math.round(Number(target)||0),Math.max(1,Number(state.currentBet)||0),roundBet+stack);
+  var currentBet=Math.max(0,Number(state.currentBet)||0);
+  var maxTarget=roundBet+stack;
+  target=Math.max(0,Math.min(maxTarget,Math.round(Number(target)||0)));
   var invest=Math.max(0,target-roundBet);
-  var add=Math.max(0,target-(Number(state.currentBet)||0));
+  // If Hero cannot cover the current bet, an all-in is a short call, not a raise.
+  if(target<=currentBet){
+   if(invest<=0)return;
+   var contestable=eligiblePot(pot,state.roundBet,target);
+   rows.push({name:name+'（コール）',ev:equity*(contestable+invest)-invest,kind:'allin'});
+   return;
+  }
+  var add=target-currentBet;
   var allFold=1,expectedCallers=0;
   responders.forEach(function(p){var f=foldChance(p,invest,pot);allFold*=f;expectedCallers+=1-f});
   var conditionalCallers=allFold>=1?0:expectedCallers/(1-allFold);
@@ -62,13 +80,14 @@ function estimate(state,selectedTarget){
  }
  var minRaise=Number(state.legal&&state.legal.minRaise)||Math.max(bb,(Number(state.currentBet)||0)+bb);
  var maxTarget=roundBet+stack;
- if(maxTarget>=(Number(state.currentBet)||0)+bb){
-  if(Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
-   var chosen=clamp(Number(selectedTarget),minRaise,maxTarget);
+ if(maxTarget>(Number(state.currentBet)||0)){
+  if(maxTarget>=(Number(state.currentBet)||0)+bb&&Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
+   var chosen=Math.min(maxTarget,Math.max(minRaise,Number(selectedTarget)));
    addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
   }
-  var allinTarget=maxTarget;
-  if(allinTarget>0&&(!rows.length||Math.abs(allinTarget-(Number(selectedTarget)||0))>bb/2))addBet('オールイン',allinTarget);
+  if(maxTarget>0&&(!Number.isFinite(Number(selectedTarget))||Math.abs(maxTarget-Number(selectedTarget))>bb/2)){
+   addBet('オールイン',maxTarget);
+  }
  }
  return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
 }
