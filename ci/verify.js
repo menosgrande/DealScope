@@ -9,6 +9,7 @@ const Rules = require('../minigame/rules.js');
 const Draw = require('../analysis/drawAnalyzer.js');
 const Texture = require('../analysis/textureAnalyzer.js');
 const Glossary = require('../glossary-data.js');
+const MiniGameEV = require('../minigame/ev.js');
 
 const expected5 = [1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40];
 
@@ -340,6 +341,58 @@ function testMiniGameStateTransitions() {
   console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation');
 }
 
+function testMiniGameEVMath() {
+  const engine = { monteCarloVsRandom: () => ({ equity: [80] }) };
+  function state(overrides) {
+    return Object.assign({
+      players: [
+        { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
+        { seat: 1, hand: [4, 5], stack: 100, contrib: 20, out: false, fold: false, type: 'tag', allin: false }
+      ],
+      board: [], street: 'preflop', handNo: 1, actor: 0, awaiting: true,
+      pot: 100, blinds: [5, 10], currentBet: 20, roundBet: [0, 20, 0, 0],
+      legal: { minRaise: 40 }, engine
+    }, overrides || {});
+  }
+
+  // Full call: 80% * (100 + 20) - 20 = 76 chips = 7.6 BB.
+  let result = MiniGameEV.estimate(state());
+  assert.equal(result.status, 'ok');
+  assert.equal(result.equityPct, 80);
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 7.6);
+
+  // Short all-in call: opponent has contributed 100, Hero can contribute 10.
+  // Of a 200-chip pot, 90 chips are unmatched and unavailable to Hero.
+  // EV = 80% * (110 eligible pot + 10 Hero call) - 10 = 86 chips = 8.6 BB.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, contrib: 100, out: false, fold: false, type: 'tag', allin: false }
+    ],
+    pot: 200, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 8.6);
+
+  // A single live opponent can have a raise EV estimate.
+  result = MiniGameEV.estimate(state(), 40);
+  assert.equal(result.raiseEVSuppressed, false);
+  assert(result.rows.some(r => r.kind === 'raise'), 'heads-up raise EV should be available');
+
+  // Multiway raise/all-in EV is suppressed until caller-count-specific equity is implemented.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, contrib: 20, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: [8, 9], stack: 100, contrib: 20, out: false, fold: false, type: 'tp', allin: false }
+    ],
+    pot: 100, currentBet: 20, roundBet: [0, 20, 20, 0], legal: { minRaise: 40 }
+  }), 40);
+  assert.equal(result.raiseEVSuppressed, true);
+  assert(!result.rows.some(r => r.kind === 'raise' || r.kind === 'allin'),
+    'multiway raise/all-in EV must not be shown with mismatched equity');
+  console.log('✓ mini-game EV arithmetic / side-pot boundary / multiway suppression');
+}
+
 function testGlossaryData() {
   const terms = Glossary.terms;
   assert(Array.isArray(terms));
@@ -359,6 +412,7 @@ function testGlossaryData() {
 }
 
 function main() {
+  testMiniGameEVMath();
   testGlossaryData();
   testFiveCardDistribution();
   testEvaluatorOrdering();
