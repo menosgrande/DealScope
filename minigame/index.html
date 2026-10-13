@@ -439,6 +439,18 @@ a.backLink{min-height:40px;font-size:12px}
  .logBox summary,.helpBox summary{min-height:36px}
 }
 
+
+/* Keep the action panel in the center on desktop and near the top on phones. */
+@media (min-width:601px) {
+  .playArea > .players { grid-column:1; grid-row:1; }
+  .playArea > .turnPanel { grid-column:2; grid-row:1; }
+  .playArea > .heroAnalysis { grid-column:3; grid-row:1; }
+}
+@media (max-width:600px) {
+  .playArea > .turnPanel { grid-column:1; grid-row:1; }
+  .playArea > .players { grid-column:1; grid-row:2; }
+  .playArea > .heroAnalysis { grid-column:1; grid-row:3; }
+}
 </style>
 </head>
 <body>
