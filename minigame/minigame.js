@@ -234,7 +234,7 @@ function ai(p){
    var pr=makeRaise();if(pr)return pr;
   }
   if(call>=stack){
-   if(preScore>0.76&&effectiveBB<=12&&rnd()<0.72)return {a:'allin'};
+   if(canRespond&&preScore>0.76&&effectiveBB<=12&&rnd()<0.72)return {a:'allin'};
    return {a:'fold'}
   }
   if(effectiveBB<=8&&preScore>0.78&&canRespond&&rnd()<0.22)return {a:'allin'};
@@ -259,7 +259,7 @@ function ai(p){
    var raised=makeRaise();if(raised)return raised;
   }
   if(call>=stack){
-   if(adjustedEq>=Math.max(0.62,callOdds+0.12)&&effectiveBB<=10&&rnd()<0.72)return {a:'allin'};
+   if(canRespond&&adjustedEq>=Math.max(0.62,callOdds+0.12)&&effectiveBB<=10&&rnd()<0.72)return {a:'allin'};
    return adjustedEq>=callOdds+0.10?{a:'call'}:{a:'fold'}
   }
   if(effectiveBB<=6&&adjustedEq>0.78&&canRespond&&rnd()<0.18)return {a:'allin'};
