@@ -49,7 +49,7 @@ function estimate(state,selectedTarget){
   // Chips committed above Hero's total hand contribution are not contestable by Hero.
   var excess=0;
   (players||[]).forEach(function(p){
-   if(!p||p.seat===0||p.out||p.fold)return;
+   if(!p||p.seat===0)return;
    excess+=Math.max(0,(Number(p.contrib)||0)-heroContributionAfter);
   });
   return Math.max(0,basePot-excess);
