@@ -71,7 +71,7 @@ function estimate(state){
   var target;
   if(state.currentBet>0)target=state.currentBet*multiplier;
   else target=Math.max(bb,Math.round(pot*(multiplier===2?.5:1)));
-  target=Math.min(state.currentBet+(maxInvest),Math.max(state.currentBet+bb,target));
+  target=Math.min((state.roundBet[0]||0)+maxInvest,Math.max(state.currentBet+bb,target));
   var invest=Math.min(maxInvest,Math.max(0,target-(state.roundBet[0]||0)));
   var actualTarget=(state.roundBet[0]||0)+invest;
   var opponentCall=Math.max(0,actualTarget-state.currentBet);
