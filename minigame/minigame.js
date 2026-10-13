@@ -199,9 +199,9 @@ function resetHand(){
  A.dealer=nextSeat(A.dealer);A.board=[];A.street='preflop';A.currentBet=0;A.lastRaise=A.blinds[1];A.pot=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.raiseLocked=[false,false,false,false];A.history=[];A.awards=[];A.handOver=false;initDeck();
  A.players.forEach(function(p){p.hand=[];p.fold=false;p.allin=false;p.contrib=0;p.showdownScore=0});
  for(var k=0;k<2;k++)for(var j=0;j<4;j++){var p=A.players[(A.dealer+j)%4];if(!p.out)p.hand.push(deal())}
- var sb=nextSeat(A.dealer),bb=nextSeat(sb);
+ var blindSeats=Rules.blindSeats(A.players,A.dealer),sb=blindSeats.sb,bb=blindSeats.bb;
  blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.roundBet[bb];
- A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':p.seat===sb?'SB':p.seat===bb?'BB':'UTG'});
+ A.players.forEach(function(p){p.position=p.seat===A.dealer?(blindSeats.headsUp?'BTN/SB':'BTN'):p.seat===sb?'SB':p.seat===bb?'BB':'UTG'});
  A.actor=nextSeat(bb);A.message='Hand #'+A.handNo+' / Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);render();advance()
 }
 function roundDone(){return Rules.roundComplete(A)}
