@@ -33,10 +33,21 @@ function estimate(state,selectedTarget){
  var board=(state.board||[]).filter(function(c){return c!=null&&c>=0});
  var opponents=(state.players||[]).filter(function(p){return p.seat!==0&&!p.out&&!p.fold});
  if(!opponents.length)return {status:'比較できる相手がいません'};
- var trials=board.length===0?900:650, equity;
+ var trials=board.length===0?900:650, equity, exact=false, knownHands=[];
  try{
   var seed=((state.handNo||1)*104729+board.length*7919+hero.hand[0]*53+hero.hand[1]+opponents.length*997)>>>0;
-  equity=E.monteCarloVsRandom(hero.hand,board,trials,{opponents:opponents.length,seed:seed}).equity[0]/100;
+  var canUseKnown=state.knownHands===true&&opponents.every(function(p){return Array.isArray(p.hand)&&p.hand.length===2&&p.hand.every(function(c){return Number.isInteger(c)&&c>=0&&c<52})});
+  if(canUseKnown){
+   knownHands=[hero.hand].concat(opponents.map(function(p){return p.hand}));
+   if(board.length>=3&&typeof E.exactSync==='function'){
+    var exactResult=E.exactSync(knownHands,board);
+    equity=exactResult.equity[0]/100;trials=exactResult.total;exact=true;
+   }else if(typeof E.monteCarlo==='function'){
+    equity=E.monteCarlo(knownHands,board,trials,{seed:seed}).equity[0]/100;
+   }else return {status:'指定ハンドのエクイティ計算を利用できません'};
+  }else{
+   equity=E.monteCarloVsRandom(hero.hand,board,trials,{opponents:opponents.length,seed:seed}).equity[0]/100;
+  }
  }catch(e){return {status:'エクイティを計算できません'}}
  if(!Number.isFinite(equity))return {status:'エクイティを計算できません'};
  var pot=Math.max(0,Number(state.pot)||0),bb=Math.max(1,Number((state.blinds||[])[1])||1);
@@ -94,13 +105,13 @@ function estimate(state,selectedTarget){
    addBet('オールイン',maxTarget);
   }
  }
- return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
+ return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),equityMode:state.knownHands===true&&knownHands.length?'known':'random',exact:exact,rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
 }
 function renderMarkup(state,selectedTarget){
  var r=estimate(state,selectedTarget);
  if(r.status!=='ok')return '<div class="evStatus">'+r.status+'</div>';
  var html='<div class="evHeading"><b>アクション別EV</b><span>簡易推定</span></div>';
- html+='<div class="evEquity"><span>対ランダムハンドの推定エクイティ</span><b>'+r.equityPct.toFixed(1)+'%</b></div>';
+ html+='<div class="evEquity"><span>'+(r.equityMode==='known'?'指定ハンドに対するエクイティ':'対ランダムハンドの推定エクイティ')+(r.exact?'（完全列挙）':'')+'</span><b>'+r.equityPct.toFixed(1)+'%</b></div>';
  html+='<div class="evRows"><div class="evRow evHeader"><span>アクション</span><span>EV差分</span></div>';
  r.rows.forEach(function(row){var v=row.evBB,cls=v>.04?'positive':v<-.04?'negative':'neutral';var value=(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' BB';html+='<div class="evRow"><span>'+row.name+'</span><b class="'+cls+'">'+value+'</b></div>'});
  html+='</div><p class="evDisclaimer">フォールドを0 BBとした意思決定時点からの推定値。相手のコール／フォールド率は簡易モデルで、実戦結果や最適戦略を保証しません。</p>';
