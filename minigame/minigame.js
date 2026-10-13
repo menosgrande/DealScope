@@ -14,7 +14,7 @@ var TYPES={
 var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false,knownScenarioEV:false};
 function cardToken(c){return c==null||c<0?'xx':R[c>>2]+'shdc'[c&3]}
 function trimTokens(cards){var tokens=cards.map(cardToken);while(tokens.length&&tokens[tokens.length-1]==='xx')tokens.pop();return tokens.join('')}
 function calculatorUrl(){
@@ -258,7 +258,7 @@ function endHand(){
 }
 function nextHand(){
  if(!A.handOver||A.finished)return;
- A.handOver=false;A.epoch++;A.pending=false;
+ A.knownScenarioEV=false;A.handOver=false;A.epoch++;A.pending=false;
  A.players.forEach(function(p){if(p.stack<=0)p.out=true});
  if(alive().length<=1)finish();else resetHand();
 }
@@ -349,7 +349,7 @@ function startImported(payload){
  for(var i=0;i<4;i++){
   A.players.push({seat:i,name:NAMES[i],type:['tag','lag','tp','lp'][i],stack:startingStack,out:i>=activeCount,hand:[],fold:false,allin:false,contrib:0,showdownScore:0});
  }
- A.handNo=1;A.dealer=activeCount-1;A.blinds=[smallBlind,bigBlind];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
+ A.handNo=1;A.knownScenarioEV=d.mode==='known';A.dealer=activeCount-1;A.blinds=[smallBlind,bigBlind];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
  A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.pot=0;A.history=[];A.message='解析局面を引き継ぎました';A.awaiting=false;A.finished=false;A.handOver=false;A.awards=[];A.raiseLocked=[false,false,false,false];A.epoch++;A.pending=false;
  A.deck=shuffle(Array.from({length:52},function(_,i){return i}).filter(function(c){return used.indexOf(c)<0}));
  for(var j=0;j<activeCount;j++){
@@ -425,7 +425,7 @@ function renderActionEV(){
  if(details&&!details.dataset.evToggleBound){details.addEventListener('toggle',function(){actionEVOpen=details.open});details.dataset.evToggleBound='1'}
  if(window.DealMiniGameEV)box.innerHTML=window.DealMiniGameEV.renderMarkup({
   players:A.players,board:A.board,street:A.street,handNo:A.handNo,actor:A.actor,awaiting:A.awaiting,
-  currentBet:A.currentBet,roundBet:A.roundBet,pot:A.pot,blinds:A.blinds,legal:legalActions(A.players[0]),engine:E
+  currentBet:A.currentBet,roundBet:A.roundBet,pot:A.pot,blinds:A.blinds,legal:legalActions(A.players[0]),knownHands:A.knownScenarioEV,engine:E
  },Number($('amount').value));
  else box.innerHTML='<div class="evStatus">簡易EVエンジンを読み込めません。</div>';
 }
