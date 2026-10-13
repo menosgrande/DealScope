@@ -184,7 +184,8 @@ function render(){
  $('nextHandBtn').hidden=!A.waitingNext;$('returnAnalysisBtn').hidden=!A.waitingNext;
  $('newBtn').hidden=bridgeImported||A.waitingNext;
  $('callBtn').textContent=call?'コール '+money(call):'チェック';$('betBtn').textContent=A.currentBet?'レイズ':'ベット';
- var min=minRaise(),max=p?p.stack+A.roundBet[0]:0;$('amount').min=min;$('amount').max=Math.max(min,max);$('amount').value=clamp(min,min,Math.max(min,max))
+ var min=minRaise(),max=p?p.stack+A.roundBet[0]:0;$('amount').min=min;$('amount').max=Math.max(min,max);$('amount').value=clamp(min,min,Math.max(min,max));
+ if(window.MiniGameEV)window.MiniGameEV.render(A);
 }
 function setError(msg){$('setupError').textContent=msg;$('setupError').hidden=!msg}
 function bridgeStreet(count){return count===0?'preflop':count===3?'flop':count===4?'turn':'river'}
@@ -302,5 +303,6 @@ $('allinBtn').onclick=function(){confirmDangerousAction('allinBtn','オールイ
 $('newBtn').onclick=function(){confirmDangerousAction('newBtn','最初からやり直す',restart)};
 $('startImported').onclick=startImported;$('cancelImported').onclick=function(){location.href='./'};$('nextHandBtn').onclick=function(){if(!A.waitingNext)return;A.waitingNext=false;A.handOver=false;bridgeImported=false;A.basePot=0;A.pot=0;A.players.forEach(function(p){if(p.stack<=0)p.out=true});$('nextHandBtn').hidden=true;$('returnAnalysisBtn').hidden=true;$('newBtn').hidden=false;resetHand()};
 $('returnAnalysisBtn').onclick=returnAnalysis;$('backLink').addEventListener('click',function(e){e.preventDefault();returnAnalysis()});
+$('handAnalysis').addEventListener('toggle',function(){if(this.open&&window.MiniGameEV)window.MiniGameEV.render(A)});
 if(hasBridge)showBridgeSetup();else restart()
 })();
