@@ -363,7 +363,7 @@ function render(){
   var canSize=A.awaiting&&(legal.bet||legal.raise);
   $('minusStep').disabled=!canSize||Number($('amountSlider').value)<=rangeMin;
   $('plusStep').disabled=!canSize||Number($('amountSlider').value)>=rangeMax;
-  Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(btn){btn.disabled=!canSize});
+  updatePresetButtons(canSize);
   $('callBtn').classList.toggle('primary',!!(legal.call||legal.check));
   $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
   $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
@@ -381,10 +381,12 @@ function renderActionEV(){
  else box.innerHTML='<div class="evStatus">簡易EVエンジンを読み込めません。</div>';
 }
 function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
+function betSizingContext(){return {street:A.street,currentBet:A.currentBet,roundBet:A.roundBet[0],bigBlind:A.blinds[1],pot:A.pot,minRaise:minRaise()}}
+function updatePresetButtons(canSize){var sizing=window.DealMiniGameBetSizing;if(!sizing)return;var defs=sizing.definitions(betSizingContext());Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(btn){var def=defs.find(function(item){return item.size===btn.dataset.size});if(def)btn.textContent=def.label;btn.disabled=!canSize})}
 function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel();renderActionEV()}
 $('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value));$('minusStep').disabled=Number(this.value)<=Number(this.min);$('plusStep').disabled=Number(this.value)>=Number(this.max);updateBetActionLabel();renderActionEV(); };
 $('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-Number($('amountSlider').step))};
 $('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+Number($('amountSlider').step))};
-$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
+$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],sizing=window.DealMiniGameBetSizing;if(!p||!A.awaiting||!sizing)return;var target=sizing.target(b.dataset.size,betSizingContext());setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
 restart()
 })();

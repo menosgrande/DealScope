@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const E = require('../engine.js');
 const EV = require('../minigame/ev.js');
+const BetSizing = require('../minigame/bet-sizing.js');
 
 function card(code) {
   const ranks = '23456789TJQKA';
@@ -24,7 +25,23 @@ function state(target) {
 }
 assert.equal(EV.handLabel([card('Qh'),card('9d')]), 'Q9o（オフスート）');
 assert.equal(EV.handLabel([card('Qs'),card('9s')]), 'Q9s（スーテッド）');
+
 assert.equal(EV.handLabel([card('Qh'),card('Qd')]), 'QQ（ポケットペア）');
+
+const openPreflop = {street:'preflop',currentBet:200,bigBlind:200,pot:500,minRaise:400};
+assert.equal(BetSizing.target('small',openPreflop),500,'preflop open size uses 2.5 BB');
+assert.equal(BetSizing.target('medium',openPreflop),600,'preflop open size uses 3 BB');
+assert.deepEqual(BetSizing.definitions(openPreflop).map(x=>x.label),['最小','2.5 BB','3 BB','4 BB']);
+const postflopBet = {street:'flop',currentBet:0,bigBlind:200,pot:900,minRaise:200};
+assert.equal(BetSizing.target('small',postflopBet),300,'postflop small bet uses one third pot');
+assert.equal(BetSizing.target('medium',postflopBet),450,'postflop medium bet uses half pot');
+assert.equal(BetSizing.target('large',postflopBet),900,'postflop pot bet uses full pot');
+assert.deepEqual(BetSizing.definitions(postflopBet).map(x=>x.label),['最小','1/3 POT','1/2 POT','POT']);
+const facingRaise = {street:'turn',currentBet:1200,bigBlind:200,pot:2400,minRaise:2000};
+assert.equal(BetSizing.target('small',facingRaise),3000,'re-raise target uses current bet multiple but respects minimum raise');
+assert.equal(BetSizing.target('min',facingRaise),2000,'minimum re-raise respects legal minimum');
+assert.deepEqual(BetSizing.definitions(facingRaise).map(x=>x.label),['最小','2.5×','3×','4×']);
+
 
 const small = EV.estimate(state(400),400);
 const large = EV.estimate(state(10000),10000);
@@ -39,6 +56,9 @@ assert(EV.renderMarkup(state(400),400).includes('アクション別EV'));
 const fs = require('node:fs');
 const html = fs.readFileSync(require('node:path').join(__dirname, '../minigame/index.html'), 'utf8');
 const js = fs.readFileSync(require('node:path').join(__dirname, '../minigame/minigame.js'), 'utf8');
+assert(html.includes('./bet-sizing.js?v=20261013-betsize1'), 'contextual bet sizing module must load before the game');
+assert(js.includes('updatePresetButtons(canSize)'), 'preset labels must update with the current street/action');
+assert(js.includes('sizing.target(b.dataset.size,betSizingContext())'), 'preset clicks must use contextual sizing');
 assert(html.includes('.actionEvDetails>summary'), 'collapsible EV disclosure must be styled');
 assert(js.includes('<details id="actionEvDetails"'), 'EV panel must use native details/summary disclosure');
 assert(js.includes("var actionEVOpen=false"), 'EV panel should default to collapsed');
