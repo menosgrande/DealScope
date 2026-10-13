@@ -345,6 +345,19 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div class="bridgeActions" id="bridgeActions">
     <button id="playScenario" type="button">この局面でミニゲーム</button>
     <p id="bridgeError" class="note" role="alert" hidden></p>
+    <section id="gameSetupOverlay" role="dialog" aria-modal="true" aria-labelledby="gameSetupTitle" hidden>
+      <div class="gameSetupCard">
+        <h2 id="gameSetupTitle">ミニゲーム開始設定</h2>
+        <p id="gameSetupSummary">解析中のハンドとボードを引き継ぎます。開始前にチップ条件を確認してください。</p>
+        <div class="gameSetupGrid">
+          <label>各プレイヤーの開始チップ<input id="gameStartStack" type="number" min="200" max="10000000" step="100" value="20000" inputmode="numeric"></label>
+          <label>スモールブラインド<input id="gameSmallBlind" type="number" min="10" max="1000000" step="10" value="100" inputmode="numeric"></label>
+          <label>ビッグブラインド<input id="gameBigBlind" type="number" min="20" max="2000000" step="10" value="200" inputmode="numeric"></label>
+          <label>開始時のポット（フロップ以降）<input id="gameStartPot" type="number" min="0" max="10000000" step="100" value="300" inputmode="numeric"></label>
+        </div>
+        <div class="gameSetupActions"><button id="cancelGameSetup" type="button">キャンセル</button><button id="confirmGameSetup" type="button">この設定で開始</button></div>
+      </div>
+    </section>
   </div>
 </main>
 
