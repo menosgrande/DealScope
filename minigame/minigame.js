@@ -135,10 +135,12 @@ function texture(){
  u.sort(function(a,b){return a-b});for(var i=0;i<u.length-1;i++)if(u[i+1]-u[i]<=2)x+=0.04;
  return clamp(x,0,0.35)
 }
-function equity(p){
+function equity(p,opponentCount){
  var b=A.board.filter(function(c){return c>=0});
  if(!b.length)return preStrength(p.hand);
- try{return E.monteCarloVsRandom(p.hand,b,360,{seed:((A.handNo+1)*10007+p.seat*7919+(seed>>>0))>>>0}).equity[0]/100}catch(e){return 0.5}
+ try{
+  return E.monteCarloVsRandom(p.hand,b,480,{opponents:Math.max(1,opponentCount||1),seed:((A.handNo+1)*10007+p.seat*7919+(seed>>>0))>>>0}).equity[0]/100
+ }catch(e){return 0.5}
 }
 function minRaise(){return A.currentBet===0?A.blinds[1]:A.currentBet+Math.max(A.blinds[1],A.lastRaise||A.blinds[1])}
 function legalActions(p){
@@ -158,39 +160,125 @@ function legalActions(p){
 }
 function amount(p,n){var max=p.stack+A.roundBet[p.seat];return Math.min(max,Math.max(0,Math.floor(n/A.blinds[1])*A.blinds[1]))}
 function ai(p){
- var t=TYPES[p.type],eq=equity(p),pre=preStrength(p.hand),call=Math.max(0,A.currentBet-A.roundBet[p.seat]),stack=p.stack+A.roundBet[p.seat],spr=stack/Math.max(A.blinds[1],A.pot),odds=call>0?call/(A.pot+call):0,tex=texture();
- var pos=p.position,late=(pos==='BTN'||pos==='CO'),early=(pos==='UTG'),v=clamp(eq*0.62+pre*0.38+(rnd()-0.5)*0.10,0,1);
- var streetFactor=A.street==='preflop'?1:A.street==='flop'?1.04:A.street==='turn'?1.08:1.12;
- var strong=v*streetFactor, pressure=(t.pressure||0.5)*(late ? 1.08 : (early ? 0.88 : 1));
- var callCost=call/Math.max(1,stack),short=spr<12,veryShort=spr<7;
- var bluff=t.bluff*(late ? 1.25 : (early ? 0.65 : 1))*(A.street==='preflop' ? 1 : (A.street==='flop' ? 0.9 : 0.72));
- if(veryShort && strong>0.68 && rnd()<72/100)return{a:'allin'};
- if(call>0 && callCost>30/100 && strong<0.58 && rnd()>bluff*12/10)return{a:'fold'};
- if(call>0 && strong<43/100 && rnd()>bluff*8/10)return{a:'fold'};
- if(call>0 && strong<52/100 && odds>0.28 && rnd()<t.call*75/100)return{a:'call'};
- if(call>=stack)return strong>=0.72||rnd()<bluff*18/100?{a:'allin'}:{a:'fold'};
- if(!call){
-   if(A.street==='preflop'&&p.position==='BB'&&rnd()<0.35&&v<0.38)return{a:'check'};
-   if(v<0.25&&rnd()>t.bluff)return{a:'check'};
-   if(rnd()<clamp(t.post*(v-0.32)*1.5,0,0.8)){
-     var openSize=Math.max(A.blinds[1]*2.2,A.blinds[1]*clamp(2.1+strong*0.9+(late ? 0.25 : 0),2.1,3.4));
-     openSize=Math.min(openSize,Math.max(A.blinds[1]*2.2,stack*0.18));
-     return{a:'bet',n:amount(p,openSize)};
+ var t=TYPES[p.type]||TYPES.tag;
+ var liveOpponents=A.players.filter(function(q){return q.seat!==p.seat&&!q.out&&!q.fold});
+ var canRespond=liveOpponents.some(function(q){return !q.allin&&q.stack>0});
+ var call=Math.max(0,A.currentBet-A.roundBet[p.seat]);
+ var stack=Math.max(0,Number(p.stack)||0);
+ var totalStack=stack+(Number(A.roundBet[p.seat])||0);
+ var bb=Math.max(1,A.blinds[1]||1);
+ var pot=Math.max(0,A.pot);
+ var callOdds=call>0?call/Math.max(1,pot+call):0;
+ var stackBB=stack/bb;
+ var effectiveStack=stack;
+ liveOpponents.forEach(function(q){
+  if(!q.allin&&q.stack>0)effectiveStack=Math.min(effectiveStack,Math.max(0,q.stack+(Number(A.roundBet[q.seat])||0)));
+ });
+ var effectiveBB=effectiveStack/bb;
+ var pre=preStrength(p.hand);
+ var preflop=A.street==='preflop';
+ var eq=preflop?pre:equity(p,liveOpponents.length);
+ var pos=p.position||'';
+ var late=pos==='BTN'||pos==='CO';
+ var blindPos=pos==='SB'||pos==='BB';
+ var early=pos==='UTG';
+ var positionAdjust=late?0.055:early?-0.045:blindPos?0.025:0;
+ var noise=(rnd()-0.5)*(preflop?0.055:0.035);
+ var strength=clamp(eq+positionAdjust+noise,0,1);
+ var history=A.history||[];
+ var facedRaise=preflop&&A.currentBet>bb*1.5;
+ var typeKey=p.type||'tag';
+ var looseness=typeKey==='lp'?0.075:typeKey==='lag'?0.035:typeKey==='tp'?-0.055:0;
+ var raiseBias=typeKey==='lag'?0.13:typeKey==='tag'?0.055:typeKey==='tp'?-0.10:-0.12;
+ var callBias=typeKey==='lp'?0.07:typeKey==='tp'?0.035:0;
+ var foldThreshold=preflop
+  ? (facedRaise?(typeKey==='tp'?0.69:typeKey==='tag'?0.61:typeKey==='lag'?0.52:0.47):(typeKey==='tp'?0.51:typeKey==='tag'?0.42:typeKey==='lag'?0.33:0.30))
+  : 0;
+ var min=minRaise();
+ var maxTarget=totalStack;
+ function targetAmount(target){
+  target=clamp(Math.ceil(target/bb)*bb,0,maxTarget);
+  return amount(p,target);
+ }
+ function makeRaise(){
+  var potSize=Math.max(bb,pot+call);
+  var sizeFactor=strength>0.88?0.72:strength>0.80?0.58:0.42;
+  var target=Math.max(min,A.currentBet+Math.max(A.lastRaise||bb,Math.round(potSize*sizeFactor)));
+  target=Math.min(target,maxTarget);
+  var n=targetAmount(target);
+  if(n>=min&&n>A.currentBet)return {a:'raise',n:n};
+  return null;
+ }
+ // Preflop: hand quality, position and prior aggression govern entry.
+ if(preflop){
+  var preScore=clamp(pre+positionAdjust+noise,0,1);
+  if(call===0){
+   // Big blind checks for free; otherwise avoid turning every unopened pot into a raise.
+   if(p.position==='BB'&&A.currentBet===A.roundBet[p.seat])return {a:'check'};
+   var openThreshold=typeKey==='tp'?0.60:typeKey==='tag'?0.52:typeKey==='lag'?0.43:0.41;
+   if(preScore<openThreshold&&rnd()>t.bluff*0.45)return {a:'check'};
+   var openChance=clamp((preScore-openThreshold)*1.8+(t.post||0.5)*0.28+raiseBias,0.08,0.82);
+   if(canRespond&&rnd()<openChance){
+    var openMult=preScore>0.82?3.1:preScore>0.68?2.7:2.35;
+    var openTarget=Math.min(maxTarget,Math.max(bb*2,Math.round(bb*openMult)));
+    var openAmount=targetAmount(openTarget);
+    if(openAmount>=bb)return {a:'bet',n:openAmount};
    }
-   return{a:'check'}
+   return {a:'check'}
+  }
+  var threshold=foldThreshold+(early?0.035:late?-0.025:0);
+  var costRatio=call/Math.max(1,stack);
+  if(preScore<threshold&&rnd()>t.bluff*0.25)return {a:'fold'};
+  if(costRatio>0.24&&preScore<0.76)return {a:'fold'};
+  if(canRespond&&preScore>threshold+0.22&&rnd()<clamp((t.raise||0.4)+raiseBias,0.18,0.88)){
+   var pr=makeRaise();if(pr)return pr;
+  }
+  if(call>=stack){
+   if(preScore>0.76&&effectiveBB<=12&&rnd()<0.72)return {a:'allin'};
+   return {a:'fold'}
+  }
+  if(effectiveBB<=8&&preScore>0.78&&canRespond&&rnd()<0.22)return {a:'allin'};
+  if(preScore+looseness+callBias>=threshold||callOdds>0.22&&preScore>threshold-0.08)return {a:'call'};
+  return {a:'fold'}
  }
- if(v<odds-0.08&&rnd()>t.bluff*0.35)return{a:'fold'};
- if(v>0.70&&rnd()<t.raise*0.55){
-   var min=minRaise(),raiseMult=clamp(0.9+strong*0.65+(pressure-0.5)*0.25,0.9,1.65),target=Math.max(min,A.currentBet+Math.max(A.lastRaise,A.blinds[1])*raiseMult);
-   target=Math.min(target,Math.max(min,stack*0.35));
-   if(target> A.currentBet && strong>0.84 && rnd()<0.10)return{a:'allin'};
-   if(target>A.currentBet)return{a:'raise',n:amount(p,target)};
+ // Postflop: estimate equity against the number of opponents still in the hand.
+ var score=E.evaluate(A.board.concat(p.hand));
+ var category=score>>>20;
+ var madeStrength=category>=5?0.16:category===4?0.12:category===3?0.10:category===2?0.055:category===1?0.025:0;
+ var adjustedEq=clamp(eq+madeStrength*0.25,0,1);
+ var callCost=call/Math.max(1,stack);
+ var callThreshold=callOdds+0.025-looseness-callBias;
+ if(callCost>0.20)callThreshold+=0.045;
+ if(callCost>0.40)callThreshold+=0.075;
+ if(liveOpponents.length>=3)callThreshold+=0.025;
+ if(call>0){
+  if(adjustedEq<callThreshold&&rnd()>t.bluff*0.12)return {a:'fold'};
+  if(canRespond&&adjustedEq>0.80&&rnd()<clamp((t.raise||0.4)*0.55+raiseBias,0.12,0.72)){
+   // Deep stacks prefer a normal value raise; shove only when genuinely short.
+   if(effectiveBB<=7&&adjustedEq>0.84&&rnd()<0.35)return {a:'allin'};
+   var raised=makeRaise();if(raised)return raised;
+  }
+  if(call>=stack){
+   if(adjustedEq>=Math.max(0.62,callOdds+0.12)&&effectiveBB<=10&&rnd()<0.72)return {a:'allin'};
+   return adjustedEq>=callOdds+0.10?{a:'call'}:{a:'fold'}
+  }
+  if(effectiveBB<=6&&adjustedEq>0.78&&canRespond&&rnd()<0.18)return {a:'allin'};
+  return {a:'call'}
  }
- if(v>0.52&&rnd()<t.bluff*0.12){
-   var bluffTarget=Math.min(stack*0.28,Math.max(minRaise(),A.currentBet+A.blinds[1]*2));
-   return{a:'raise',n:amount(p,bluffTarget)};
+ // No bet to call: value-bet made hands and strong draws, with restrained bluffs.
+ if(!canRespond)return {a:'check'};
+ var valueThreshold=typeKey==='tp'?0.69:typeKey==='tag'?0.62:typeKey==='lag'?0.57:0.59;
+ var betProbability=clamp((adjustedEq-valueThreshold)*2.15+(t.post||0.5)*0.20+Math.max(0,t.bluff||0)*0.16,0,0.78);
+ if(adjustedEq>valueThreshold&&rnd()<betProbability){
+  var potFraction=adjustedEq>0.86?0.68:adjustedEq>0.75?0.52:0.34;
+  if(typeKey==='lag')potFraction+=0.08;
+  if(typeKey==='lp')potFraction-=0.06;
+  var betTarget=Math.min(maxTarget,Math.max(bb,Math.round(Math.max(bb,pot)*clamp(potFraction,0.25,0.80))));
+  var betAmount=targetAmount(betTarget);
+  if(betAmount>=bb)return {a:'bet',n:betAmount};
  }
- return rnd()<t.call||v>odds?{a:'call'}:{a:'fold'}
+ if(effectiveBB<=6&&adjustedEq>0.80&&canRespond&&rnd()<0.12)return {a:'allin'};
+ return {a:'check'}
 }
 function initDeck(){A.deck=shuffle(Array.from({length:52},function(_,i){return i}))}
 function deal(){return A.deck.pop()}
