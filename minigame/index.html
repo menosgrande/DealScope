@@ -340,6 +340,32 @@ main{grid-template-rows:24px auto auto;gap:7px}
  .analysisLaunch{padding:10px;font-size:11px}
  .analysisNote{font-size:8px}
 }
+
+/* Action EV panel: compact, readable, and explicitly heuristic. */
+.heroAnalysis{overflow-y:auto;overscroll-behavior:contain}
+.actionEvPanel{min-width:0;border-top:1px solid var(--line);padding-top:6px;display:flex;flex-direction:column;gap:5px}
+.evHeading{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:9px;color:var(--ivory)}
+.evHeading span{font-size:8px;color:var(--mute);font-weight:500}
+.evEquity{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:8px;color:var(--mute)}
+.evEquity b{font-size:13px;color:var(--brass);font-variant-numeric:tabular-nums}
+.evRows{border:1px solid #2a5a4b;border-radius:6px;overflow:hidden}
+.evRow{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:22px;padding:3px 6px;border-bottom:1px solid #2a5a4b66;font-size:8px}
+.evRow:last-child{border-bottom:0}
+.evHeader{color:var(--mute);font-size:7px;background:#092219}
+.evRow b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.evRow .positive{color:#8fe0b0}.evRow .negative{color:#ff9ba2}.evRow .neutral{color:var(--ivory)}
+.evStatus{font-size:8px;color:var(--mute);line-height:1.4;margin:0}
+.evDisclaimer{font-size:7px;color:var(--mute);line-height:1.35;margin:0}
+.betline .potLabel{font-size:9px;color:var(--mute)}
+@media(max-width:600px){
+ .heroAnalysis{overflow:visible}
+ .actionEvPanel{gap:6px}
+ .evRow{font-size:10px;min-height:26px;padding:4px 8px}
+ .evHeader{font-size:8px}
+ .evEquity{font-size:9px}
+ .evDisclaimer{font-size:8px}
+}
+
 </style>
 </head>
 <body>
@@ -420,6 +446,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./minigame.js?v=20261009-poker24"></script>
+<script src="./ev.js?v=20261013-ev1"></script>
+<script src="./minigame.js?v=20261013-ev1"></script>
 </body>
 </html>
