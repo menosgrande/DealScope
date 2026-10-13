@@ -50,11 +50,9 @@ function handAnalysisLines(p){
   var traits=[];
   if(hand.length===2){
    var a=rank(hand[0]),b=rank(hand[1]),hi=Math.max(a,b),lo=Math.min(a,b);
-   if(a===b)traits.push('ポケットペア');
-   if((hand[0]&3)===(hand[1]&3))traits.push('スーテッド');
-   if(hi-lo===1)traits.push('コネクター');
-   else if(hi-lo===2)traits.push('ワンギャップ');
-   traits.push(rankLabel(hi)+'ハイ');
+   traits.push(window.DealMiniGameEV?window.DealMiniGameEV.handLabel(hand):rankLabel(hi)+'ハイ');
+   if(a!==b&&hi-lo===1)traits.push('コネクター');
+   else if(a!==b&&hi-lo===2)traits.push('ワンギャップ');
   }
   return [{label:'スタートハンド',value:traits.join(' ・ ')||'—'},{label:'ボード',value:'フロップ待ち'}]
  }
@@ -103,6 +101,7 @@ function heroAnalysisMarkup(){
  return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>'+
   '<div class="analysisIntro">現在の手札と公開ボードを勝率計算ツールへ引き継ぎます。</div>'+
   (p?handAnalysisMarkup(p):'')+
+  '<div id="actionEvPanel" class="actionEvPanel"></div>'+
   (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
   '<div class="analysisNote">'+note+' 別タブで開きます。</div>'
 }
@@ -337,7 +336,7 @@ function render(){
    var badge=award?'<span class="resultBadge">+'+money(award.amount)+'</span>':'';
    var bet=A.roundBet[p.seat]||0,chipCount=bet<=0?0:Math.min(5,Math.max(1,Math.ceil(Math.log2(bet/Math.max(1,A.blinds[1]/2)+1))));
    var placedChips=chipCount?'<span class="betChips" aria-label="このストリートの投入チップ">'+Array.from({length:chipCount},function(){return '<span class="betChip"></span>'}).join('')+'</span>':'';
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">POT <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">投入 <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
   }).join('');
   $('heroAnalysis').innerHTML=heroAnalysisMarkup();
   $('log').innerHTML=A.history.slice(-7).map(function(h){return '<div><b>'+A.players[h.seat].name+'</b> '+h.text+'</div>'}).join('');
@@ -368,10 +367,20 @@ function render(){
   $('betBtn').classList.toggle('primary',!(legal.call||legal.check)&&(legal.bet||legal.raise));
   $('allinBtn').classList.toggle('primary',!((legal.call||legal.check)||(legal.bet||legal.raise))&&legal.allin);
   updateBetActionLabel();
+  renderActionEV();
+}
+function renderActionEV(){
+ var box=$('actionEvPanel');
+ if(!box)return;
+ if(window.DealMiniGameEV)box.innerHTML=window.DealMiniGameEV.renderMarkup({
+  players:A.players,board:A.board,street:A.street,handNo:A.handNo,actor:A.actor,awaiting:A.awaiting,
+  currentBet:A.currentBet,roundBet:A.roundBet,pot:A.pot,blinds:A.blinds,legal:legalActions(A.players[0]),engine:E
+ },Number($('amount').value));
+ else box.innerHTML='<div class="evStatus">簡易EVエンジンを読み込めません。</div>';
 }
 function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0);$('betBtn').textContent=(A.currentBet?'レイズ ':'ベット ')+amountValue}
-function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel()}
-$('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value));$('minusStep').disabled=Number(this.value)<=Number(this.min);$('plusStep').disabled=Number(this.value)>=Number(this.max);updateBetActionLabel(); };
+function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.min)||0,max=Number(slider.max)||min,step=Number(slider.step)||1;var next=clamp(min+Math.round((Number(target)-min)/step)*step,min,max);slider.value=next;$('amount').value=slider.value;$('amountReadout').textContent=money(Number(slider.value));$('minusStep').disabled=Number(slider.value)<=min;$('plusStep').disabled=Number(slider.value)>=max;updateBetActionLabel();renderActionEV()}
+$('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value));$('minusStep').disabled=Number(this.value)<=Number(this.min);$('plusStep').disabled=Number(this.value)>=Number(this.max);updateBetActionLabel();renderActionEV(); };
 $('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-Number($('amountSlider').step))};
 $('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+Number($('amountSlider').step))};
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],call=Math.max(0,A.currentBet-A.roundBet[0]),pot=A.pot,target;if(!p||!A.awaiting)return;if(b.dataset.size==='min')target=minRaise();else if(b.dataset.size==='half')target=A.currentBet+Math.max(A.blinds[1],Math.floor((pot+call)/2));else if(b.dataset.size==='pot')target=A.currentBet+Math.max(A.blinds[1],pot+call);else target=A.currentBet+Math.max(A.blinds[1],(pot+call)*2);setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
