@@ -106,7 +106,7 @@
     try {
       sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(d));
       sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(payload));
-      location.href = './minigame.html';
+      location.href = './minigame/';
     } catch (e) {
       $('bridgeError').textContent = '局面を渡せませんでした。ブラウザのセッション保存設定を確認してください。';
       $('bridgeError').hidden = false;
