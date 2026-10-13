@@ -45,32 +45,54 @@ function estimate(state,selectedTarget){
  var stack=Math.max(0,Number(hero.stack)||0);
  var responders=opponents.filter(function(p){return !p.allin&&p.stack>0});
  var rows=[{name:'フォールド',ev:0,kind:'fold'}];
+ function eligiblePot(basePot, players, heroContributionAfter){
+  // Chips committed above Hero's total hand contribution are not contestable by Hero.
+  var excess=0;
+  (players||[]).forEach(function(p){
+   if(!p||p.seat===0||p.out||p.fold)return;
+   excess+=Math.max(0,(Number(p.contrib)||0)-heroContributionAfter);
+  });
+  return Math.max(0,basePot-excess);
+ }
+ var heroContrib=Math.max(0,Number(hero.contrib)||0);
  if(call>0){
   var callInvest=Math.min(call,stack);
-  rows.push({name:'コール '+Math.round(callInvest).toLocaleString('ja-JP'),ev:equity*(pot+callInvest)-callInvest,kind:'call'});
+  var callPot=eligiblePot(pot,state.players,heroContrib+callInvest);
+  rows.push({name:'コール '+Math.round(callInvest).toLocaleString('ja-JP'),ev:equity*(callPot+callInvest)-callInvest,kind:'call'});
  }else{
   rows.push({name:'チェック',ev:equity*pot,kind:'check'});
  }
+ var raiseEVSuppressed=opponents.length>1||responders.length!==1;
  function addBet(name,target){
-  target=clamp(Math.round(Number(target)||0),Math.max(1,Number(state.currentBet)||0),roundBet+stack);
+  var currentBet=Math.max(0,Number(state.currentBet)||0);
+  var maxTarget=roundBet+stack;
+  target=Math.max(0,Math.min(maxTarget,Math.round(Number(target)||0)));
   var invest=Math.max(0,target-roundBet);
-  var add=Math.max(0,target-(Number(state.currentBet)||0));
-  var allFold=1,expectedCallers=0;
-  responders.forEach(function(p){var f=foldChance(p,invest,pot);allFold*=f;expectedCallers+=1-f});
-  var conditionalCallers=allFold>=1?0:expectedCallers/(1-allFold);
-  rows.push({name:name,ev:actionEV(equity,pot,invest,add*conditionalCallers,allFold),kind:'raise'});
+  if(target<=currentBet){
+   if(invest<=0)return;
+   var contestable=eligiblePot(pot,state.players,heroContrib+invest);
+   rows.push({name:name+'（コール）',ev:equity*(contestable+invest)-invest,kind:'allin'});
+   return;
+  }
+  // Multiway caller-count-specific equity is not available; caller contributions are
+  // only estimated when exactly one opponent can respond.
+  var caller=responders[0];
+  var callerRoundBet=(state.roundBet&&Number(state.roundBet[caller.seat]))||0;
+  var callerContribution=Math.min(Math.max(0,target-callerRoundBet),Math.max(0,Number(caller.stack)||0));
+  var f=foldChance(caller,invest,pot);
+  rows.push({name:name,ev:actionEV(equity,pot,invest,callerContribution,f),kind:'raise'});
  }
  var minRaise=Number(state.legal&&state.legal.minRaise)||Math.max(bb,(Number(state.currentBet)||0)+bb);
  var maxTarget=roundBet+stack;
- if(maxTarget>=(Number(state.currentBet)||0)+bb){
+ if(!raiseEVSuppressed&&maxTarget>=(Number(state.currentBet)||0)+bb){
   if(Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
    var chosen=clamp(Number(selectedTarget),minRaise,maxTarget);
    addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
   }
   var allinTarget=maxTarget;
-  if(allinTarget>0&&(!rows.length||Math.abs(allinTarget-(Number(selectedTarget)||0))>bb/2))addBet('オールイン',allinTarget);
+  if(allinTarget>0&&(!Number.isFinite(Number(selectedTarget))||Math.abs(allinTarget-Number(selectedTarget))>bb/2))addBet('オールイン',allinTarget);
  }
- return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
+ return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),raiseEVSuppressed:raiseEVSuppressed,rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
 }
 function renderMarkup(state,selectedTarget){
  var r=estimate(state,selectedTarget);
@@ -79,7 +101,9 @@ function renderMarkup(state,selectedTarget){
  html+='<div class="evEquity"><span>対ランダムハンドの推定エクイティ</span><b>'+r.equityPct.toFixed(1)+'%</b></div>';
  html+='<div class="evRows"><div class="evRow evHeader"><span>アクション</span><span>EV差分</span></div>';
  r.rows.forEach(function(row){var v=row.evBB,cls=v>.04?'positive':v<-.04?'negative':'neutral';var value=(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' BB';html+='<div class="evRow"><span>'+row.name+'</span><b class="'+cls+'">'+value+'</b></div>'});
- html+='</div><p class="evDisclaimer">フォールドを0 BBとした意思決定時点からの推定値。相手のコール／フォールド率は簡易モデルで、実戦結果や最適戦略を保証しません。</p>';
+ html+='</div>';
+ if(r.raiseEVSuppressed)html+='<p class="evDisclaimer">複数人が残っているか、応答可能な相手が1人に絞れないため、レイズ／オールインEVは非表示です。コール人数別エクイティに対応後に表示します。</p>';
+ html+='<p class="evDisclaimer">フォールドを0 BBとした意思決定時点からの推定値。相手のコール／フォールド率は簡易モデルで、実戦結果や最適戦略を保証しません。</p>';
  return html;
 }
 var api={estimate:estimate,renderMarkup:renderMarkup,handLabel:handLabel};
