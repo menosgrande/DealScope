@@ -296,7 +296,7 @@ function confirmDangerousAction(id,label,callback){
   dangerousConfirmation=null;
  },2500);
 }
-function setAmount(value){var input=$('amount'),min=Number(input.min)||0,max=Number(input.max)||min;value=clamp(Math.round(Number(value)/(A.blinds[1]||1))*(A.blinds[1]||1),min,max);input.value=value;$('amountRange').value=value;$('amountValue').textContent=money(value);$('amountDown').disabled=!A.awaiting||value<=min;$('amountUp').disabled=!A.awaiting||value>=max}
+function setAmount(value){var input=$('amount'),min=Number(input.min)||0,max=Number(input.max)||min;value=clamp(Math.round(Number(value)/(A.blinds[1]||1))*(A.blinds[1]||1),min,max);input.value=value;$('amountRange').value=value;$('amountValue').textContent=money(value);$('amountDown').disabled=!A.awaiting||value<=min;$('amountUp').disabled=!A.awaiting||value>=max;if(window.MiniGameEV)window.MiniGameEV.render(A)}
 $('amount').addEventListener('input',function(){setAmount(this.value)});
 $('amountRange').addEventListener('input',function(){setAmount(this.value)});
 $('amountDown').onclick=function(){setAmount(Number($('amount').value)-(A.blinds[1]||1))};
