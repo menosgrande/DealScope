@@ -342,13 +342,14 @@ function validImportedPayload(payload){
 }
 function startImported(payload){
  var d=payload.snapshot,board=d.board.slice(),activeCount=d.mode==='random'?1+(Number(d.opp)||1):Number(d.n);
+ var settings=payload.settings||{},startingStack=Number(settings.stack)||20000,smallBlind=Number(settings.smallBlind)||100,bigBlind=Number(settings.bigBlind)||200,startPot=Number.isFinite(Number(settings.startPot))?Math.max(0,Number(settings.startPot)):300;
  var used=board.filter(function(c){return c>=0}),knownHands=d.mode==='random'?d.players.slice(0,1):d.players.slice(0,activeCount);
  knownHands.forEach(function(hand){used=used.concat(hand)});
  A.players=[];
  for(var i=0;i<4;i++){
-  A.players.push({seat:i,name:NAMES[i],type:['tag','lag','tp','lp'][i],stack:20000,out:i>=activeCount,hand:[],fold:false,allin:false,contrib:0,showdownScore:0});
+  A.players.push({seat:i,name:NAMES[i],type:['tag','lag','tp','lp'][i],stack:startingStack,out:i>=activeCount,hand:[],fold:false,allin:false,contrib:0,showdownScore:0});
  }
- A.handNo=1;A.dealer=activeCount-1;A.blinds=[100,200];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
+ A.handNo=1;A.dealer=activeCount-1;A.blinds=[smallBlind,bigBlind];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
  A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.pot=0;A.history=[];A.message='解析局面を引き継ぎました';A.awaiting=false;A.finished=false;A.handOver=false;A.awards=[];A.raiseLocked=[false,false,false,false];A.epoch++;A.pending=false;
  A.deck=shuffle(Array.from({length:52},function(_,i){return i}).filter(function(c){return used.indexOf(c)<0}));
  for(var j=0;j<activeCount;j++){
@@ -361,7 +362,7 @@ function startImported(payload){
   blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.roundBet[bb];A.actor=nextSeat(bb);
  }else{
   // ポット額は解析画面から取得できないため、ミニゲームの初期ポットを使う。
-  A.pot=300;A.actor=nextSeat(A.dealer);
+  A.pot=startPot;A.actor=nextSeat(A.dealer);
  }
  A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':''});
  render();advance();
@@ -436,6 +437,8 @@ $('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountRead
 $('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-Number($('amountSlider').step))};
 $('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+Number($('amountSlider').step))};
 $('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.raise?'raise':'bet')};$('allinBtn').onclick=function(){human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],sizing=window.DealMiniGameBetSizing;if(!p||!A.awaiting||!sizing)return;var target=sizing.target(b.dataset.size,betSizingContext());setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
+ var returnButton=$('returnAnalysisBtn');
+ try{if(sessionStorage.getItem('dealscope-analysis-return-v1'))returnButton.classList.add('visible')}catch(e){}
  var imported=null;
  try{imported=JSON.parse(sessionStorage.getItem('dealscope-analysis-game-v1')||'null');sessionStorage.removeItem('dealscope-analysis-game-v1')}catch(e){}
  if(imported&&validImportedPayload(imported))startImported(imported);else restart();
