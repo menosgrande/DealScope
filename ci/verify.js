@@ -381,16 +381,28 @@ function testMiniGameEVMath() {
   }));
   assert.equal(result.rows.find(r => r.kind === 'call').evBB, 8.6);
 
-  // Folded chips remain dead money and stay contestable by Hero.
+  // Side-pot eligibility is capped at Hero's post-call total contribution.
+  // Contributions: Hero 0, live opponent 100, folded player 190; pot = 290.
+  // Hero can contest only 10 from each contributor, plus the new 10-chip call.
   result = MiniGameEV.estimate(state({
     players: [
       { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
       { seat: 1, hand: [4, 5], stack: 100, contrib: 100, out: false, fold: false, type: 'tag', allin: false },
       { seat: 2, hand: [8, 9], stack: 0, contrib: 190, out: false, fold: true, type: 'tp', allin: false }
     ],
-    pot: 300, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+    pot: 290, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
   }));
-  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 16.6);
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 1.4);
+
+  // An all-in opponent's unmatched excess must not inflate Hero's call EV.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 10, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 0, contrib: 100, out: false, fold: false, type: 'tag', allin: true }
+    ],
+    pot: 100, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  assert.equal(result.rows.find(r => r.kind === 'call').evBB, 0.6);
 
   // A single live opponent can have a raise EV estimate.
   result = MiniGameEV.estimate(state(), 40);
