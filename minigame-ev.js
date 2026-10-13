@@ -12,13 +12,11 @@ function round1(x){return Math.round(x*10)/10}
 function handLabel(hand,E){
  if(!hand||hand.length!==2)return 'ハンド未設定';
  var r=hand.map(function(c){return c>>2}).sort(function(a,b){return b-a});
- var high=r[0]+2,low=r[1]+2,suited=(hand[0]&3)===(hand[1]&3),gap=r[0]-r[1];
+ var high=r[0]+2,low=r[1]+2,suited=(hand[0]&3)===(hand[1]&3);
  var rankName=function(n){return ({11:'J',12:'Q',13:'K',14:'A'})[n]||String(n)};
- if(r[0]===r[1])return rankName(high)+'のポケットペア';
- var shape=suited?'スーテッド':'オフスート';
- if(gap===1)return shape+'・コネクター・'+rankName(high)+'ハイ';
- if(gap===2)return shape+'・ワンギャッパー・'+rankName(high)+'ハイ';
- return shape+'・'+rankName(high)+'ハイ / '+rankName(low)+'ハイ';
+ if(r[0]===r[1])return rankName(high)+rankName(low)+'（ポケットペア）';
+ // Compact poker notation makes the actual two-card holding explicit (e.g. Q9o, Q9s).
+ return rankName(high)+rankName(low)+(suited?'s':'o')+'（'+(suited?'スーテッド':'オフスート')+'）';
 }
 function streetLabel(street){
  return ({preflop:'フロップ待ち',flop:'フロップ',turn:'ターン',river:'リバー'})[street]||'ボード未確定';
@@ -68,19 +66,24 @@ function estimate(state){
   var callInvest=Math.min(call,maxInvest);
   rows.push({name:'コール',ev:actionValue(equity,pot,callInvest,0,0),kind:'call'});
  }
- function addRaise(name,multiplier){
-  var target;
-  if(state.currentBet>0)target=state.currentBet*multiplier;
-  else target=Math.max(bb,Math.round(pot*(multiplier===2?.5:1)));
-  target=Math.min((state.roundBet[0]||0)+maxInvest,Math.max(state.currentBet+bb,target));
+ function addRaise(name,requestedTarget){
+  var maxTarget=(state.roundBet[0]||0)+maxInvest;
+  var target=Math.min(maxTarget,Math.max(state.currentBet+bb,Math.round(requestedTarget||0)));
   var invest=Math.min(maxInvest,Math.max(0,target-(state.roundBet[0]||0)));
   var actualTarget=(state.roundBet[0]||0)+invest;
   var opponentCall=Math.max(0,actualTarget-state.currentBet);
   var foldP=foldProbability(responders,invest,pot);
   rows.push({name:name,ev:actionValue(equity,pot,invest,opponentCall,foldP),kind:'raise'});
  }
- if(call===0){addRaise('ベット ×0.5 pot',2);addRaise('ベット ×1 pot',3)}
- else{addRaise('×2 レイズ',2);addRaise('×3 レイズ',3)}
+ if(call===0){
+  addRaise('ベット 1/2 POT',Math.max(bb,Math.round(pot*.5)));
+  addRaise('ベット POT',Math.max(bb,Math.round(pot)));
+ }else{
+  addRaise('レイズ 2×',Math.max(state.currentBet+bb,state.currentBet*2));
+  addRaise('レイズ 3×',Math.max(state.currentBet+bb,state.currentBet*3));
+ }
+ var selected=Number(state.amount);
+ if(Number.isFinite(selected)&&selected>0)addRaise('入力額でベット／レイズ',selected);
  var allinInvest=maxInvest;
  var allinTarget=(state.roundBet[0]||0)+allinInvest;
  var allinCall=Math.max(0,allinTarget-state.currentBet);
@@ -103,7 +106,7 @@ function render(state){
  if(!document.getElementById('handAnalysis').open){
   return;
  }
- var result=estimate({players:state.players,board:state.board,street:state.street,handNo:state.handNo,actor:state.actor,awaiting:state.awaiting,currentBet:state.currentBet,roundBet:state.roundBet,pot:state.pot,blinds:state.blinds,engine:root.PokerEq});
+ var result=estimate({players:state.players,board:state.board,street:state.street,handNo:state.handNo,actor:state.actor,awaiting:state.awaiting,currentBet:state.currentBet,roundBet:state.roundBet,pot:state.pot,blinds:state.blinds,amount:document.getElementById('amount')?Number(document.getElementById('amount').value):null,engine:root.PokerEq});
  if(result.status!=='ok'){
   box.innerHTML='<p class="evStatus">'+result.status+'</p>';
   return;
@@ -117,7 +120,7 @@ function render(state){
   var label=(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' BB';
   html+='<div class="evRow"><span>'+row.name+'</span><b class="'+cls+'">'+label+'</b></div>';
  });
- html+='</div><p class="evDisclaimer">'+result.note+' EVはフォールドを0 BBとした意思決定時点からの推定値です。相手の応答確率は簡易モデルです。</p>';
+ html+='</div><p class="evDisclaimer">'+result.note+' EVはフォールドを0 BBとした意思決定時点からの推定値です。相手の応答確率と複数相手の反応は単純化しており、実際の対戦結果や最適戦略を保証しません。</p>';
  box.innerHTML=html;
 }
 root.MiniGameEV={estimate:estimate,render:render,handLabel:handLabel,streetLabel:streetLabel};
