@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DealScope — カード勝率</title>
 <style>
 :root{
@@ -245,6 +246,11 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 body.picking #toast{bottom:calc(216px + env(safe-area-inset-bottom))}
 #toast button{height:32px;padding:0 11px;border-radius:16px;border:1px solid var(--line);background:#0a211a;color:var(--mute);font-size:12px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.16)}
 #toast button:active{background:var(--felt2);color:var(--ivory)}
+.bridgeActions{margin:14px 0 8px;text-align:center}
+.bridgeActions button{width:100%;min-height:42px;padding:8px 14px;border:1px solid var(--brass);border-radius:10px;background:var(--felt2);color:var(--ivory);font-size:13px;font-weight:700}
+.bridgeActions button:active{background:#1a493b}
+.bridgeActions button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.bridgeActions .note{margin-top:6px;color:#ffb6bd}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
 
@@ -336,6 +342,10 @@ details.dev summary{font-size:12px;color:var(--mute)}
   <div id="results"></div>
   <p class="note">引き分けは取り分を等分して計算</p>
   <div id="cats"></div>
+  <div class="bridgeActions" id="bridgeActions">
+    <button id="playScenario" type="button">この局面でミニゲーム</button>
+    <p id="bridgeError" class="note" role="alert" hidden></p>
+  </div>
 </main>
 
 <button id="open" aria-label="カードを選ぶ">カードを選ぶ <span aria-hidden="true">▲</span></button>

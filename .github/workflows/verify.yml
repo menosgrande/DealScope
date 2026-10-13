@@ -24,3 +24,5 @@ jobs:
         run: node ci/verify.js
       - name: Run browser regression checks
         run: node ci/browser-verify.js
+      - name: Run analysis-to-mini-game bridge checks
+        run: node tests/analysis-minigame-bridge.test.cjs
