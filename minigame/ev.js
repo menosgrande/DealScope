@@ -62,7 +62,8 @@ function estimate(state,selectedTarget){
   // Chips committed above Hero's total hand contribution are not contestable by Hero.
   var excess=0;
   (players||[]).forEach(function(p){
-   if(!p||p.seat===0)return;
+   // Folded chips remain dead money; only live opponents' unmatched chips are excluded.
+   if(!p||p.seat===0||p.fold||p.out)return;
    excess+=Math.max(0,(Number(p.contrib)||0)-heroContributionAfter);
   });
   return Math.max(0,basePot-excess);
