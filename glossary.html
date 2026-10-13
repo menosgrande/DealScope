@@ -51,6 +51,12 @@ h1{font-size:clamp(24px,4vw,34px);letter-spacing:.01em;margin:7px 0 8px}
 .stars{font-size:12px;letter-spacing:1px;color:var(--brass);white-space:nowrap;flex-shrink:0}
 .stars .empty{color:#45695a}
 .definition{font-size:12px;line-height:1.65;margin:0;color:#e4e8df;overflow-wrap:anywhere}
+.example{font-size:11px;line-height:1.65;margin:0;padding:8px 9px;border-left:2px solid var(--brass);background:#10372d;color:#e4e8df;border-radius:0 5px 5px 0;overflow-wrap:anywhere}
+.example b{color:var(--brass);font-weight:700}
+.relatedTerms{font-size:11px;line-height:1.6;margin:0;color:var(--mute)}
+.relatedTerms b{color:var(--mute);font-weight:650}
+.relatedTerms a{color:var(--brass);text-decoration:none;white-space:nowrap;margin-right:7px}
+.relatedTerms a:hover{text-decoration:underline}
 .guideLink{margin:0;padding-top:5px;border-top:1px solid var(--line);font-size:11px}.guideLink a{color:var(--brass);text-decoration:none}.guideLink a:hover{text-decoration:underline}
 .noResults{grid-column:1/-1;text-align:center;border:1px dashed var(--line);border-radius:9px;padding:30px 15px;color:var(--mute);font-size:13px}
 .source{font-size:10px;line-height:1.6;color:var(--mute);border-top:1px solid var(--line);margin-top:22px;padding-top:13px}
@@ -149,7 +155,7 @@ function render(){
  if(!list.length){container.innerHTML='<div class="noResults">該当する用語がありません。検索語や絞り込み条件を変えてください。</div>';return}
  container.innerHTML=list.map(function(t){
   var section=guideSection(t);var guideLink=section?'<p class="guideLink"><a href="./beginner-guide.html#'+section+'">初心者ガイドで詳しく見る →</a></p>':'';
-  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p>'+guideLink+'</article>'
+  var example=t.example?'<p class="example"><b>例：</b>'+escapeHtml(t.example)+'</p>':'';\n  var related=t.related&&t.related.length?'<p class="relatedTerms"><b>関連用語：</b>'+t.related.map(function(name){return '<a href="./glossary.html?q='+encodeURIComponent(name)+'">'+escapeHtml(name)+'</a>'}).join('')+'</p>':'';\n  return '<article class="term"><div class="termTop"><div class="termTitles"><h3>'+escapeHtml(t.term)+(t.abbreviation?' <span class="termAbbr">（'+escapeHtml(t.abbreviation)+'）</span>':'')+'</h3><div class="english">'+escapeHtml(t.english)+'</div></div>'+stars(t.stars)+'</div><div class="category">'+escapeHtml(t.category)+'</div><p class="definition">'+escapeHtml(t.definition)+'</p>'+example+related+guideLink+'</article>'
  }).join('')
 }
 search.addEventListener('input',render);
