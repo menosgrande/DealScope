@@ -103,14 +103,13 @@
       activeCount: d.mode === 'random' ? 1 + d.opp : d.n,
       createdAt: Date.now()
     };
-    try {
-      sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(d));
-      sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(payload));
-      location.href = './minigame/';
-    } catch (e) {
-      $('bridgeError').textContent = '局面を渡せませんでした。ブラウザのセッション保存設定を確認してください。';
-      $('bridgeError').hidden = false;
-    }
+    pendingGamePayload = payload;
+    const stage = d.board.filter((c) => c >= 0).length;
+    $('gameSetupSummary').textContent = '参加人数 ' + payload.activeCount + '人 / ' +
+      (stage === 0 ? 'プリフロップ' : stage === 3 ? 'フロップ' : stage === 4 ? 'ターン' : 'リバー') +
+      '。ハンドとボードは解析画面から引き継ぎます。チップ条件を確認して開始してください。';
+    $('gameSetupOverlay').hidden = false;
+    $('gameStartStack').focus();
   }
 
   function slots() {
@@ -991,7 +990,22 @@
     }
   });
 
+  let pendingGamePayload = null;
   $('playScenario').addEventListener('click', launchMiniGame);
+  $('cancelGameSetup').addEventListener('click', () => { $('gameSetupOverlay').hidden = true; pendingGamePayload = null; $('playScenario').focus(); });
+  $('gameSetupOverlay').addEventListener('click', (event) => { if (event.target === $('gameSetupOverlay')) $('cancelGameSetup').click(); });
+  $('confirmGameSetup').addEventListener('click', () => {
+    if (!pendingGamePayload) return;
+    const stack = Number($('gameStartStack').value), smallBlind = Number($('gameSmallBlind').value), bigBlind = Number($('gameBigBlind').value), startPot = Number($('gameStartPot').value);
+    const valid = Number.isSafeInteger(stack) && stack >= 200 && stack <= 10000000 && Number.isSafeInteger(smallBlind) && smallBlind >= 10 && smallBlind <= 1000000 && Number.isSafeInteger(bigBlind) && bigBlind > smallBlind && bigBlind <= 2000000 && Number.isSafeInteger(startPot) && startPot >= 0 && startPot <= 10000000;
+    if (!valid) { $('gameSetupSummary').textContent = '入力値を確認してください。開始チップは200以上、SBは10以上、BBはSBより大きい値、ポットは0以上にしてください。'; return; }
+    pendingGamePayload.settings = { stack, smallBlind, bigBlind, startPot };
+    try {
+      sessionStorage.setItem('dealscope-analysis-return-v1', JSON.stringify(snapshot()));
+      sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(pendingGamePayload));
+      location.href = './minigame/';
+    } catch (e) { $('bridgeError').textContent = '局面を渡せませんでした。ブラウザのセッション保存設定を確認してください。'; $('bridgeError').hidden = false; $('gameSetupOverlay').hidden = true; }
+  });
 
   // ミニゲームから戻った場合は、遷移直前の局面を保存データやURLより優先して復元する。
   let restoredBridge = false;
