@@ -415,9 +415,9 @@ main{grid-template-rows:24px auto auto;gap:7px}
 
         <div class="presets">
           <button data-size="min">最小</button>
-          <button data-size="half">1/2 POT</button>
-          <button data-size="pot">POT</button>
-          <button data-size="double">2× POT</button>
+          <button data-size="small">2.5 BB</button>
+          <button data-size="medium">3 BB</button>
+          <button data-size="large">4 BB</button>
         </div>
 
         <div class="actions">
@@ -444,7 +444,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
         <div class="helpGrid">
           <div><p><strong>操作</strong></p><p>フォールド＝降りる。コール＝同額まで出す。チェック＝0で次へ。ベット／レイズ＝賭ける。オールイン＝全部出す。</p></div>
           <div><p><strong>席</strong></p><p>BTN＝ディーラー、SB/BB＝ブラインド、UTG＝プリフロップ最初の席。</p></div>
-          <div><p><strong>金額</strong></p><p>レイズ額はスライダーで調整。最小／半分／POT／2Pから素早く設定できます。レイズ額は自分の投入後の合計額です。</p></div>
+          <div><p><strong>金額</strong></p><p>プリフロップはBB、ポストフロップはPOT比率を基準に金額を設定できます。相手のベットに対するレイズは現在額の倍率で設定します。レイズ額は自分の投入後の合計額です。</p></div>
           <div><p><strong>勝敗</strong></p><p>Riverまで残れば最強の5枚で判定。結果画面で役と勝因を確認して「次のHandへ」。</p></div>
         </div>
         <p style="margin-top:5px"><strong>役の強さ：</strong>ハイカード → ワンペア → ツーペア → スリーカード → ストレート → フラッシュ → フルハウス → フォーカード → ストレートフラッシュ</p>
@@ -457,6 +457,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
 <script src="./ev.js?v=20261013-ev1"></script>
+<script src="./bet-sizing.js?v=20261013-betsize1"></script>
 <script src="./minigame.js?v=20261013-ev1"></script>
 </body>
 </html>
