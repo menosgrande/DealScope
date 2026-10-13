@@ -123,5 +123,7 @@ function render(state){
  html+='</div><p class="evDisclaimer">'+result.note+' EVはフォールドを0 BBとした意思決定時点からの推定値です。相手の応答確率と複数相手の反応は単純化しており、実際の対戦結果や最適戦略を保証しません。</p>';
  box.innerHTML=html;
 }
-root.MiniGameEV={estimate:estimate,render:render,handLabel:handLabel,streetLabel:streetLabel};
+var api={estimate:estimate,render:render,handLabel:handLabel,streetLabel:streetLabel};
+root.MiniGameEV=api;
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
