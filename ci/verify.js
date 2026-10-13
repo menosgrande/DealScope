@@ -338,7 +338,15 @@ function testMiniGameStateTransitions() {
   assert.equal(Rules.nextSeat(seats,3),0);
   seats[0].out=true;
   assert.equal(Rules.nextSeat(seats,3),1);
-  console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation');
+
+  // Heads-up: the button is also the small blind; the other live player is BB.
+  const headsUp=[{seat:0,out:false},{seat:1,out:true},{seat:2,out:true},{seat:3,out:false}];
+  assert.deepEqual(Rules.blindSeats(headsUp,0),{sb:0,bb:3,headsUp:true});
+  // Three-handed and full tables retain the normal blind rotation.
+  const threeHanded=[{seat:0,out:false},{seat:1,out:true},{seat:2,out:false},{seat:3,out:false}];
+  assert.deepEqual(Rules.blindSeats(threeHanded,0),{sb:2,bb:3,headsUp:false});
+  assert.deepEqual(Rules.blindSeats(seats,1),{sb:2,bb:3,headsUp:false});
+  console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation / heads-up blinds');
 }
 
 function testMiniGameEVMath() {
