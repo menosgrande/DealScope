@@ -422,7 +422,12 @@ function testMiniGameEVMath() {
   assert.equal(result.exact, true, 'flop known-hand equity should enumerate all runouts exactly');
   assert.equal(result.equityPct, Math.round(exactExpected.equity[0] * 10) / 10,
     'EV panel must use the exact equity of 77 vs K6 and 44 on T-2-4');
+  const knownAllIn = result.rows.find(r => r.kind === 'raise' && r.name === 'オールイン');
+  assert(knownAllIn, 'known-hand EV panel should include all-in');
+  assert(knownAllIn.evBB < 0,
+    '77 should not show a positive all-in EV against K6 and a set of 44 on T-2-4 with these test chip conditions');
   console.log('✓ mini-game EV: known-hand scenario uses exact equity');
+  console.log('  all-in EV in test conditions: ' + knownAllIn.evBB.toFixed(1) + ' BB');
   console.log('  77 vs K6 / 44 on T-2-4 equity: ' + result.equityPct.toFixed(1) + '%');
 
 }
