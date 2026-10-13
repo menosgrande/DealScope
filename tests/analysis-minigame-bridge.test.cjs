@@ -186,6 +186,6 @@ const currentGameHtml = fs.readFileSync(path.join(root, 'minigame', 'index.html'
 assert.match(appSource, /location\.href = '\.\/minigame\/'/, 'analysis transfer targets the current mini-game');
 assert.match(currentGameSource, /function validImportedPayload\(/, 'current mini-game validates imported scenarios');
 assert.match(currentGameSource, /sessionStorage\.getItem\('dealscope-analysis-game-v1'/, 'current mini-game reads the transferred scenario');
-assert.match(currentGameHtml, /minigame\\.js\\?v=20261013-returnsetup2/, 'current mini-game script cache key is updated');
+assert.match(currentGameHtml, /minigame\.js\?v=20261013-returnsetup2/, 'current mini-game script cache key is updated');
 
 console.log('PASS: analysis-to-mini-game bridge smoke tests');
