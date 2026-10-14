@@ -336,7 +336,7 @@ function showdown(){
  var awardMap={};settlement.awards.forEach(function(a){awardMap[a.player.seat]=(awardMap[a.player.seat]||0)+a.amount});
  A.awards=Object.keys(awardMap).map(function(seat){return{seat:Number(seat),amount:awardMap[seat]}});
  var unique=[];settlement.winners.forEach(function(p){if(unique.indexOf(p)<0)unique.push(p)});
- var total=all.reduce(function(s,p){return s+(p.contrib||0)},0);
+ var total=(A.basePot||0)+all.reduce(function(s,p){return s+(p.contrib||0)},0);
  var winnerText=unique.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'「'+handDetail(z.s)+'」'}).join(' / ');
  var payoutPlayers=Object.keys(awardMap).map(function(seat){return A.players[Number(seat)]}).filter(Boolean);
  var payoutText=payoutPlayers.map(function(p){var z=scores.find(function(x){return x.p===p});return p.name+'：獲得 '+money(awardMap[p.seat])+'（'+handDetail(z?z.s:0)+'）'}).join('\n');
