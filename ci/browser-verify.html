@@ -229,6 +229,65 @@
     }
     glossaryFrame.remove();
 
+    /* Exercise a real imported river scenario in Chromium and verify the whole chip pool. */
+    const settlementPayload = {
+      version: 1,
+      snapshot: {
+        mode: 'known', n: 2, opp: 1,
+        players: [[0, 4], [8, 12], [32, 36], [40, 48]],
+        board: [16, 20, 24, 40, 44]
+      },
+      equity: [60, 40], approx: false, activeCount: 2, createdAt: 1,
+      settings: { stack: 1000, smallBlind: 100, bigBlind: 200, startPot: 1000 }
+    };
+    sessionStorage.setItem('dealscope-analysis-game-v1', JSON.stringify(settlementPayload));
+    const settlementFrame = document.createElement('iframe');
+    settlementFrame.id = 'settlement';
+    settlementFrame.src = '/minigame/index.html';
+    settlementFrame.style = 'width:390px;height:1200px;border:0;position:absolute;left:-9999px';
+    const settlementLoaded = new Promise(resolve => settlementFrame.addEventListener('load', resolve, {once:true}));
+    document.body.appendChild(settlementFrame);
+    await settlementLoaded;
+    const sd = settlementFrame.contentDocument;
+    await waitFor(() => sd && sd.querySelector('#turnLabel'), 5000);
+    if (sd.querySelector('#potValue').textContent !== '1,000') {
+      throw new Error('imported starting pot was not shown in the real mini-game');
+    }
+
+    const settleDeadline = performance.now() + 20000;
+    let settleActions = 0;
+    while (performance.now() < settleDeadline) {
+      const next = sd.querySelector('#nextBtn');
+      if (next && next.style.display === 'block') break;
+      const allIn = sd.querySelector('#allinBtn');
+      const callButton = sd.querySelector('#callBtn');
+      const foldButton = sd.querySelector('#foldBtn');
+      if (allIn && !allIn.disabled) {
+        allIn.click();
+        settleActions++;
+      } else if (callButton && !callButton.disabled) {
+        callButton.click();
+        settleActions++;
+      } else if (foldButton && !foldButton.disabled) {
+        foldButton.click();
+        settleActions++;
+      }
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    if (sd.querySelector('#nextBtn').style.display !== 'block') {
+      throw new Error('imported river hand did not reach a completed result');
+    }
+    if (settleActions < 1) throw new Error('browser settlement test did not perform a player action');
+    if (sd.querySelector('#potValue').textContent !== '0') {
+      throw new Error('displayed pot was not cleared after settlement');
+    }
+    const displayedStacks = Array.from(sd.querySelectorAll('#players .player .stack b'))
+      .map(el => Number(el.textContent.replace(/,/g, '')));
+    if (displayedStacks.length !== 4 || displayedStacks.reduce((sum, n) => sum + n, 0) !== 5000) {
+      throw new Error('stack total did not conserve the 4,000 starting chips plus 1,000 imported pot');
+    }
+    settlementFrame.remove();
+
     status.textContent = 'PASS';
     document.title = 'PASS';
   } catch (e) {
