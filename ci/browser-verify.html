@@ -259,13 +259,10 @@
     while (performance.now() < settleDeadline) {
       const next = sd.querySelector('#nextBtn');
       if (next && next.style.display === 'block') break;
-      const allIn = sd.querySelector('#allinBtn');
       const callButton = sd.querySelector('#callBtn');
       const foldButton = sd.querySelector('#foldBtn');
-      if (allIn && !allIn.disabled) {
-        allIn.click();
-        settleActions++;
-      } else if (callButton && !callButton.disabled) {
+      /* Prefer Check/Call so the test never depends on the All-in confirmation dialog. */
+      if (callButton && !callButton.disabled) {
         callButton.click();
         settleActions++;
       } else if (foldButton && !foldButton.disabled) {
