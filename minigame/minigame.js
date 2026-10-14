@@ -15,7 +15,7 @@ var NAMES=['あなた','攻める狂犬','慎重派','お人よし'];
 var TYPE_TONES={tag:'堅実',lag:'攻める',tp:'慎重',lp:'コール多め'};
 var COLORS=['#d8b252','#6f8bd8','#d17a70','#72aa8b'];
 var sessionStartStack=20000;
-var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false,knownScenarioEV:false};
+var A={players:[],deck:[],board:[],dealer:3,handNo:0,blinds:[100,200],street:'preflop',currentBet:0,lastRaise:200,actor:0,acted:[],roundBet:[],pot:0,history:[],message:'',awaiting:false,finished:false,handOver:false,awards:[],raiseLocked:[false,false,false,false],epoch:0,pending:false,knownScenarioEV:false,basePot:0};
 function cardToken(c){return c==null||c<0?'xx':R[c>>2]+'shdc'[c&3]}
 function trimTokens(cards){var tokens=cards.map(cardToken);while(tokens.length&&tokens[tokens.length-1]==='xx')tokens.pop();return tokens.join('')}
 function calculatorUrl(){
@@ -331,7 +331,7 @@ function foldWin(){
 function showdown(){
  var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
  A.players.forEach(function(p){var z=scores.find(function(x){return x.p===p});p.showdownScore=z?z.s:0});
- var settlement=window.DealMiniGamePots.settle(all,scores);
+ var settlement=window.DealMiniGamePots.settle(all,scores,A.basePot||0);
  settlement.awards.forEach(function(a){a.player.stack+=a.amount});
  var awardMap={};settlement.awards.forEach(function(a){awardMap[a.player.seat]=(awardMap[a.player.seat]||0)+a.amount});
  A.awards=Object.keys(awardMap).map(function(seat){return{seat:Number(seat),amount:awardMap[seat]}});
@@ -350,7 +350,7 @@ function endHand(){
 }
 function nextHand(){
  if(!A.handOver||A.finished)return;
- A.knownScenarioEV=false;A.handOver=false;A.epoch++;A.pending=false;
+ A.knownScenarioEV=false;A.handOver=false;A.basePot=0;A.epoch++;A.pending=false;
  A.players.forEach(function(p){if(p.stack<=0)p.out=true});
  if(alive().length<=1)finish();else resetHand();
 }
@@ -443,7 +443,7 @@ function startImported(payload){
   A.players.push({seat:i,name:NAMES[i],type:['tag','lag','tp','lp'][i],stack:startingStack,out:i>=activeCount,hand:[],fold:false,allin:false,contrib:0,showdownScore:0});
  }
  A.handNo=1;A.knownScenarioEV=d.mode==='known';A.dealer=activeCount-1;A.blinds=[smallBlind,bigBlind];A.street=board.filter(function(c){return c>=0}).length===0?'preflop':board.filter(function(c){return c>=0}).length===3?'flop':board.filter(function(c){return c>=0}).length===4?'turn':'river';
- A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.pot=0;A.history=[];A.message='解析局面を引き継ぎました';A.awaiting=false;A.finished=false;A.handOver=false;A.awards=[];A.raiseLocked=[false,false,false,false];A.epoch++;A.pending=false;
+ A.currentBet=0;A.lastRaise=A.blinds[1];A.actor=0;A.acted=[false,false,false,false];A.roundBet=[0,0,0,0];A.pot=0;A.basePot=0;A.history=[];A.message='解析局面を引き継ぎました';A.awaiting=false;A.finished=false;A.handOver=false;A.awards=[];A.raiseLocked=[false,false,false,false];A.epoch++;A.pending=false;
  A.deck=shuffle(Array.from({length:52},function(_,i){return i}).filter(function(c){return used.indexOf(c)<0}));
  for(var j=0;j<activeCount;j++){
   var hand=knownHands[j];
@@ -455,14 +455,14 @@ function startImported(payload){
   blind(A.players[sb],A.blinds[0]);blind(A.players[bb],A.blinds[1]);A.currentBet=A.roundBet[bb];A.actor=nextSeat(bb);
  }else{
   // ポット額は解析画面から取得できないため、ミニゲームの初期ポットを使う。
-  A.pot=startPot;A.actor=nextSeat(A.dealer);
+  A.pot=startPot;A.basePot=startPot;A.actor=nextSeat(A.dealer);
  }
  A.players.forEach(function(p){p.position=p.seat===A.dealer?'BTN':''});
  render();advance();
 }
 
 function restart(){
- A.knownScenarioEV=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;sessionStartStack=20000;
+ A.knownScenarioEV=false;A.players=[];A.finished=false;A.handNo=0;A.dealer=3;A.blinds=[100,200];A.pot=0;A.basePot=0;sessionStartStack=20000;
  ['tag','lag','tp','lp'].forEach(function(t,i){A.players.push({seat:i,name:NAMES[i],type:t,stack:20000,out:false,hand:[],fold:false,allin:false})});
  resetHand()
 }
