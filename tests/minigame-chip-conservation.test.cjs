@@ -51,7 +51,7 @@ function boot() {
   new vm.Script(sources.engine, { filename: 'engine.js' }).runInContext(context);
   new vm.Script(sources.rules, { filename: 'minigame/rules.js' }).runInContext(context);
   new vm.Script(sources.pots, { filename: 'minigame/pots.js' }).runInContext(context);
-  context.DealMiniGameEV = { renderMarkup: () => '' };
+  context.DealMiniGameEV = { renderMarkup: () => '', handLabel: () => 'テスト用ハンド' };
   context.DealMiniGameBetSizing = { definitions: () => [], target: () => 0 };
   const instrumented = sources.game.replace(
     /\}\)\(\);\s*$/,
