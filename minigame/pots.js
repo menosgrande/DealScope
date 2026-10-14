@@ -9,9 +9,20 @@ function split(pot,winners,awards){
  winners.forEach(function(p,i){awards.push({player:p,amount:base+(i<rem?1:0)});});
  return pot;
 }
-function settle(all,scores){
+function settle(all,scores,deadPot){
+ deadPot=Math.max(0,Math.floor(Number(deadPot)||0));
  var levels=Array.from(new Set(all.map(function(p){return p.contrib||0}).filter(function(x){return x>0}))).sort(function(a,b){return a-b});
  var prev=0,winners=[],lastWinners=[],awards=[],unallocated=0;
+ if(deadPot){
+   var eligible=all.filter(function(p){return !p.fold});
+   if(eligible.length){
+     var best=Math.max.apply(null,eligible.map(function(p){var z=scores.find(function(x){return x.p===p});return z&&z.s}));
+     var deadWinners=eligible.filter(function(p){var z=scores.find(function(x){return x.p===p});return z&&z.s===best});
+     split(deadPot,deadWinners,awards);
+     winners=winners.concat(deadWinners);
+     lastWinners=deadWinners;
+   }else unallocated=deadPot;
+ }
  levels.forEach(function(level){
    var participants=all.filter(function(p){return (p.contrib||0)>=level});
    var pot=(level-prev)*participants.length;
@@ -36,7 +47,7 @@ function settle(all,scores){
    var fallback=lastWinners.length?lastWinners:all.filter(function(p){return !p.fold});
    split(unallocated,fallback,awards);
  }
- var contributed=all.reduce(function(sum,p){return sum+(p.contrib||0)},0);
+ var contributed=all.reduce(function(sum,p){return sum+(p.contrib||0)},0)+deadPot;
  var distributed=awards.reduce(function(sum,a){return sum+a.amount},0);
  if(distributed<contributed){
    var fallback=lastWinners.length?lastWinners:all.filter(function(p){return !p.fold});
@@ -48,7 +59,7 @@ function settle(all,scores){
    awards:awards,
    distributed:distributed,
    contributed:contributed,
-   potCount:levels.length
+   potCount:levels.length+(deadPot>0?1:0)
  };
 }
 var api={settle:settle};
