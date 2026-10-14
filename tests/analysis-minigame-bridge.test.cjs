@@ -188,4 +188,28 @@ assert.match(currentGameSource, /function validImportedPayload\(/, 'current mini
 assert.match(currentGameSource, /sessionStorage\.getItem\('dealscope-analysis-game-v1'/, 'current mini-game reads the transferred scenario');
 assert.match(currentGameHtml, /minigame\.js\?v=[^"]+/, 'current mini-game script has a cache-busting version');
 
+
+/* Imported postflop pot is a dead/main pot from earlier streets. It must be paid
+ * even when no chips have been contributed in the current street. */
+const Pots = require('../minigame/pots.js');
+{
+  const p0 = {seat:0, contrib:0, fold:false};
+  const p1 = {seat:1, contrib:0, fold:false};
+  const settled = Pots.settle([p0,p1],[{p:p0,s:20},{p:p1,s:10}],1000);
+  assert.equal(settled.distributed,1000,'dead pot is distributed without current-street contributions');
+  assert.equal(settled.contributed,1000,'dead pot is included in the settlement total');
+  assert.deepEqual(settled.awards.map(a=>[a.player.seat,a.amount]),[[0,1000]]);
+}
+{
+  const p0 = {seat:0, contrib:100, fold:false};
+  const p1 = {seat:1, contrib:200, fold:false};
+  const p2 = {seat:2, contrib:200, fold:true};
+  const settled = Pots.settle([p0,p1,p2],[{p:p0,s:10},{p:p1,s:20},{p:p2,s:30}],1000);
+  assert.equal(settled.distributed,1500,'dead pot and side pots are both fully distributed');
+  assert.equal(settled.contributed,1500,'settlement conserves the imported pot plus contributions');
+  assert.equal(settled.awards.reduce((sum,a)=>sum+a.amount,0),1500);
+  assert.ok(settled.awards.every(a=>a.player!==p2),'folded player cannot win the dead pot or side pots');
+}
+assert.match(currentGameSource,/DealMiniGamePots\.settle\(all,scores,A\.basePot\|\|0\)/,'showdown includes imported starting pot in settlement');
+
 console.log('PASS: analysis-to-mini-game bridge smoke tests');
