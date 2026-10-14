@@ -28,3 +28,5 @@ jobs:
         run: node tests/analysis-minigame-bridge.test.cjs
       - name: Run active mini-game EV checks
         run: node tests/minigame-ev-active.test.cjs
+      - name: Run current mini-game chip conservation checks
+        run: node tests/minigame-chip-conservation.test.cjs
