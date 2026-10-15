@@ -37,10 +37,10 @@
 
   const isRandom = () => state.mode === 'random';
   const count = () => (isRandom() ? 1 : state.n); // 画面に出ているプレイヤー数
-  const pname = (i) => (isRandom() ? 'Hero' : 'Player ' + (i + 1));
+  const pname = (i) => (isRandom() ? '自分' : 'Player ' + (i + 1));
   const displayPname = (i) => (!isRandom() && count() === 4) ? 'P' + (i + 1) : pname(i);
-  const analysisLabel = (code) => ({ OESD: 'Open-ended straight draw', GS: 'Gutshot straight draw', FD: 'Flush draw' }[code] || code);
-  const textureLabel = (code) => ({ RAINBOW: 'Rainbow', MONOTONE: 'Monotone', PAIRED: 'Paired', CONNECTED: 'Connected' }[code] || code);
+  const analysisLabel = (code) => ({ OESD: 'オープンエンド', GS: 'ガットショット', FD: 'フラッシュドロー' }[code] || code);
+  const textureLabel = (code) => ({ RAINBOW: 'レインボー（3色）', MONOTONE: '単色ボード', PAIRED: 'ペアボード', CONNECTED: '連結ボード' }[code] || code);
 
   const observation = { analysisSelections: 0, drawStateChanges: 0, drawVisibleStates: 0, drawTags: Object.create(null), lastDrawKey: null, current: '' };
   window.DealObservation = { stats() { return { analysisSelections: observation.analysisSelections, drawStateChanges: observation.drawStateChanges, drawVisibleStates: observation.drawVisibleStates, drawTags: { ...observation.drawTags }, current: observation.current }; } };
@@ -244,6 +244,7 @@
     const saved = readSaved();
     const h = location.hash;
     const fromUrl = h.length > 1 ? S.decode(h) : null;
+    if (h.length > 1 && !fromUrl) { showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。'); return; }
     if (fromUrl) { adopt(saved && S.encode(saved) === h ? saved : fromUrl); return; }
     if (saved) adopt(saved);
   }
@@ -293,6 +294,8 @@
   function render() {
     ensureActive();
     computeGlow();
+    const emptyGuide = $('emptyGuide');
+    if (emptyGuide) emptyGuide.hidden = state.players.slice(0, count()).some((h) => h.some((card) => card >= 0)) || state.board.some((card) => card >= 0);
     document.body.classList.toggle('picking', state.open);
     $('picker').hidden = !state.open;
 
@@ -337,7 +340,7 @@
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
       `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardDeal" class="boardShuffle" aria-label="ボードを自動ディールする" title="空いているBoardを自動ディールする"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">自動ディール</span></button><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">共通カード</div><div class="boardMain"><div class="boardTools"><button id="boardDeal" class="boardShuffle" aria-label="ボードを自動ディールする" title="空いているBoardを自動ディールする"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">自動ディール</span></button><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('フロップ', 0, [0, 1, 2])}${grp('ターン', 1, [3])}${grp('リバー', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
@@ -740,7 +743,7 @@
       state.open = false;
       render();
       recompute();
-      undo = prev;
+      rememberUndo(prev);
       $('toastMsg').textContent = street === null
         ? 'ボード全体を引き直しました'
         : (street === 0
@@ -757,6 +760,7 @@
       e.preventDefault();
       inputUndo = null;
       const street = clear.classList.contains('streetClear') ? +clear.dataset.street : null;
+      if (street === null && !window.confirm('ボードをすべて消去しますか？')) return;
       const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
       if (street === null) {
         if (!state.board.some((c) => c >= 0)) return;
@@ -769,7 +773,7 @@
       state.open = false;
       render();
       recompute();
-      undo = prev;
+      rememberUndo(prev);
       $('toastMsg').textContent = street === null
         ? 'ボードをすべて消しました'
         : (street === 0 ? 'Flopと、それ以降のボードを消しました' : street === 1 ? 'TurnとRiverを消しました' : 'Riverを消しました');
@@ -828,12 +832,21 @@
     render();
   });
   // Hand操作。playersコンテナ側でイベント委譲する。各操作は対象だけを変更し、Undoで元に戻せる。
-  let undo = null, toastTimer = 0;
+  let undo = null, undoHistory = [], toastTimer = 0;
   let inputUndo = null;
-  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
-  function showUndo(prev, message) {
-    undo = prev;
+  function rememberUndo(prev) { undoHistory.push(prev); if (undoHistory.length > 3) undoHistory.shift(); undo = prev; }
+  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; $('toastUndo').hidden = false; }
+  function showNotice(message) {
+    clearTimeout(toastTimer); undo = null;
     $('toastMsg').textContent = message;
+    $('toastUndo').hidden = true;
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function showUndo(prev, message) {
+    clearTimeout(toastTimer); rememberUndo(prev);
+    $('toastMsg').textContent = message;
+    $('toastUndo').hidden = false;
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   }
@@ -930,7 +943,7 @@
     const allShuffle = e.target.closest('#handShuffle');
     if (allShuffle) { e.preventDefault(); shuffleAllHandCards(); return; }
     const allClear = e.target.closest('#reset');
-    if (allClear) { e.preventDefault(); clearAllHandCards(); return; }
+    if (allClear) { e.preventDefault(); if (window.confirm('表示中のハンドとボードをすべて消去しますか？')) clearAllHandCards(); return; }
     const playerAction = e.target.closest('.playerAction');
     if (playerAction) {
       e.preventDefault();
@@ -940,11 +953,20 @@
     }
   });
   $('toastUndo').addEventListener('click', () => {
-    if (!undo) return;
-    state.players = undo.players;
-    state.board = undo.board;
+    if (!undoHistory.length) return;
+    const prev = undoHistory.pop();
+    state.players = prev.players.map((h) => h.slice());
+    state.board = prev.board.slice();
     render();
-    recompute(); // ここで hideToast() も呼ばれる
+    recompute();
+    undo = undoHistory.length ? undoHistory[undoHistory.length - 1] : null;
+    if (undo) {
+      $('toastMsg').textContent = '直前の操作を元に戻しました（さらに戻せます）';
+      $('toastUndo').hidden = false;
+      $('toast').hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, 7000);
+    }
   });
 
   $('share').addEventListener('click', async () => {
@@ -970,7 +992,16 @@
   // URLに入っているのは表示中のモードの入力だけなので、隠れていたP2〜P4は持ち込まない
   window.addEventListener('hashchange', () => {
     const d = S.decode(location.hash);
-    if (!d) return;
+    if (!d) {
+      if (location.hash.length > 1) {
+        state.mode = 'known'; state.n = 2; state.opp = 1;
+        state.players = S.emptyHands(); state.board = S.emptyBoard();
+        state.active = { t: 'p', i: 0, j: 0 }; state.open = false; state.deleteTarget = null;
+        render(); recompute();
+        showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。');
+      }
+      return;
+    }
     adopt(d);
     render();
     recompute();
@@ -979,7 +1010,33 @@
   /* ヘルプ / 開発者向け検証(ヘルプの奥。初めて開いたときだけ verify.js を読み込む) */
   $('helpBtn').addEventListener('click', () => { $('help').hidden = false; });
   $('helpClose').addEventListener('click', () => { $('help').hidden = true; });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('help').hidden = true; });
+  let pendingRankKey = null;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $('help').hidden = true;
+      if (state.open) { state.open = false; render(); }
+      pendingRankKey = null;
+      return;
+    }
+    if (!state.open || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    const key = e.key.toUpperCase();
+    const ranks = {A:12,K:11,Q:10,J:9,T:8,'9':7,'8':6,'7':5,'6':4,'5':3,'4':2,'3':1,'2':0};
+    const suits = {S:0,H:1,D:2,C:3};
+    if (Object.prototype.hasOwnProperty.call(ranks,key)) {
+      pendingRankKey = ranks[key];
+      $('pickLabel').textContent = slotLabel(state.active) + ' — ランク ' + key + '。続けて S/H/D/C を入力';
+      e.preventDefault();
+      return;
+    }
+    if (pendingRankKey !== null && Object.prototype.hasOwnProperty.call(suits,key)) {
+      const card = pendingRankKey * 4 + suits[key];
+      pendingRankKey = null;
+      const used = usedCards(), cur = get(state.active);
+      if (!used.has(card) || card === cur) pick(card);
+      else showNotice('そのカードは別の枠で使用中です。');
+      e.preventDefault();
+    }
+  });
   let verifyLoaded = false;
   $('dev').addEventListener('toggle', () => {
     if ($('dev').open && !verifyLoaded) {

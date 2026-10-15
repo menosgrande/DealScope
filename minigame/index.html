@@ -35,10 +35,10 @@ a.backLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .players{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:5px;overflow:hidden}
 .player{position:relative;min-height:0;border:1px solid var(--line);border-radius:9px;padding:7px 8px;background:#0c2921;overflow:hidden}
 .player.hero{border-color:var(--brass)}.player.out{opacity:.42}.player.winner{border-color:var(--brass);box-shadow:0 0 0 1px #d8b25255 inset}.player.current{box-shadow:0 0 0 1px var(--brass) inset}
-.typeTag{margin-left:2px;padding:1px 5px;border:1px solid var(--line);border-radius:8px;color:var(--mute);font-size:8px;line-height:1.2;white-space:nowrap}
+.typeTag{margin-left:2px;padding:2px 6px;border:1px solid var(--line);border-radius:8px;color:#b5cec4;font-size:10px;line-height:1.2;white-space:nowrap}
 .resultBadge{display:inline-flex;margin-left:auto;padding:2px 6px;border-radius:9px;background:var(--brass);color:#17140d;font-size:9px;font-weight:800}
 .phead{height:20px;display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.phead i{width:8px;height:8px;border-radius:50%;display:inline-block}
-.phead small{margin-left:auto;color:var(--mute);font-size:9px;overflow:hidden;text-overflow:ellipsis}.phead small b{color:var(--mute)}
+.phead small{margin-left:auto;color:var(--mute);font-size:11px;overflow:visible;text-overflow:clip}.phead small b{color:var(--mute)}
 .cards{height:56px;width:calc(100% - 84px);display:flex;align-items:center;justify-content:center;gap:5px}
 .sideInfo{position:absolute;right:7px;top:43px;width:78px;display:flex;flex-direction:column;gap:7px;text-align:right;z-index:2}
 .stack{position:static;min-height:0;width:100%;font-size:12px;font-weight:800;line-height:1.15;text-align:right;white-space:nowrap}
@@ -58,9 +58,9 @@ a.backLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .turnCard{display:flex;align-items:center;justify-content:space-between;gap:8px;height:31px;padding:0 9px;margin:0 0 4px;border:1px solid var(--line);border-radius:8px;background:#102f27}
 .turnCard.active{border-color:var(--brass);box-shadow:0 0 0 1px #d8b25233 inset}.turnLabel{font-size:13px;font-weight:800}.turnMeta{font-size:10px;color:var(--mute);text-align:right}
 .hint{text-align:center;color:var(--mute);font-size:9px;line-height:1.2;height:15px;margin:0 4px 4px;overflow:hidden}
-.amount{display:flex;gap:5px;height:38px;margin-bottom:4px}.amountField{display:flex;flex-direction:row;align-items:center;gap:6px;min-width:0;flex:1}.amountLabel{font-size:9px;color:var(--mute);white-space:nowrap}.amount input{flex:1;min-width:0;height:36px;border:1px solid var(--line);border-radius:8px;background:#092219;color:var(--ivory);padding:0 9px;font-size:14px}.tocall{min-width:72px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:10px}
-.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:4px}.presets button{height:28px;border:1px solid var(--line);border-radius:7px;background:#102f27;color:var(--mute);font-size:10px;font-weight:700}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:5px}.actions button{height:38px;border:1px solid var(--line);border-radius:8px;background:#173e32;color:var(--ivory);font-weight:700;font-size:11px}.actions button:disabled{opacity:.3}.actions .fold{color:#e29ba2}.actions .primary{background:var(--brass);color:#17140d;border-color:var(--brass)}
+.amount{display:flex;gap:5px;height:38px;margin-bottom:4px}.amountField{display:flex;flex-direction:row;align-items:center;gap:6px;min-width:0;flex:1}.amountLabel{font-size:12px;color:var(--mute);white-space:nowrap}.amount input{flex:1;min-width:0;height:36px;border:1px solid var(--line);border-radius:8px;background:#092219;color:var(--ivory);padding:0 9px;font-size:14px}.tocall{min-width:72px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:10px}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:4px}.presets button{height:44px;min-height:44px;border:1px solid var(--line);border-radius:7px;background:#102f27;color:var(--mute);font-size:12px;font-weight:700}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:5px}.actions button{height:44px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:#173e32;color:var(--ivory);font-weight:700;font-size:12px}.actions button:disabled{opacity:.3}.actions .fold{color:#e29ba2}.actions .primary{background:var(--brass);color:#17140d;border-color:var(--brass)}
 #nextBtn{grid-column:1 / -1;width:100%;margin-top:1px;height:38px}
 .returnAnalysis{display:none;width:100%;min-height:36px;margin-top:7px;padding:8px 10px;border:1px solid #aab3c2;border-radius:9px;background:transparent;color:inherit;font:inherit;font-size:12px;font-weight:800;text-align:center;text-decoration:none}
 .returnAnalysis.visible{display:block}
@@ -117,8 +117,8 @@ a.backLink:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 #amountSlider{display:block;width:100%;height:24px;margin:5px 0 0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;touch-action:pan-y}
 #amountSlider::-webkit-slider-runnable-track{height:5px;border-radius:99px;background:linear-gradient(90deg,#836b2f,#d8b252 55%,#6e8a6e)}
 #amountSlider::-moz-range-track{height:5px;border-radius:99px;background:linear-gradient(90deg,#836b2f,#d8b252 55%,#6e8a6e)}
-#amountSlider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
-#amountSlider::-moz-range-thumb{width:13px;height:13px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
+#amountSlider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:24px;height:24px;margin-top:-6.5px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
+#amountSlider::-moz-range-thumb{width:20px;height:20px;border:3px solid var(--ivory);border-radius:50%;background:var(--brass);box-shadow:0 0 0 2px #d8b25255,0 2px 4px #0006}
 #amountSlider:disabled{opacity:.35;cursor:not-allowed}
 .amountScale{display:flex;justify-content:space-between;gap:8px;color:var(--mute);font-size:8px;font-variant-numeric:tabular-nums}
 .presets{gap:5px;margin-bottom:7px}
@@ -205,7 +205,7 @@ main{grid-template-rows:24px auto auto;gap:7px}
 .amountLabel{font-size:10px}
 .amountCallRow{margin-top:4px;min-height:13px}
 .amountCallRow .tocall{font-size:9px}
-#amountSlider{height:22px;margin:3px 0 0}
+#amountSlider{height:44px;margin:3px 0 0;touch-action:pan-y}
 .amountNudge{grid-template-columns:32px 1fr 32px;gap:5px;margin-bottom:2px}
 .amountNudge button{height:24px;font-size:16px}
 .amountNudge span{font-size:8px}
@@ -221,6 +221,14 @@ main{grid-template-rows:24px auto auto;gap:7px}
 .bottomDetails{margin-top:0}
 @media(max-width:600px){
  main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
+ .playArea{display:flex;flex-direction:column}
+ #heroAnalysis{order:1}
+ .turnPanel{order:2}
+ .players{order:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,auto));min-height:0}
+ .player{width:100%;min-height:100px}
+ .restartArea{margin-top:12px}
+ .presets button{height:44px;min-height:44px;font-size:11px}
+ .actions button{height:44px;min-height:44px;font-size:12px}
  .tablePanel{padding:6px}
  .playArea{grid-template-columns:minmax(0,1fr);gap:6px;min-height:0}
  .players{min-height:210px;grid-template-rows:repeat(2,minmax(100px,1fr))}
@@ -674,7 +682,10 @@ button:disabled{cursor:not-allowed}
   .playArea > .turnPanel { max-height:300px; }
 }
 
-</style>
+.bottomDetails .restartArea{grid-column:1 / -1;margin:0}.bottomDetails .restartArea .new{min-height:44px;height:44px;font-size:12px}.player .phead{height:auto;min-height:20px;white-space:normal;flex-wrap:wrap;row-gap:2px}.player .phead small{max-width:none;white-space:normal;overflow:visible;font-size:10px}.player .typeTag{font-size:10px}
+.heroDecisionCards{display:flex;align-items:center;gap:7px;margin:7px 0 10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#102a23}.heroDecisionCards b{margin-right:5px;font-size:12px;color:var(--ivory);white-space:nowrap}.heroDecisionCards .card{width:35px;height:50px;font-size:18px;flex:none}.heroDecisionCards .card .rank{font-size:17px}.heroDecisionCards .card .suit{font-size:14px}
+.turnDecisionHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#0b241c}.turnDecisionHeader>div{display:flex;flex-direction:column;gap:4px;min-width:0}.turnDecisionHeader small{font-size:10px;color:var(--mute)}.turnDecisionHeader b{font-size:16px;font-variant-numeric:tabular-nums}.turnDecisionHand{flex:1}.turnDecisionHand>div{display:flex;gap:4px}.turnDecisionHand .card{width:29px;height:40px;font-size:16px;flex:none}.turnDecisionHand .card .rank{font-size:14px}.turnDecisionHand .card .suit{font-size:12px}
+.turnDecisionHeader{display:flex}@media(max-width:600px){.turnDecisionHeader{display:none}}\n</style>
 </head>
 <body>
 <main>
@@ -693,12 +704,13 @@ button:disabled{cursor:not-allowed}
       <div id="players" class="players"></div>
       <aside id="heroAnalysis" class="panel heroAnalysis" aria-label="自分のハンド分析"></aside>
       <div class="panel turnPanel">
+        <div class="turnDecisionHeader"><div class="turnDecisionHand"><small>あなたの手札</small><div id="turnHeroCards" aria-label="あなたの手札"></div></div><div><small>POT</small><b id="decisionPot">0</b></div><div><small>コール額</small><b id="decisionCall">0</b></div></div>
         <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
         <div class="hint" id="hint"></div>
 
         <div class="amountControl">
           <div class="amountHead">
-            <label id="amountLabel" class="amountLabel" for="amountSlider">ベット額</label>
+            <label id="amountLabel" class="amountLabel" for="amountSlider">ベット後の合計額</label>
             <output id="amountReadout" for="amountSlider">400</output>
           </div>
           <div class="amountCallRow"><span id="toCall" class="tocall"></span><span id="stepLabel" class="stepLabel">刻み幅 100</span></div>
@@ -727,13 +739,14 @@ button:disabled{cursor:not-allowed}
         </div>
 
         <button id="nextBtn" class="nextButton" style="display:none">次のHandへ</button>
-        <div class="restartArea"><span class="restartLabel">ゲームをリセット</span><button id="newBtn" class="new">最初からやり直す</button></div>
+        
         <a id="returnAnalysisBtn" class="returnAnalysis" href="../index.html">解析画面へ戻る</a>
       </div>
     </div>
   </div>
 
   <div class="bottomDetails">
+    <div class="restartArea"><span class="restartLabel">ゲームをリセット</span><button id="newBtn" class="new">最初からやり直す</button></div>
     <details class="panel logBox">
       <summary>アクション履歴</summary>
       <div class="log" id="log"></div>
@@ -747,7 +760,7 @@ button:disabled{cursor:not-allowed}
           <div><p><strong>金額</strong></p><p>プリフロップはBB、ポストフロップはPOT比率を基準に金額を設定できます。相手のベットに対するレイズは現在額の倍率で設定します。レイズ額は自分の投入後の合計額です。</p></div>
           <div><p><strong>勝敗</strong></p><p>Riverまで残れば最強の5枚で判定。結果画面で役と勝因を確認して「次のHandへ」。</p></div>
         </div>
-        <p style="margin-top:5px"><strong>役の強さ：</strong>ハイカード → ワンペア → ツーペア → スリーカード → ストレート → フラッシュ → フルハウス → フォーカード → ストレートフラッシュ</p>
+        <p style="margin-top:5px"><a href="../beginner-guide.html#actions">初心者ガイド：アクションの説明</a></p><p style="margin-top:5px"><strong>役の強さ：</strong>ハイカード → ワンペア → ツーペア → スリーカード → ストレート → フラッシュ → フルハウス → フォーカード → ストレートフラッシュ</p>
       </div>
     </details>
   </div>
@@ -756,9 +769,9 @@ button:disabled{cursor:not-allowed}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./ev.js?v=20261013-ev1"></script>
+<script src="./ev.js?v=20261015-ui-review1"></script>
 <script src="./bet-sizing.js?v=20261013-betsize1"></script>
-<script src="./minigame.js?v=20261013-ai1"></script>
+<script src="./minigame.js?v=20261015-ui-review1"></script>
 </body>
 </html>
 

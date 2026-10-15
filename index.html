@@ -35,7 +35,7 @@ h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);letter-spacing:.04e
 
 .ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;margin-bottom:12px}
 .setting{min-width:0}
-.settingLabel{font-size:10px;color:var(--mute);margin:0 0 5px 2px;letter-spacing:.04em}
+.settingLabel{font-size:12px;color:var(--mute);margin:0 0 5px 2px;letter-spacing:.04em}
 .seg{display:flex;width:100%;border:1px solid var(--line);border-radius:19px;overflow:hidden}
 .seg button{height:36px;flex:1;min-width:0;padding:0 10px;font-size:13px;background:none;border:0;color:var(--mute)}
 .seg button.on{background:var(--brass);color:var(--ink);font-weight:700}
@@ -90,7 +90,7 @@ body.picking .playerGrid{padding-top:8px}
 .grpCards{display:flex;align-items:center;gap:5px}
 .grp .slots{gap:6px}
 .streetTools{display:flex;flex-direction:column;align-items:center;gap:2px}
-.streetShuffle,.streetClear{width:28px;height:28px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.streetShuffle,.streetClear{width:36px;height:36px;flex:none;padding:0;border:1px solid var(--line);border-radius:14px;background:none;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .streetShuffle{color:var(--mute);font-size:16px}
 .streetClear{color:#d9a3ad;font-size:16px}
 .streetShuffle:active,.streetClear:active{transform:scale(.97)}
@@ -101,6 +101,7 @@ body.picking .playerGrid{padding-top:8px}
   border-radius:50%;background:#f5c9d2;color:#a52b43;font-size:15px;font-weight:700;line-height:17px;
   display:none;align-items:center;justify-content:center;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .cardDelete.visible{display:flex}
+.cardDelete::before{content:"";position:absolute;inset:-12px;border-radius:50%}
 .cardDelete:active{transform:scale(.94)}
 .approxWrap{position:relative;display:inline-flex;align-items:center;gap:0;font-size:26px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
 .approxMark{width:18px;height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;line-height:1;cursor:pointer}
@@ -118,6 +119,8 @@ body.picking .playerGrid{padding-top:8px}
    ▼ は .cardWrap の中にカードの兄弟として置く(カードの子にすると、暗転の opacity が ▼ にも掛かる)。
    ▼ の位置は top:-16px(カード上端からの距離)、場所は .row の padding-top と .pheadname の margin-bottom で確保している。 */
 .slot.hit{border-color:#f2c230;box-shadow:0 0 0 1px #f2c230}
+.highlightLegend{margin:4px 0 0;text-align:center;color:var(--ivory);font-size:12px;line-height:1.4}
+.emptyGuide{margin:4px 0 8px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--felt2);color:#dce9e2;font-size:14px;line-height:1.5}.emptyGuide[hidden]{display:none}
 .slot.off{opacity:.4}
 .cursorMark{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:3;pointer-events:none;
   color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
@@ -143,7 +146,7 @@ body.picking .playerGrid{padding-top:8px}
   .potOdds .potOddsControl{display:block}
   .potOdds .moneyInput{width:100%}
   .potOdds .potOddsAdjust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:4px}
-  .potOdds .potOddsAdjust button{min-width:0;height:32px}
+  .potOdds .potOddsAdjust button{min-width:0;height:36px}
   .boardShuffle{padding:0 8px}
   .boardShuffleText,.boardClearText{display:none}
   #deal .boardShuffleText{display:inline}
@@ -202,7 +205,7 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .ctbl th:not(:first-child),.ctbl td:not(:first-child){text-align:center;white-space:nowrap;padding-left:2px;padding-right:2px}
 .ctbl td.z{color:var(--line)}
 .ctbl td.catTop{color:var(--brass);font-weight:700;text-align:center;white-space:nowrap}
-.note{font-size:12px;color:var(--mute);margin:6px 0 0}
+.note{font-size:12px;color:#b5cec4;margin:6px 0 0}
 .potOddsMount{width:100%}
 .potOdds{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .potOdds summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:center}
@@ -214,7 +217,7 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .moneyInput .currency{padding-left:8px;color:var(--mute);font-size:11px}
 .potOddsInputs input{width:100%;min-width:0;height:34px;padding:0 8px;border:0;background:none;color:var(--ivory);font:inherit;font-size:16px;font-variant-numeric:tabular-nums;text-align:right}
 .potOddsAdjust{display:flex;gap:2px}
-.potOddsAdjust button{height:30px;min-width:34px;padding:0 4px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--mute);font:inherit;font-size:10px;font-variant-numeric:tabular-nums}
+.potOddsAdjust button{height:36px;min-width:36px;padding:0 4px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--mute);font:inherit;font-size:10px;font-variant-numeric:tabular-nums}
 .potOddsAdjust button:active{background:var(--felt2);color:var(--ivory)}
 .potOddsAdjust button:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
 .potOddsInputs input:focus{outline:none}
@@ -226,7 +229,7 @@ details.cats summary{font-size:13px;color:var(--mute);cursor:pointer;text-align:
 .handTools{height:28px;display:flex;justify-content:flex-end;align-items:flex-start;gap:5px;margin-bottom:2px}
 .playerCardsRow{display:flex;align-items:center;justify-content:center;gap:4px}
 .playerTools{display:flex;flex-direction:column;align-items:center;gap:2px}
-.playerAction{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:12px;background:none;color:var(--mute);font-size:14px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.playerAction{width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:12px;background:none;color:var(--mute);font-size:14px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .playerAction:active{transform:scale(.94)}
 .playerClear{color:#d9a3ad}
 .randomHandRow>.playerTools{padding-top:18px}
@@ -254,8 +257,7 @@ body.picking #toast{bottom:calc(216px + env(safe-area-inset-bottom))}
 .ghost{margin:18px 8px 0 0;background:none;border:1px solid var(--line);color:var(--mute);
   border-radius:8px;height:36px;padding:0 14px;font-size:13px}
 
-#open{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));
-  width:142px;height:40px;border-radius:20px;border:0;background:var(--brass);color:var(--ink);font-size:13px;font-weight:700}
+#open{position:relative;display:block;margin:10px auto 8px;left:auto;bottom:auto;transform:none;width:min(100%,220px);min-height:44px;border-radius:22px;border:0;background:var(--brass);color:var(--ink);font-size:13px;font-weight:700;box-shadow:0 2px 8px #0002}
 #open span{font-size:12px;margin-left:1px}
 body.picking #open{display:none}
 #picker{position:fixed;left:0;right:0;bottom:0;background:#0a211a;border-top:1px solid var(--line);
@@ -321,6 +323,14 @@ details.dev summary{font-size:12px;color:var(--mute)}
 .gameSetupActions button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 @media(max-width:380px){#gameSetupOverlay{padding:12px}.gameSetupCard{padding:14px}.gameSetupGrid{gap:10px 8px}.gameSetupGrid label{font-size:10px}.gameSetupGrid input{height:36px;font-size:14px}.gameSetupActions{gap:6px}}
 
+.keyboardHint{max-width:560px;margin:5px auto 0;color:#b5cec4;font-size:12px;text-align:center}.slot:focus-visible{outline:3px solid var(--cursor);outline-offset:3px}
+@media(min-width:1024px){
+ main{max-width:1120px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;row-gap:0;grid-template-areas:"top top" "ctl ctl" "empty empty" "players results" "board results" "open results" "note cats" "bridge bridge";align-content:start}
+ main>.top{grid-area:top} main>.ctl{grid-area:ctl} main>#emptyGuide{grid-area:empty}
+ main>#players{grid-area:players} main>#board{grid-area:board} main>#open{grid-area:open}
+ main>#results{grid-area:results;align-self:start} main>p.note{grid-area:note} main>#cats{grid-area:cats;align-self:start}
+ main>.bridgeActions{grid-area:bridge}
+}
 </style>
 </head>
 <body>
@@ -356,9 +366,12 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
   <div id="toast" role="status" aria-live="polite" hidden><span id="toastMsg" class="srOnly"></span><button id="toastUndo" aria-label="直前の操作を元に戻す"><span aria-hidden="true">↶</span> 元に戻す</button></div>
 
+  <p id="emptyGuide" class="emptyGuide">まず自分の2枚のカードから入力してください。カードを選ぶと勝率・役・ドローが表示されます。</p>
   <div id="players"></div>
   <div id="board"></div>
+  <button id="open" aria-label="カードを選ぶ">カードを選ぶ <span aria-hidden="true">▲</span></button>
   <div id="results"></div>
+  <p class="highlightLegend">黄色枠＝最強の5枚に採用／暗転＝その5枚に含まれないカード</p>
   <p class="note">引き分けは取り分を等分して計算</p>
   <div id="cats"></div>
   <div class="bridgeActions" id="bridgeActions">
@@ -380,8 +393,6 @@ details.dev summary{font-size:12px;color:var(--mute)}
   </div>
 </main>
 
-<button id="open" aria-label="カードを選ぶ">カードを選ぶ <span aria-hidden="true">▲</span></button>
-
 <div id="picker" hidden>
   <div class="phead">
     <button id="prev" class="nav" aria-label="前の枠">‹</button><button id="next" class="nav" aria-label="次の枠">›</button>
@@ -391,6 +402,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
     <button id="close" aria-label="カード選択を閉じる">閉じる ×</button>
   </div>
   <div id="grid"></div>
+  <p class="keyboardHint">キーボード入力：ランク（A〜2）→ スート（S/H/D/C）</p>
 </div>
 
 <div id="help" hidden>
@@ -488,6 +500,6 @@ details.dev summary{font-size:12px;color:var(--mute)}
 <script src="cache.js"></script>
 <script src="analysis/drawAnalyzer.js"></script>
 <script src="analysis/textureAnalyzer.js"></script>
-<script src="app.js?v=20261013-setupreturn3"></script>
+<script src="app.js?v=20261015-ui-review1"></script>
 </body>
 </html>

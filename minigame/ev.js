@@ -90,7 +90,7 @@ function estimate(state,selectedTarget){
  }else{
   rows.push({name:'チェック',ev:equity*pot,kind:'check'});
  }
- var raiseEVSuppressed=responders.length===0;
+ var raiseEVSuppressed=responders.length===0||responders.length>1;
  function addBet(name,target){
   var currentBet=Math.max(0,Number(state.currentBet)||0);
   var maxTarget=roundBet+stack;
@@ -132,7 +132,7 @@ function renderMarkup(state,selectedTarget){
  html+='<div class="evRows"><div class="evRow evHeader"><span>アクション</span><span>EV差分</span></div>';
  r.rows.forEach(function(row){var v=row.evBB,cls=v>.04?'positive':v<-.04?'negative':'neutral';var value=(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' BB';html+='<div class="evRow"><span>'+row.name+'</span><b class="'+cls+'">'+value+'</b></div>'});
  html+='</div>';
- if(r.raiseEVSuppressed)html+='<p class="evDisclaimer">応答可能な相手がいないため、レイズ／オールインEVは表示しません。</p>';
+ if(respondersCount(state)>1)html+='<p class="evDisclaimer">複数人が応答できる場面では、推定誤差が大きいためレイズ／オールインEVを表示しません。</p>';else if(r.raiseEVSuppressed)html+='<p class="evDisclaimer">応答可能な相手がいないため、レイズ／オールインEVは表示しません。</p>';
  else if(respondersCount(state) > 1)html+='<p class="evDisclaimer">複数人が応答できる場面のレイズ／オールインEVは、各相手のフォールド率を独立に仮定した簡易推定です。</p>';
  html+='<p class="evDisclaimer">フォールドを0 BBとした意思決定時点からの推定値。相手のコール／フォールド率は簡易モデルで、実戦結果や最適戦略を保証しません。</p>';
  return html;
