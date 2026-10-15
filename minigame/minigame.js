@@ -107,6 +107,7 @@ function heroAnalysisMarkup(){
   (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
   '<div class="analysisNote">'+note+' ゲーム画面を保ったまま、別の操作に戻れます。</div>'
 }
+var lastRenderedBoardCount=0;
 var actionEVOpen=false,actionEVUserClosed=false,actionEVLastHand=-1;
 var seed=(Date.now()^Math.floor(Math.random()*4294967295))>>>0;
 function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296}
@@ -474,7 +475,10 @@ function render(){
  var profitNode=$('sessionProfit');if(profitNode){var profit=(A.players[0]?A.players[0].stack:sessionStartStack)-sessionStartStack;profitNode.textContent=(profit>0?'+':profit<0?'−':'±')+money(Math.abs(profit));profitNode.classList.toggle('positive',profit>0);profitNode.classList.toggle('negative',profit<0);}
  $('msg').textContent=A.message||'';$('street').textContent=A.street==='preflop'?'PREFLOP':A.street.toUpperCase();$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);
  var chipCount=A.pot<=0?0:Math.min(10,Math.max(1,Math.ceil(Math.log2(A.pot/Math.max(1,A.blinds[1])+1)*2)));$('potValue').textContent=money(A.pot);$('potChips').innerHTML=Array.from({length:chipCount},function(_,i){return '<span class="chip" style="bottom:'+(i*3)+'px"></span>'}).join('');
- $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
+ var boardGrowing=A.board.length>lastRenderedBoardCount;
+ $('board').innerHTML=A.board.map(function(c,i){return card(c)+(boardGrowing&&i>=lastRenderedBoardCount?'<span class="revealMarker"></span>':'')}).join('')||'<span class="empty">—</span>';
+ if(boardGrowing){var boardCards=$('board').querySelectorAll('.card');for(var bi=lastRenderedBoardCount;bi<boardCards.length;bi++)boardCards[bi].classList.add('reveal');}
+ lastRenderedBoardCount=A.board.length;
  var decisionCards=$('turnHeroCards');if(decisionCards)decisionCards.innerHTML=(A.players[0]&&A.players[0].hand?A.players[0].hand.map(card).join(''):'');var decisionPot=$('decisionPot');if(decisionPot)decisionPot.textContent=money(A.pot);var decisionCall=$('decisionCall');if(decisionCall)decisionCall.textContent=money(Math.max(0,(Number(A.currentBet)||0)-((A.roundBet&&Number(A.roundBet[0]))||0)));
  $('players').innerHTML=A.players.map(function(p){
    var st=p.out?'脱落':p.fold?'フォールド':p.allin?'オールイン':p.seat===A.actor&&!A.handOver?'行動中':'';
@@ -482,9 +486,12 @@ function render(){
    var award=A.awards.find(function(a){return a.seat===p.seat});
    var tone=p.seat===0?'':('<span class="typeTag">'+(TYPE_TONES[p.type]||'')+'</span>');
    var badge=award?'<span class="resultBadge">+'+money(award.amount)+'</span>':'';
+   var lastAction=null;for(var hi=A.history.length-1;hi>=0;hi--){if(A.history[hi].seat===p.seat){lastAction=A.history[hi].text;break;}}
+   var actionKind=lastAction&&/フォールド/.test(lastAction)?'fold':lastAction&&/レイズ/.test(lastAction)?'raise':lastAction&&/ベット/.test(lastAction)?'bet':lastAction&&/オールイン/.test(lastAction)?'allin':lastAction&&/コール/.test(lastAction)?'call':lastAction&&/チェック/.test(lastAction)?'check':'';
+   var actionBadge=lastAction?'<span class="actionBadge '+actionKind+'">'+lastAction+'</span>':'';
    var bet=A.roundBet[p.seat]||0,chipCount=bet<=0?0:Math.min(5,Math.max(1,Math.ceil(Math.log2(bet/Math.max(1,A.blinds[1]/2)+1))));
    var placedChips=chipCount?'<span class="betChips" aria-label="このストリートの投入チップ">'+Array.from({length:chipCount},function(){return '<span class="betChip"></span>'}).join('')+'</span>':'';
-   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'"><div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">投入 <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
+   return '<section class="player '+(p.seat===0?'hero ':'')+(p.out?' out ':'')+(award?'winner ':'')+(p.seat===A.actor&&!A.handOver?'current':'')+'">'+actionBadge+'<div class="phead"><i style="background:'+COLORS[p.seat]+'"></i><b>'+p.name+'</b>'+tone+(p.seat===A.dealer?'<span class="dealerMark">D</span>':'')+'<small>'+(p.position?'<b>'+p.position+'</b> ・ ':'')+st+'</small>'+badge+'</div><div class="cards">'+(hide?'<span class="cardBack">◆</span><span class="cardBack">◆</span>':p.hand.map(card).join(' '))+'</div><div class="sideInfo"><div class="stack"><span class="sideLabel">所持</span><b>'+money(p.stack)+'</b></div><div class="betline">'+placedChips+'<span class="potLabel">投入 <b>'+money(bet)+'</b></span></div></div>'+(p.showdownScore&&A.handOver?'<div class="made">'+handDetail(p.showdownScore)+'</div>':'')+'</section>'
   }).join('');
   $('heroAnalysis').innerHTML=heroAnalysisMarkup();
  var evDetails=$('actionEvDetails');if(evDetails&&!evDetails.dataset.bound){evDetails.dataset.bound='1';evDetails.addEventListener('toggle',function(){actionEVOpen=evDetails.open;if(!evDetails.open&&A.awaiting&&A.actor===0)actionEVUserClosed=true;else if(evDetails.open)actionEVUserClosed=false;});}
