@@ -223,7 +223,8 @@ main{grid-template-rows:24px auto auto;gap:7px}
  main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
  .playArea{display:flex;flex-direction:column}
  #heroAnalysis{order:1}
- .turnPanel{order:2}
+ .players{order:2}
+ .turnPanel{order:3}
  .players{order:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,auto));min-height:0}
  .player{width:100%;min-height:100px}
  .restartArea{margin-top:12px}
@@ -685,7 +686,21 @@ button:disabled{cursor:not-allowed}
 .bottomDetails .restartArea{grid-column:1 / -1;margin:0}.bottomDetails .restartArea .new{min-height:44px;height:44px;font-size:12px}.player .phead{height:auto;min-height:20px;white-space:normal;flex-wrap:wrap;row-gap:2px}.player .phead small{max-width:none;white-space:normal;overflow:visible;font-size:10px}.player .typeTag{font-size:10px}
 .heroDecisionCards{display:flex;align-items:center;gap:7px;margin:7px 0 10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#102a23}.heroDecisionCards b{margin-right:5px;font-size:12px;color:var(--ivory);white-space:nowrap}.heroDecisionCards .card{width:35px;height:50px;font-size:18px;flex:none}.heroDecisionCards .card .rank{font-size:17px}.heroDecisionCards .card .suit{font-size:14px}
 .turnDecisionHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#0b241c}.turnDecisionHeader>div{display:flex;flex-direction:column;gap:4px;min-width:0}.turnDecisionHeader small{font-size:10px;color:var(--mute)}.turnDecisionHeader b{font-size:16px;font-variant-numeric:tabular-nums}.turnDecisionHand{flex:1}.turnDecisionHand>div{display:flex;gap:4px}.turnDecisionHand .card{width:29px;height:40px;font-size:16px;flex:none}.turnDecisionHand .card .rank{font-size:14px}.turnDecisionHand .card .suit{font-size:12px}
-.turnDecisionHeader{display:flex}@media(max-width:600px){.turnDecisionHeader{display:none}}\n</style>
+.turnDecisionHeader{display:flex}@media(max-width:600px){.turnDecisionHeader{display:none}}\n
+/* Visual pass: oval poker table, clearer turn state, restrained card reveals. */
+.tablePanel{position:relative;border:0!important;border-radius:48%/43%!important;padding:20px 22px 18px!important;background:radial-gradient(ellipse at 50% 45%,#14503e 0%,#0b3328 68%,#08251e 100%)!important;box-shadow:inset 0 0 0 8px #283d31,inset 0 0 0 10px #755d32,0 8px 18px #0004}
+.potTotal b{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.stack b,.potLabel b,.amountValue,.decisionPot,.decisionCall{font-variant-numeric:tabular-nums}
+.player.current{animation:heroPulse 2.2s ease-in-out infinite}
+@keyframes heroPulse{0%,100%{box-shadow:0 0 0 1px #d8b25255,inset 0 0 0 1px #d8b25222}50%{box-shadow:0 0 0 2px #d8b252,inset 0 0 0 1px #d8b25266}}
+.board .card.reveal{animation:cardReveal .32s ease-out both}
+@keyframes cardReveal{from{transform:perspective(400px) rotateY(80deg);opacity:.25}to{transform:perspective(400px) rotateY(0);opacity:1}}
+.player{position:relative}
+.actionBadge{position:absolute;right:6px;top:24px;z-index:2;padding:3px 7px;border-radius:10px;font-size:9px;font-weight:800;line-height:1.2;background:#1d302a;color:var(--ivory);border:1px solid #547064}
+.actionBadge.call{background:#e5c15d;color:#211a08;border-color:#f4d879}.actionBadge.raise,.actionBadge.bet,.actionBadge.allin{background:#8e3038;color:#fff;border-color:#cf6970}.actionBadge.fold{background:#414b47;color:#ddd;border-color:#67736e}
+@media(prefers-reduced-motion:reduce){.player.current,.board .card.reveal{animation:none!important}}
+@media(max-width:600px){.tablePanel{border-radius:43%/34%!important;padding:19px 14px 17px!important;min-height:350px}.potTotal b{font-size:23px}.player.current{animation:none;box-shadow:0 0 0 2px var(--brass),0 0 10px #d8b25255}.actionBadge{top:23px;right:4px}}
+</style>
 </head>
 <body>
 <main>
@@ -769,9 +784,9 @@ button:disabled{cursor:not-allowed}
 <script src="../engine.js"></script>
 <script src="./rules.js?v=20261008-poker4"></script>
 <script src="./pots.js?v=20261008-poker4"></script>
-<script src="./ev.js?v=20261015-ui-review1"></script>
+<script src="./ev.js?v=20261015-visual-pass1"></script>
 <script src="./bet-sizing.js?v=20261013-betsize1"></script>
-<script src="./minigame.js?v=20261015-ui-review1"></script>
+<script src="./minigame.js?v=20261015-visual-pass1"></script>
 </body>
 </html>
 
