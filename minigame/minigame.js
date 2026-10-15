@@ -154,7 +154,7 @@ function legalActions(p){
  // Aggressive actions are illegal when every opponent is already all-in or folded.
  // A short stack that cannot cover a call uses the Call button, labelled as all-in.
  r.allin=p.stack>0&&canRespond;
- if(r.callAmount===0)r.bet=canRespond&&p.stack>=A.blinds[1];
+ if(r.callAmount===0)r.bet=canRespond&&p.stack>0;
  else r.raise=canRespond&&!A.raiseLocked[p.seat]&&r.max>=r.minRaise;
  return r;
 }
@@ -495,16 +495,16 @@ function render(){
   $('callBtn').disabled=!A.awaiting||!(legal.call||legal.check);
   $('allinBtn').disabled=!A.awaiting||!legal.allin;
   $('callBtn').textContent=call?'コール '+money(Math.min(call,Math.max(0,A.players[0].stack)))+(call>A.players[0].stack?'（オールイン）':''):'チェック';
-  var rangeStep=betStep(),shortAllInRaise=legal.allin&&legal.max>A.currentBet&&legal.max<legal.minRaise;
-  var rangeMin=shortAllInRaise?legal.max:Math.min(legal.minRaise,legal.max||legal.minRaise),rangeMax=Math.max(rangeMin,legal.max);
-  var startAmount=shortAllInRaise?legal.max:clamp(legal.minRaise,rangeMin,rangeMax),snapAmount=clamp(rangeMin+Math.round((startAmount-rangeMin)/rangeStep)*rangeStep,rangeMin,rangeMax);
+  var rangeStep=betStep(),shortAllInRaise=legal.allin&&legal.max>A.currentBet&&legal.max<legal.minRaise,shortAllInBet=legal.allin&&A.currentBet===0&&legal.max<A.blinds[1];
+  var rangeMin=(shortAllInRaise||shortAllInBet)?legal.max:Math.min(legal.minRaise,legal.max||legal.minRaise),rangeMax=Math.max(rangeMin,legal.max);
+  var startAmount=(shortAllInRaise||shortAllInBet)?legal.max:clamp(legal.minRaise,rangeMin,rangeMax),snapAmount=clamp(rangeMin+Math.round((startAmount-rangeMin)/rangeStep)*rangeStep,rangeMin,rangeMax);
   $('amountLabel').textContent=A.currentBet?'レイズ後の合計額':'ベット額';
   $('amountSlider').min=rangeMin;$('amountSlider').max=rangeMax;$('amountSlider').step=1;$('amountSlider').value=snapAmount;
   $('amount').value=$('amountSlider').value;$('amount').min=rangeMin;$('amount').max=rangeMax;
   $('amountReadout').textContent=money(Number($('amount').value));$('amountMinLabel').textContent='最小 '+money(rangeMin);$('amountMaxLabel').textContent='最大 '+money(rangeMax);$('stepLabel').textContent='刻み幅 '+money(rangeStep);
-  $('amountSlider').disabled=!A.awaiting||!(legal.bet||legal.raise||shortAllInRaise);
-  $('betBtn').disabled=!A.awaiting||!(legal.bet||legal.raise||shortAllInRaise);
-  var canSize=A.awaiting&&(legal.bet||legal.raise||shortAllInRaise);
+  $('amountSlider').disabled=!A.awaiting||!(legal.bet||legal.raise||shortAllInRaise||shortAllInBet);
+  $('betBtn').disabled=!A.awaiting||!(legal.bet||legal.raise||shortAllInRaise||shortAllInBet);
+  var canSize=A.awaiting&&(legal.bet||legal.raise||shortAllInRaise||shortAllInBet);
   $('minusStep').disabled=!canSize||Number($('amountSlider').value)<=rangeMin;
   $('plusStep').disabled=!canSize||Number($('amountSlider').value)>=rangeMax;
   updatePresetButtons(canSize);
@@ -524,7 +524,7 @@ function renderActionEV(){
  },Number($('amount').value));
  else box.innerHTML='<div class="evStatus">簡易EVエンジンを読み込めません。</div>';
 }
-function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0),p=A.players[0],l=legalActions(p),shortAllIn=l.allin&&l.max>A.currentBet&&l.max<l.minRaise;$('betBtn').textContent=(shortAllIn?'オールイン ':A.currentBet?'レイズ ':'ベット ')+amountValue}
+function updateBetActionLabel(){var amountValue=money(Number($('amount').value)||0),p=A.players[0],l=legalActions(p),shortAllInRaise=l.allin&&l.max>A.currentBet&&l.max<l.minRaise,shortAllInBet=l.allin&&A.currentBet===0&&l.max<A.blinds[1];$('betBtn').textContent=((shortAllInRaise||shortAllInBet)?'オールイン ':A.currentBet?'レイズ ':'ベット ')+amountValue}
 function betSizingContext(){return {street:A.street,currentBet:A.currentBet,roundBet:A.roundBet[0],bigBlind:A.blinds[1],pot:A.pot,minRaise:minRaise()}}
 function updatePresetButtons(canSize){var sizing=window.DealMiniGameBetSizing;if(!sizing)return;var defs=sizing.definitions(betSizingContext());Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(btn){var def=defs.find(function(item){return item.size===btn.dataset.size});if(def)btn.textContent=def.label;btn.disabled=!canSize})}
 function betStep(){return Math.max(10,A.blinds[0]||10)}
@@ -532,7 +532,7 @@ function setRaiseTarget(target){var slider=$('amountSlider'),min=Number(slider.m
 $('amountSlider').oninput=function(){ $('amount').value=this.value;$('amountReadout').textContent=money(Number(this.value));$('minusStep').disabled=Number(this.value)<=Number(this.min);$('plusStep').disabled=Number(this.value)>=Number(this.max);updateBetActionLabel();renderActionEV(); };
 $('minusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)-betStep())};
 $('plusStep').onclick=function(){setRaiseTarget(Number($('amountSlider').value)+betStep())};
-$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p),shortAllIn=l.allin&&l.max>A.currentBet&&l.max<l.minRaise;human(l.raise?'raise':l.bet?'bet':shortAllIn?'allin':'bet')};$('allinBtn').onclick=function(){if(!A.awaiting||!legalActions(A.players[0]).allin)return;if(!window.confirm('スタックをすべて投入してオールインしますか？'))return;human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],sizing=window.DealMiniGameBetSizing;if(!p||!A.awaiting||!sizing)return;var target=sizing.target(b.dataset.size,betSizingContext());setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
+$('foldBtn').onclick=function(){human('fold')};$('callBtn').onclick=function(){var p=A.players[0],l=legalActions(p);human(l.call?'call':'check')};$('betBtn').onclick=function(){var p=A.players[0],l=legalActions(p),shortAllInRaise=l.allin&&l.max>A.currentBet&&l.max<l.minRaise,shortAllInBet=l.allin&&A.currentBet===0&&l.max<A.blinds[1];human(l.raise?'raise':l.bet?'bet':(shortAllInRaise||shortAllInBet)?'allin':'bet')};$('allinBtn').onclick=function(){if(!A.awaiting||!legalActions(A.players[0]).allin)return;if(!window.confirm('スタックをすべて投入してオールインしますか？'))return;human('allin')};$('nextBtn').onclick=nextHand;$('newBtn').onclick=function(){if(window.confirm('現在のゲームを終了して、最初からやり直しますか？\n\nこのHandの進行状況とスタックはリセットされます。'))restart()};Array.prototype.forEach.call(document.querySelectorAll('.presets button'),function(b){b.onclick=function(){var p=A.players[0],sizing=window.DealMiniGameBetSizing;if(!p||!A.awaiting||!sizing)return;var target=sizing.target(b.dataset.size,betSizingContext());setRaiseTarget(Math.min(p.stack+A.roundBet[0],target))}});
  var returnButton=$('returnAnalysisBtn');
  try{if(sessionStorage.getItem('dealscope-analysis-return-v1'))returnButton.classList.add('visible')}catch(e){}
  var imported=null;
