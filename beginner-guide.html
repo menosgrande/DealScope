@@ -450,7 +450,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <div class="round-step"><b>1</b><strong>順番が来る</strong><p>プリフロップはUTGから。以降はボタンの左隣にいる最初の参加者から。</p></div>
 <div class="round-step"><b>2</b><strong>誰も賭けていない</strong><p>チェックかベットを選びます。</p></div>
 <div class="round-step"><b>3</b><strong>ベットされた</strong><p>残る人はコール・レイズ・フォールドなどで対応します。</p></div>
-<div class="round-step"><b>4</b><strong>ラウンド終了</strong><p>残った人が必要な額を合わせるか、降りると次へ進めます。</p></div>
+<div class="round-step"><b>4</b><strong>ラウンド終了</strong><p>ベットやレイズに全員が対応し、追加の対応が不要になると終了します。誰も賭けず全員がチェックした場合も終了です。</p></div>
 <div class="round-step"><b>5</b><strong>次のカード／決着</strong><p>リバー後ならショウダウン。全員が降りたら残った1人の勝ちです。</p></div>
 </div>
 <div class="bet-example"><div class="bet-example-title">例：ポット300チップのとき</div>
@@ -461,14 +461,14 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <div class="bet-example-step"><span class="mini-index">ACTION 3</span><strong>C：フォールド</strong><small>追加せずに降りる</small></div>
 </div>
 <div class="pot-result"><strong>ポットの合計</strong><span class="result-value">500</span></div>
-<small class="equity-scale-note">300＋Aの100＋Bの100＝500。Cが降りても、新しいチップは加わりません。必要な対応が全員終わると、AとBが次へ進みます。</small>
+<small class="equity-scale-note">300＋Aの100＋Bの100＝500。Cが降りても、新しいチップは加わりません。必要な対応が全員終わると、AとBが次へ進みます。レイズが入った場合は、その額にまだ対応していない参加者にもう一度行動順が回ります。</small>
 </div>
 
 </section>
 <section class="topic" id="equity"><h2>7. 勝率（エクイティ）の見方</h2>
 
 <p><strong>この章で分かること：</strong>表示されたパーセントが何を表すか。</p>
-<p><strong>今できている役と勝率は別です。</strong>役は現在のカードの強さです。DealScopeの勝率は、引き分けならポットを等分した取り分も含めた期待値です。</p>
+<p><strong>今できている役と勝率は別です。</strong>役は現在のカードの強さです。DealScopeの「勝率」は、ポットの期待取り分を割合で表すエクイティです。残りのカードから起こりうる結果を考え、勝てばポット全額、引き分けなら分け前を受け取るものとして平均します。そのため、単純な「勝つ確率」とは異なる場合があります。</p>
 <p>例：手札が A♠ A♥でも、相手の手札や残りの共通カードで結果は変わります。今の役だけでは、最終的な取り分は決まりません。</p>
 <div class="cards"><article class="card"><h3>ハンド指定</h3><p>相手の手札を指定して計算します。例：自分がA♠ K♠、相手がQ♥ Q♦と分かっている場面です。</p></article><article class="card"><h3>相手想定</h3><p>相手の手札をランダムに配った場合を推定します。例：自分の手札を A♠ K♠ にし、相手のカードは指定せずに計算します。相手のプレイ傾向は反映しません。</p></article></div>
 <div class="equity-visual" role="img" aria-label="2人対戦で自分の期待取り分が70パーセント、相手が30パーセントという説明用の例">
