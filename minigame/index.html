@@ -222,9 +222,11 @@ main{grid-template-rows:24px auto auto;gap:7px}
 @media(max-width:600px){
  main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
  .playArea{display:flex;flex-direction:column}
- #heroAnalysis{order:1}
+ .players{display:contents;min-height:0}
+ .player{order:3;width:100%;min-height:94px}
+ .player.hero{order:1}
  .turnPanel{order:2}
- .players{order:3}
+ #heroAnalysis{order:4}
  .restartArea{margin-top:12px}
  .presets button{height:44px;min-height:44px;font-size:11px}
  .actions button{height:44px;min-height:44px;font-size:12px}
