@@ -244,6 +244,7 @@
     const saved = readSaved();
     const h = location.hash;
     const fromUrl = h.length > 1 ? S.decode(h) : null;
+    if (h.length > 1 && !fromUrl) { showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。'); return; }
     if (fromUrl) { adopt(saved && S.encode(saved) === h ? saved : fromUrl); return; }
     if (saved) adopt(saved);
   }
@@ -830,10 +831,18 @@
   // Hand操作。playersコンテナ側でイベント委譲する。各操作は対象だけを変更し、Undoで元に戻せる。
   let undo = null, toastTimer = 0;
   let inputUndo = null;
-  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; }
-  function showUndo(prev, message) {
-    undo = prev;
+  function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; $('toastUndo').hidden = false; }
+  function showNotice(message) {
+    clearTimeout(toastTimer); undo = null;
     $('toastMsg').textContent = message;
+    $('toastUndo').hidden = true;
+    $('toast').hidden = false;
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function showUndo(prev, message) {
+    clearTimeout(toastTimer); undo = prev;
+    $('toastMsg').textContent = message;
+    $('toastUndo').hidden = false;
     $('toast').hidden = false;
     toastTimer = setTimeout(hideToast, 7000);
   }
@@ -970,7 +979,7 @@
   // URLに入っているのは表示中のモードの入力だけなので、隠れていたP2〜P4は持ち込まない
   window.addEventListener('hashchange', () => {
     const d = S.decode(location.hash);
-    if (!d) return;
+    if (!d) { if (location.hash.length > 1) showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。'); return; }
     adopt(d);
     render();
     recompute();
@@ -979,7 +988,33 @@
   /* ヘルプ / 開発者向け検証(ヘルプの奥。初めて開いたときだけ verify.js を読み込む) */
   $('helpBtn').addEventListener('click', () => { $('help').hidden = false; });
   $('helpClose').addEventListener('click', () => { $('help').hidden = true; });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('help').hidden = true; });
+  let pendingRankKey = null;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $('help').hidden = true;
+      if (state.open) { state.open = false; render(); }
+      pendingRankKey = null;
+      return;
+    }
+    if (!state.open || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    const key = e.key.toUpperCase();
+    const ranks = {A:12,K:11,Q:10,J:9,T:8,'9':7,'8':6,'7':5,'6':4,'5':3,'4':2,'3':1,'2':0};
+    const suits = {S:0,H:1,D:2,C:3};
+    if (Object.prototype.hasOwnProperty.call(ranks,key)) {
+      pendingRankKey = ranks[key];
+      $('pickLabel').textContent = slotLabel(state.active) + ' — ランク ' + key + '。続けて S/H/D/C を入力';
+      e.preventDefault();
+      return;
+    }
+    if (pendingRankKey !== null && Object.prototype.hasOwnProperty.call(suits,key)) {
+      const card = pendingRankKey * 4 + suits[key];
+      pendingRankKey = null;
+      const used = usedCards(), cur = get(state.active);
+      if (!used.has(card) || card === cur) pick(card);
+      else showNotice('そのカードは別の枠で使用中です。');
+      e.preventDefault();
+    }
+  });
   let verifyLoaded = false;
   $('dev').addEventListener('toggle', () => {
     if ($('dev').open && !verifyLoaded) {
