@@ -758,6 +758,7 @@
       e.preventDefault();
       inputUndo = null;
       const street = clear.classList.contains('streetClear') ? +clear.dataset.street : null;
+      if (street === null && !window.confirm('ボードをすべて消去しますか？')) return;
       const prev = { players: state.players.map((h) => h.slice()), board: state.board.slice() };
       if (street === null) {
         if (!state.board.some((c) => c >= 0)) return;
@@ -940,7 +941,7 @@
     const allShuffle = e.target.closest('#handShuffle');
     if (allShuffle) { e.preventDefault(); shuffleAllHandCards(); return; }
     const allClear = e.target.closest('#reset');
-    if (allClear) { e.preventDefault(); clearAllHandCards(); return; }
+    if (allClear) { e.preventDefault(); if (window.confirm('表示中のハンドとボードをすべて消去しますか？')) clearAllHandCards(); return; }
     const playerAction = e.target.closest('.playerAction');
     if (playerAction) {
       e.preventDefault();
