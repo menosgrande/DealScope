@@ -101,9 +101,10 @@ function heroAnalysisMarkup(){
  var note=known?'ショウダウンで公開されたハンドだけを指定します。フォールドした相手のカードは含めません。':'対戦中は相手のハンドを伏せ、ランダムハンドとして勝率を計算します。';
  return '<div class="analysisTitle"><span>YOUR PLAYER</span><b>ハンド分析</b></div>'+
   '<div class="analysisIntro">現在の手札と公開ボードを勝率計算ツールへ引き継ぎます。</div>'+
+  (p?'<div class="heroDecisionCards"><b>あなたの手札</b>'+p.hand.map(card).join('')+'</div>':'')+
   (p?handAnalysisMarkup(p):'')+
   '<details id="actionEvDetails" class="actionEvDetails"'+(actionEVOpen?' open':'')+'><summary>アクションEV <span>簡易推定・参考値</span></summary><div id="actionEvPanel" class="actionEvPanel"></div></details>'+
-  (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
+  (valid?'<a class="analysisLaunch" id="openCalculator" href="'+calculatorUrl()+'" target="_blank" rel="noopener noreferrer"><span>'+launch+'</span><b aria-hidden="true">↗</b></a>':'<div class="analysisLaunch disabled">手札がそろうと分析できます</div>')+
   '<div class="analysisNote">'+note+' ゲーム画面を保ったまま、別の操作に戻れます。</div>'
 }
 var actionEVOpen=false,actionEVUserClosed=false,actionEVLastHand=-1;
