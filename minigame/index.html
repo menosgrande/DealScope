@@ -684,7 +684,8 @@ button:disabled{cursor:not-allowed}
 
 .bottomDetails .restartArea{grid-column:1 / -1;margin:0}.bottomDetails .restartArea .new{min-height:44px;height:44px;font-size:12px}.player .phead{height:auto;min-height:20px;white-space:normal;flex-wrap:wrap;row-gap:2px}.player .phead small{max-width:none;white-space:normal;overflow:visible;font-size:10px}.player .typeTag{font-size:10px}
 .heroDecisionCards{display:flex;align-items:center;gap:7px;margin:7px 0 10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#102a23}.heroDecisionCards b{margin-right:5px;font-size:12px;color:var(--ivory);white-space:nowrap}.heroDecisionCards .card{width:35px;height:50px;font-size:18px;flex:none}.heroDecisionCards .card .rank{font-size:17px}.heroDecisionCards .card .suit{font-size:14px}
-</style>
+.turnDecisionHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#0b241c}.turnDecisionHeader>div{display:flex;flex-direction:column;gap:4px;min-width:0}.turnDecisionHeader small{font-size:10px;color:var(--mute)}.turnDecisionHeader b{font-size:16px;font-variant-numeric:tabular-nums}.turnDecisionHand{flex:1}.turnDecisionHand>div{display:flex;gap:4px}.turnDecisionHand .card{width:29px;height:40px;font-size:16px;flex:none}.turnDecisionHand .card .rank{font-size:14px}.turnDecisionHand .card .suit{font-size:12px}
+.turnDecisionHeader{display:flex}@media(max-width:600px){.turnDecisionHeader{display:none}}\n</style>
 </head>
 <body>
 <main>
@@ -703,6 +704,7 @@ button:disabled{cursor:not-allowed}
       <div id="players" class="players"></div>
       <aside id="heroAnalysis" class="panel heroAnalysis" aria-label="自分のハンド分析"></aside>
       <div class="panel turnPanel">
+        <div class="turnDecisionHeader"><div class="turnDecisionHand"><small>あなたの手札</small><div id="turnHeroCards" aria-label="あなたの手札"></div></div><div><small>POT</small><b id="decisionPot">0</b></div><div><small>コール額</small><b id="decisionCall">0</b></div></div>
         <div id="turnCard" class="turnCard"><strong id="turnLabel" class="turnLabel">準備中</strong><span id="turnMeta" class="turnMeta"></span></div>
         <div class="hint" id="hint"></div>
 
