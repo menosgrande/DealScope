@@ -510,7 +510,7 @@ function render(){
   var rangeStep=betStep(),shortAllInRaise=legal.allin&&legal.max>A.currentBet&&legal.max<legal.minRaise,shortAllInBet=legal.allin&&A.currentBet===0&&legal.max<A.blinds[1];
   var rangeMin=(shortAllInRaise||shortAllInBet)?legal.max:Math.min(legal.minRaise,legal.max||legal.minRaise),rangeMax=Math.max(rangeMin,legal.max);
   var startAmount=(shortAllInRaise||shortAllInBet)?legal.max:clamp(legal.minRaise,rangeMin,rangeMax),snapAmount=clamp(rangeMin+Math.round((startAmount-rangeMin)/rangeStep)*rangeStep,rangeMin,rangeMax);
-  $('amountLabel').textContent=A.currentBet?'レイズ後の合計額':'ベット額';
+  $('amountLabel').textContent=A.currentBet?'レイズ後の合計額':'ベット後の合計額';
   $('amountSlider').min=rangeMin;$('amountSlider').max=rangeMax;$('amountSlider').step=1;$('amountSlider').value=snapAmount;
   $('amount').value=$('amountSlider').value;$('amount').min=rangeMin;$('amount').max=rangeMax;
   $('amountReadout').textContent=money(Number($('amount').value));$('amountMinLabel').textContent='最小 '+money(rangeMin);$('amountMaxLabel').textContent='最大 '+money(rangeMax);$('stepLabel').textContent='刻み幅 '+money(rangeStep);
