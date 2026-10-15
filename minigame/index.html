@@ -223,9 +223,8 @@ main{grid-template-rows:24px auto auto;gap:7px}
  main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
  .playArea{display:flex;flex-direction:column}
  #heroAnalysis{order:1}
- .players{order:2}
+ .players{order:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,auto));min-height:0}
  .turnPanel{order:3}
- .players{order:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,auto));min-height:0}
  .player{width:100%;min-height:100px}
  .restartArea{margin-top:12px}
  .presets button{height:44px;min-height:44px;font-size:11px}
@@ -696,7 +695,7 @@ button:disabled{cursor:not-allowed}
 .board .card.reveal{animation:cardReveal .32s ease-out both}
 @keyframes cardReveal{from{transform:perspective(400px) rotateY(80deg);opacity:.25}to{transform:perspective(400px) rotateY(0);opacity:1}}
 .player{position:relative}
-.actionBadge{position:absolute;right:6px;top:24px;z-index:2;padding:3px 7px;border-radius:10px;font-size:9px;font-weight:800;line-height:1.2;background:#1d302a;color:var(--ivory);border:1px solid #547064}
+.actionBadge{position:absolute;right:6px;top:24px;z-index:2;max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 7px;border-radius:10px;font-size:9px;font-weight:800;line-height:1.2;background:#1d302a;color:var(--ivory);border:1px solid #547064}
 .actionBadge.call{background:#e5c15d;color:#211a08;border-color:#f4d879}.actionBadge.raise,.actionBadge.bet,.actionBadge.allin{background:#8e3038;color:#fff;border-color:#cf6970}.actionBadge.fold{background:#414b47;color:#ddd;border-color:#67736e}
 @media(prefers-reduced-motion:reduce){.player.current,.board .card.reveal{animation:none!important}}
 @media(max-width:600px){.tablePanel{border-radius:43%/34%!important;padding:19px 14px 17px!important;min-height:350px}.potTotal b{font-size:23px}.player.current{animation:none;box-shadow:0 0 0 2px var(--brass),0 0 10px #d8b25255}.actionBadge{top:23px;right:4px}}
