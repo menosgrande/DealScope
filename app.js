@@ -770,7 +770,7 @@
       state.open = false;
       render();
       recompute();
-      undo = prev;
+      rememberUndo(prev);
       $('toastMsg').textContent = street === null
         ? 'ボードをすべて消しました'
         : (street === 0 ? 'Flopと、それ以降のボードを消しました' : street === 1 ? 'TurnとRiverを消しました' : 'Riverを消しました');
@@ -841,7 +841,7 @@
     toastTimer = setTimeout(hideToast, 5000);
   }
   function showUndo(prev, message) {
-    clearTimeout(toastTimer); undo = prev;
+    clearTimeout(toastTimer); rememberUndo(prev);
     $('toastMsg').textContent = message;
     $('toastUndo').hidden = false;
     $('toast').hidden = false;
