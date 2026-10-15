@@ -451,6 +451,229 @@ a.backLink{min-height:40px;font-size:12px}
   .playArea > .players { grid-column:1; grid-row:2; }
   .playArea > .heroAnalysis { grid-column:1; grid-row:3; }
 }
+
+
+/* DealScope mini-game visual polish: premium felt, clearer hierarchy, touch-first controls. */
+:root{
+  --felt:#071f19;
+  --felt2:#10362b;
+  --line:#2d6250;
+  --ivory:#f7f3e8;
+  --mute:#a3c0b3;
+  --brass:#e3bd61;
+  --red:#df7379;
+}
+html,body{
+  background:
+    radial-gradient(ellipse at 50% -15%,#1b5541 0,transparent 52%),
+    linear-gradient(160deg,#0b2b21 0%,#061a15 72%);
+}
+main{gap:9px}
+.top{min-height:38px;gap:8px}
+h1{font-size:clamp(14px,2.5vw,17px);font-weight:850;letter-spacing:.015em}
+h1::before{content:"♠";display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;margin-right:7px;border:1px solid #b18d3c;border-radius:7px;background:linear-gradient(145deg,#e7c96e,#b68c32);color:#17392d;font-size:15px;box-shadow:inset 0 1px 0 #fff4c4;vertical-align:middle}
+.topLinks{gap:5px}
+a.backLink{border-color:#3b705d;background:#10382c;box-shadow:inset 0 1px 0 #ffffff0b;transition:transform .15s,border-color .15s,background .15s}
+a.backLink:active{transform:translateY(1px)}
+.panel{border-color:#326b57;background:linear-gradient(145deg,#123b2e,#0b2b22);box-shadow:0 5px 16px #0002,inset 0 1px 0 #ffffff08}
+.sessionStats{border-color:#4b6b4f;background:linear-gradient(100deg,#0c2b21,#183b2b 55%,#0c2b21);box-shadow:inset 0 1px 0 #ffffff08}
+.sessionStats span{font-size:10px;font-weight:750;letter-spacing:.07em}
+.sessionStats strong{font-size:17px;letter-spacing:.015em}
+.tablePanel{position:relative;border-color:#49775d;background:radial-gradient(ellipse at 50% 42%,#164b38 0,#103629 55%,#0a271e 100%);box-shadow:0 8px 24px #0003,inset 0 0 0 1px #d9b75b12,inset 0 1px 0 #ffffff0a}
+.tablePanel::before{content:"";position:absolute;inset:5px;border:1px solid #d8b25218;border-radius:7px;pointer-events:none}
+.street{font-weight:900;letter-spacing:.14em;text-shadow:0 1px 6px #0005}
+.info{color:#b2c9bf}
+.potArea{position:relative}
+.potStack{filter:drop-shadow(0 3px 2px #0005)}
+.potTotal{font-size:10px;letter-spacing:.12em;font-weight:800}
+.potTotal b{font-size:19px;line-height:1.1;letter-spacing:0;text-shadow:0 1px 8px #0003}
+.board{min-height:58px}
+.card,.cardBack{
+  border:1px solid #d9d5ca;
+  border-bottom-color:#c6c0b2;
+  border-radius:6px;
+  background:linear-gradient(145deg,#fffef8,#e9e5d9);
+  box-shadow:0 3px 0 #bdb7a9,0 5px 9px #0004;
+  transition:transform .15s,box-shadow .15s;
+}
+.cardBack{border:1px solid #e2c56d;background:repeating-linear-gradient(45deg,#164432 0,#164432 4px,#1c503d 4px,#1c503d 8px);box-shadow:0 3px 0 #061c14,0 5px 9px #0004;color:#e4c56d}
+.players{gap:7px}
+.player{
+  border-color:#3c6d58;
+  background:linear-gradient(145deg,#103327,#09251d);
+  box-shadow:inset 0 1px 0 #ffffff08,0 2px 6px #0002;
+  transition:border-color .15s,background .15s,box-shadow .15s,opacity .15s;
+}
+.player.hero{background:linear-gradient(145deg,#193d2d,#0c2b20);box-shadow:inset 0 0 0 1px #e3bd6124,0 2px 7px #0002}
+.player.current{border-color:#f0d17c;background:linear-gradient(145deg,#214735,#103326);box-shadow:inset 0 0 0 1px #e3bd6188,0 0 0 1px #e3bd6128,0 0 13px #e3bd6112}
+.player.winner{border-color:#ffe29a;box-shadow:inset 0 0 0 1px #e3bd61,0 0 15px #e3bd6126}
+.phead{color:#f4f0e4}
+.phead i{box-shadow:0 0 0 2px #ffffff0b}
+.typeTag{border-color:#416b59;background:#0a271e;color:#bdd0c5}
+.stack b{font-size:1.08em;letter-spacing:.01em}
+.stack .sideLabel{letter-spacing:.08em;color:#a7c2b4}
+.made{color:#f0d17c;text-shadow:0 1px 3px #0008}
+.turnPanel{border-color:#47735c;background:linear-gradient(155deg,#123b2d,#0b2b22);box-shadow:0 5px 18px #0002,inset 0 1px 0 #ffffff08}
+.turnCard{border-color:#315d4a;background:#09271e}
+.turnCard.active{border-color:#e6c568;background:linear-gradient(90deg,#243d25,#123b2d);box-shadow:inset 0 0 0 1px #e3bd6138,0 0 12px #e3bd610d}
+.turnLabel{font-weight:850}
+.turnMeta{color:#b5cabe}
+.hint{color:#b8cec2}
+.amountControl{border-color:#39664f;background:linear-gradient(145deg,#0b2b21,#102f24);box-shadow:inset 0 1px 0 #ffffff06}
+.amountHead output{border-color:#9d803d;background:linear-gradient(145deg,#3d351d,#292514);color:#f6d879;box-shadow:inset 0 1px 0 #ffffff0c}
+#amountSlider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#78602b,#e3bd61 56%,#6a9b78)}
+#amountSlider::-moz-range-track{background:linear-gradient(90deg,#78602b,#e3bd61 56%,#6a9b78)}
+#amountSlider::-webkit-slider-thumb{background:#f0ce6b;box-shadow:0 0 0 3px #e3bd6124,0 2px 5px #0007}
+#amountSlider::-moz-range-thumb{background:#f0ce6b;box-shadow:0 0 0 3px #e3bd6124,0 2px 5px #0007}
+.amountNudge button,.presets button{border-color:#3c6c56;background:linear-gradient(180deg,#1a4735,#103426);box-shadow:inset 0 1px 0 #ffffff08}
+.amountNudge button:not(:disabled):hover,.presets button:not(:disabled):hover{border-color:#e3bd61;background:#214b37}
+.actions button{
+  border-color:#3d6a55;
+  background:linear-gradient(180deg,#1a4735,#103426);
+  box-shadow:inset 0 1px 0 #ffffff0a,0 2px 0 #061a13;
+  transition:transform .12s,filter .12s,border-color .12s,box-shadow .12s;
+}
+.actions button:not(:disabled):active,.amountNudge button:not(:disabled):active,.presets button:not(:disabled):active{transform:translateY(1px);box-shadow:inset 0 1px 2px #0003}
+.actions .fold{border-color:#784d4b;background:linear-gradient(180deg,#4a2a2b,#332022);color:#ffc1bd}
+.actions button.primary{background:linear-gradient(180deg,#f0d37d,#d5aa48);border-color:#f5dc91;color:#1b2719;box-shadow:inset 0 1px 0 #fff8d4,0 2px 0 #80642b}
+.actions #allinBtn{border-color:#94524b;background:linear-gradient(180deg,#592f2b,#3c2422);color:#ffc0b3}
+.actions #allinBtn.primary{background:linear-gradient(180deg,#d75f58,#a83e3b);border-color:#ef9186;color:#fff8ee;box-shadow:inset 0 1px 0 #ffb2a5,0 2px 0 #672624}
+#nextBtn,.nextButton{background:linear-gradient(180deg,#f0d37d,#d5aa48);border-color:#f5dc91;color:#1b2719;box-shadow:inset 0 1px 0 #fff8d4,0 2px 0 #80642b}
+.restartArea{border-color:#315b49;background:#0b281f}
+.new{border-color:#355e4b;background:#102f24;color:#c0d2c8}
+.new:hover{border-color:#e3bd61;color:#fff2c6}
+.logBox,.helpBox{border-color:#315d4a;background:linear-gradient(145deg,#103529,#0b281f)}
+.logBox summary,.helpBox summary{color:#c2d4ca;font-weight:750}
+.logBox summary:hover,.helpBox summary:hover{color:#f0d17c}
+.helpGrid>div{border-color:#315d4a;background:#0b2a20}
+.helpBody strong{color:#f0d17c}
+.actionEvDetails{border-color:#315d4a}
+.actionEvDetails>summary::before{border-color:#547b62;background:#0b2a20}
+.evRows{border-color:#315d4a}
+.evRow{border-color:#315d4a66}
+.evHeader{background:#082219}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid #ffe39a;outline-offset:3px}
+button:disabled{cursor:not-allowed}
+@media(max-width:600px){
+  main{gap:7px}
+  .top{align-items:center}
+  h1::before{width:23px;height:23px;margin-right:5px}
+  .topLinks{gap:4px}
+  .tablePanel{border-radius:13px;padding:7px}
+  .tablePanel::before{inset:4px}
+  .playArea{gap:7px}
+  .turnPanel{border-radius:12px}
+  .turnCard{border-radius:9px}
+  .amountControl{border-radius:10px}
+  .actions{gap:7px}
+  .actions button{min-height:46px;height:46px;font-size:12px}
+  .actions .primary{font-weight:850}
+  .player{border-radius:10px}
+  .board{gap:5px}
+  .board .card{width:38px;height:52px;font-size:21px}
+  .bottomDetails{gap:7px}
+}
+@media(max-width:360px){
+  .top{align-items:flex-start}
+  h1{max-width:130px;line-height:1.25}
+  .topLinks{gap:3px}
+  a.backLink{padding:0 5px;font-size:10px}
+  .actions button{font-size:10px;padding:0 2px}
+  .board .card{width:34px;height:48px;font-size:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+
+
+
+/* Mobile layout correction: table -> seats -> actions -> hero analysis. */
+@media (max-width:600px) {
+  main {
+    width:100%;
+    grid-template-rows:auto auto auto;
+    gap:8px;
+  }
+  .tablePanel {
+    min-height:0;
+    overflow:visible;
+    padding:8px;
+  }
+  .playArea {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    gap:8px;
+    min-height:0;
+    height:auto;
+    align-items:start;
+  }
+  .playArea > .players {
+    grid-column:1;
+    grid-row:1;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(2,minmax(112px,auto));
+    gap:6px;
+    min-height:0;
+    height:auto;
+    max-height:none;
+    overflow:visible;
+    align-self:auto;
+  }
+  .playArea > .turnPanel {
+    grid-column:1;
+    grid-row:2;
+    width:100%;
+    min-width:0;
+    max-height:none;
+    overflow:visible;
+    align-self:auto;
+  }
+  .playArea > .heroAnalysis {
+    grid-column:1;
+    grid-row:3;
+    width:100%;
+    min-width:0;
+    max-height:none;
+    overflow:visible;
+    align-self:auto;
+  }
+  .player {
+    min-width:0;
+    min-height:112px;
+  }
+  .bottomDetails {
+    grid-template-columns:1fr 1fr;
+    align-items:start;
+  }
+}
+@media (max-width:390px) {
+  .playArea { gap:7px; }
+  .playArea > .players {
+    grid-template-rows:repeat(2,minmax(106px,auto));
+    gap:5px;
+  }
+  .player { min-height:106px; }
+}
+
+
+/* Desktop: keep the action panel's lower controls reachable when content exceeds the table height. */
+@media (min-width:601px) {
+  .tablePanel { overflow:visible; }
+  .playArea { min-height:316px; height:auto; }
+  .playArea > .turnPanel {
+    min-height:0;
+    max-height:316px;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+  }
+}
+@media (min-width:601px) and (max-height:700px) {
+  .playArea > .turnPanel { max-height:300px; }
+}
+
 </style>
 </head>
 <body>
