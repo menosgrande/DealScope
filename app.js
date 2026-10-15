@@ -741,7 +741,7 @@
       state.open = false;
       render();
       recompute();
-      undo = prev;
+      rememberUndo(prev);
       $('toastMsg').textContent = street === null
         ? 'ボード全体を引き直しました'
         : (street === 0
@@ -829,8 +829,9 @@
     render();
   });
   // Hand操作。playersコンテナ側でイベント委譲する。各操作は対象だけを変更し、Undoで元に戻せる。
-  let undo = null, toastTimer = 0;
+  let undo = null, undoHistory = [], toastTimer = 0;
   let inputUndo = null;
+  function rememberUndo(prev) { undoHistory.push(prev); if (undoHistory.length > 3) undoHistory.shift(); undo = prev; }
   function hideToast() { clearTimeout(toastTimer); undo = null; $('toast').hidden = true; $('toastUndo').hidden = false; }
   function showNotice(message) {
     clearTimeout(toastTimer); undo = null;
@@ -949,11 +950,20 @@
     }
   });
   $('toastUndo').addEventListener('click', () => {
-    if (!undo) return;
-    state.players = undo.players;
-    state.board = undo.board;
+    if (!undoHistory.length) return;
+    const prev = undoHistory.pop();
+    state.players = prev.players.map((h) => h.slice());
+    state.board = prev.board.slice();
     render();
-    recompute(); // ここで hideToast() も呼ばれる
+    recompute();
+    undo = undoHistory.length ? undoHistory[undoHistory.length - 1] : null;
+    if (undo) {
+      $('toastMsg').textContent = '直前の操作を元に戻しました（さらに戻せます）';
+      $('toastUndo').hidden = false;
+      $('toast').hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, 7000);
+    }
   });
 
   $('share').addEventListener('click', async () => {
