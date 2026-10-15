@@ -37,10 +37,10 @@
 
   const isRandom = () => state.mode === 'random';
   const count = () => (isRandom() ? 1 : state.n); // 画面に出ているプレイヤー数
-  const pname = (i) => (isRandom() ? 'Hero' : 'Player ' + (i + 1));
+  const pname = (i) => (isRandom() ? '自分' : 'Player ' + (i + 1));
   const displayPname = (i) => (!isRandom() && count() === 4) ? 'P' + (i + 1) : pname(i);
-  const analysisLabel = (code) => ({ OESD: 'Open-ended straight draw', GS: 'Gutshot straight draw', FD: 'Flush draw' }[code] || code);
-  const textureLabel = (code) => ({ RAINBOW: 'Rainbow', MONOTONE: 'Monotone', PAIRED: 'Paired', CONNECTED: 'Connected' }[code] || code);
+  const analysisLabel = (code) => ({ OESD: 'オープンエンド', GS: 'ガットショット', FD: 'フラッシュドロー' }[code] || code);
+  const textureLabel = (code) => ({ RAINBOW: 'レインボー（3色）', MONOTONE: '単色ボード', PAIRED: 'ペアボード', CONNECTED: '連結ボード' }[code] || code);
 
   const observation = { analysisSelections: 0, drawStateChanges: 0, drawVisibleStates: 0, drawTags: Object.create(null), lastDrawKey: null, current: '' };
   window.DealObservation = { stats() { return { analysisSelections: observation.analysisSelections, drawStateChanges: observation.drawStateChanges, drawVisibleStates: observation.drawVisibleStates, drawTags: { ...observation.drawTags }, current: observation.current }; } };
@@ -338,7 +338,7 @@
     const streetClearable = (street) => street === 0 ? state.board.some((c) => c >= 0) : street === 1 ? state.board[3] >= 0 || state.board[4] >= 0 : state.board[4] >= 0;
     const grp = (label, street, js) =>
       `<div class="grp${street === 0 ? " flopGrp" : ""}"><div class="grpCards"><div class="slots">${js.map((j) => slotHTML({ t: 'b', j })).join('')}</div><span class="streetTools"><button class="streetShuffle" data-street="${street}" aria-label="${label}を引き直す" title="${label}だけを引き直す"${streetReady(street) ? '' : ' disabled'}>↻</button><button class="streetClear" data-street="${street}" aria-label="${label}を消去" title="${label}以降を消去"${streetClearable(street) ? '' : ' disabled'}>×</button></span></div><div class="cap">${label}</div></div>`;
-    $('board').innerHTML = `<div class="row boardRow"><div class="name">Board</div><div class="boardMain"><div class="boardTools"><button id="boardDeal" class="boardShuffle" aria-label="ボードを自動ディールする" title="空いているBoardを自動ディールする"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">自動ディール</span></button><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('Flop', 0, [0, 1, 2])}${grp('Turn', 1, [3])}${grp('River', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
+    $('board').innerHTML = `<div class="row boardRow"><div class="name">共通カード</div><div class="boardMain"><div class="boardTools"><button id="boardDeal" class="boardShuffle" aria-label="ボードを自動ディールする" title="空いているBoardを自動ディールする"><span aria-hidden="true">&#8635;</span><span class="boardShuffleText">自動ディール</span></button><button id="boardShuffle" class="boardShuffle" aria-label="ボード全体をランダムに引き直す" title="ボード全体をランダムに引き直す"><span aria-hidden="true">↻</span><span class="boardShuffleText">全交換</span></button><button id="boardClear" class="boardClear" aria-label="ボードをすべて消去" title="ボードをすべて消去"><span aria-hidden="true">×</span><span class="boardClearText">全消去</span></button></div><div class="bslots">${grp('フロップ', 0, [0, 1, 2])}${grp('ターン', 1, [3])}${grp('リバー', 2, [4])}</div><div id="boardTexture" class="textureTags" hidden aria-label="Board Texture"></div></div></div>`;
 
     if (state.open) {
       $('pickLabel').textContent = slotLabel(state.active);
