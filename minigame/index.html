@@ -222,11 +222,10 @@ main{grid-template-rows:24px auto auto;gap:7px}
 @media(max-width:600px){
  main{grid-template-rows:22px auto auto;padding:6px 7px;gap:5px}
  .playArea{display:flex;flex-direction:column}
- .players{display:contents;min-height:0}
- .player{order:3;width:100%;min-height:94px}
- .player.hero{order:1}
+ #heroAnalysis{order:1}
  .turnPanel{order:2}
- #heroAnalysis{order:4}
+ .players{order:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(100px,auto));min-height:0}
+ .player{width:100%;min-height:100px}
  .restartArea{margin-top:12px}
  .presets button{height:44px;min-height:44px;font-size:11px}
  .actions button{height:44px;min-height:44px;font-size:12px}
