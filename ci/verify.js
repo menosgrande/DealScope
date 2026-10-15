@@ -409,7 +409,7 @@ function testMiniGameEVMath() {
   assert.equal(result.raiseEVSuppressed, false);
   assert(result.rows.some(r => r.kind === 'raise'), 'heads-up raise EV should be available');
 
-  // Multiway raises now show an explicitly approximate EV using independent fold chances.
+  // Multiway aggressive EV is intentionally suppressed because independent fold-rate assumptions are too fragile.
   result = MiniGameEV.estimate(state({
     players: [
       { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
@@ -418,9 +418,17 @@ function testMiniGameEVMath() {
     ],
     pot: 100, currentBet: 20, roundBet: [0, 20, 20, 0], legal: { minRaise: 40 }
   }), 40);
-  assert.equal(result.raiseEVSuppressed, false);
-  assert(result.rows.some(r => r.kind === 'raise'), 'multiway raise EV should be shown as an estimate');
-  assert(result.rows.some(r => r.name === 'オールイン'), 'multiway all-in EV should be shown as an estimate');
+  assert.equal(result.raiseEVSuppressed, true);
+  assert(!result.rows.some(r => r.kind === 'raise'), 'multiway raise EV should be suppressed');
+  assert(!result.rows.some(r => r.name === 'オールイン'), 'multiway all-in EV should be suppressed');
+  assert(MiniGameEV.renderMarkup(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, contrib: 20, out: false, fold: false, type: 'tag', allin: false },
+      { seat: 2, hand: [8, 9], stack: 100, contrib: 20, out: false, fold: false, type: 'tp', allin: false }
+    ],
+    pot: 100, currentBet: 20, roundBet: [0, 20, 20, 0], legal: { minRaise: 40 }
+  }), 40).includes('推定誤差が大きいため'));
   // Imported known-hand flop: 77 versus K6 and a set of 44 on T-2-4.
   const knownHands = [hand('7c 7d'), hand('6d Kc'), hand('4h 4d')];
   const knownBoard = hand('Th 2d 4c');
