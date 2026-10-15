@@ -475,6 +475,7 @@ function render(){
  $('msg').textContent=A.message||'';$('street').textContent=A.street==='preflop'?'PREFLOP':A.street.toUpperCase();$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);
  var chipCount=A.pot<=0?0:Math.min(10,Math.max(1,Math.ceil(Math.log2(A.pot/Math.max(1,A.blinds[1])+1)*2)));$('potValue').textContent=money(A.pot);$('potChips').innerHTML=Array.from({length:chipCount},function(_,i){return '<span class="chip" style="bottom:'+(i*3)+'px"></span>'}).join('');
  $('board').innerHTML=A.board.map(card).join('')||'<span class="empty">—</span>';
+ var decisionCards=$('turnHeroCards');if(decisionCards)decisionCards.innerHTML=(A.players[0]&&A.players[0].hand?A.players[0].hand.map(card).join(''):'');var decisionPot=$('decisionPot');if(decisionPot)decisionPot.textContent=money(A.pot);var decisionCall=$('decisionCall');if(decisionCall)decisionCall.textContent=money(Math.max(0,(Number(A.currentBet)||0)-((A.roundBet&&Number(A.roundBet[0]))||0)));
  $('players').innerHTML=A.players.map(function(p){
    var st=p.out?'脱落':p.fold?'フォールド':p.allin?'オールイン':p.seat===A.actor&&!A.handOver?'行動中':'';
    var hide=p.seat!==0&&(!A.handOver||p.fold);
