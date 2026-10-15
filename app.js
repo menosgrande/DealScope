@@ -294,6 +294,8 @@
   function render() {
     ensureActive();
     computeGlow();
+    const emptyGuide = $('emptyGuide');
+    if (emptyGuide) emptyGuide.hidden = state.players.slice(0, count()).some((h) => h.some((card) => card >= 0)) || state.board.some((card) => card >= 0);
     document.body.classList.toggle('picking', state.open);
     $('picker').hidden = !state.open;
 
