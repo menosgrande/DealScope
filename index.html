@@ -120,6 +120,7 @@ body.picking .playerGrid{padding-top:8px}
    ▼ の位置は top:-16px(カード上端からの距離)、場所は .row の padding-top と .pheadname の margin-bottom で確保している。 */
 .slot.hit{border-color:#f2c230;box-shadow:0 0 0 1px #f2c230}
 .highlightLegend{margin:4px 0 0;text-align:center;color:var(--ivory);font-size:12px;line-height:1.4}
+.emptyGuide{margin:4px 0 8px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--felt2);color:#dce9e2;font-size:14px;line-height:1.5}.emptyGuide[hidden]{display:none}
 .slot.off{opacity:.4}
 .cursorMark{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:3;pointer-events:none;
   color:var(--cursor);font-size:13px;line-height:1;animation:bob .9s ease-in-out infinite}
@@ -358,6 +359,7 @@ details.dev summary{font-size:12px;color:var(--mute)}
 
   <div id="toast" role="status" aria-live="polite" hidden><span id="toastMsg" class="srOnly"></span><button id="toastUndo" aria-label="直前の操作を元に戻す"><span aria-hidden="true">↶</span> 元に戻す</button></div>
 
+  <p id="emptyGuide" class="emptyGuide">まず自分の2枚のカードから入力してください。カードを選ぶと勝率・役・ドローが表示されます。</p>
   <div id="players"></div>
   <div id="board"></div>
   <button id="open" aria-label="カードを選ぶ">カードを選ぶ <span aria-hidden="true">▲</span></button>
