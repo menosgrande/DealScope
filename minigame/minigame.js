@@ -476,8 +476,7 @@ function render(){
  $('msg').textContent=A.message||'';$('street').textContent=A.street==='preflop'?'PREFLOP':A.street.toUpperCase();$('info').textContent='Hand #'+A.handNo+'　Blinds '+money(A.blinds[0])+'/'+money(A.blinds[1]);
  var chipCount=A.pot<=0?0:Math.min(10,Math.max(1,Math.ceil(Math.log2(A.pot/Math.max(1,A.blinds[1])+1)*2)));$('potValue').textContent=money(A.pot);$('potChips').innerHTML=Array.from({length:chipCount},function(_,i){return '<span class="chip" style="bottom:'+(i*3)+'px"></span>'}).join('');
  var boardGrowing=A.board.length>lastRenderedBoardCount;
- $('board').innerHTML=A.board.map(function(c,i){return card(c)+(boardGrowing&&i>=lastRenderedBoardCount?'<span class="revealMarker"></span>':'')}).join('')||'<span class="empty">—</span>';
- if(boardGrowing){var boardCards=$('board').querySelectorAll('.card');for(var bi=lastRenderedBoardCount;bi<boardCards.length;bi++)boardCards[bi].classList.add('reveal');}
+ $('board').innerHTML=A.board.map(function(c,i){var markup=card(c);return boardGrowing&&i>=lastRenderedBoardCount?markup.replace('class="card ','class="card reveal '):markup}).join('')||'<span class="empty">—</span>';
  lastRenderedBoardCount=A.board.length;
  var decisionCards=$('turnHeroCards');if(decisionCards)decisionCards.innerHTML=(A.players[0]&&A.players[0].hand?A.players[0].hand.map(card).join(''):'');var decisionPot=$('decisionPot');if(decisionPot)decisionPot.textContent=money(A.pot);var decisionCall=$('decisionCall');if(decisionCall)decisionCall.textContent=money(Math.max(0,(Number(A.currentBet)||0)-((A.roundBet&&Number(A.roundBet[0]))||0)));
  $('players').innerHTML=A.players.map(function(p){
