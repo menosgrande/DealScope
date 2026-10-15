@@ -990,7 +990,16 @@
   // URLに入っているのは表示中のモードの入力だけなので、隠れていたP2〜P4は持ち込まない
   window.addEventListener('hashchange', () => {
     const d = S.decode(location.hash);
-    if (!d) { if (location.hash.length > 1) showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。'); return; }
+    if (!d) {
+      if (location.hash.length > 1) {
+        state.mode = 'known'; state.n = 2; state.opp = 1;
+        state.players = S.emptyHands(); state.board = S.emptyBoard();
+        state.active = { t: 'p', i: 0, j: 0 }; state.open = false; state.deleteTarget = null;
+        render(); recompute();
+        showNotice('リンクの内容を読み取れませんでした。入力を初期化しました。');
+      }
+      return;
+    }
     adopt(d);
     render();
     recompute();
