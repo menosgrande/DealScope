@@ -10,6 +10,10 @@ function split(pot,winners,awards,dealerSeat,seatCount){
   ordered.sort(function(a,b){
    var da=((a.seat-dealerSeat)%seatCount+seatCount)%seatCount;
    var db=((b.seat-dealerSeat)%seatCount+seatCount)%seatCount;
+   // The dealer is not "left of the button"; if the dealer wins a split,
+   // they are last in odd-chip priority after a full orbit.
+   if(da===0)da=seatCount;
+   if(db===0)db=seatCount;
    return da-db;
   });
  }
