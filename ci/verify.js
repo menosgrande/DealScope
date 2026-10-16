@@ -354,8 +354,8 @@ function testMiniGamePotConservation() {
     {seat:2,name:'Other folded',stack:0,contrib:0,fold:true},
     {seat:3,name:'First left of button',stack:0,contrib:1,fold:false}
   ];
-  // Seat 1 also contributes one chip to create a three-chip pot, but is not
-  // eligible to win; the tied eligible winners are seats 1 and 3.
+  // Seat 1 (the dealer) and seat 3 both contribute and tie; seat 3 is
+  // the first eligible winner clockwise from the button.
   clockwise[1].contrib=1;
   const clockwiseResult=Pots.settle(clockwise,[
     {p:clockwise[1],s:100},
