@@ -421,6 +421,19 @@ function testMiniGameStateTransitions() {
   console.log('✓ mini game state transitions: fold win / round completion / all-in advance / river showdown / BTN rotation / heads-up blinds');
 }
 
+function testPreflopRandomReference() {
+  // Independent external benchmark: AA versus one uniformly random hand is
+  // approximately 85.2% equity (Zayrion calculator, 400k simulated runouts).
+  // The published value is rounded and simulated, so compare within 4σ.
+  const expected = 85.2;
+  const actual = E.monteCarloVsRandom(hand('As Ah'), [], 100000, { seed: 12345 }).equity[0];
+  const p = expected / 100;
+  const se = Math.max(Math.sqrt(p * (1 - p) / 100000) * 100, 0.05);
+  assert(Math.abs(actual - expected) <= 4 * se,
+    'preflop AA vs random-hand equity should agree with external reference 85.2% within 4σ; got ' + actual);
+  console.log('✓ preflop Monte Carlo reference: AA vs one random hand ≈85.2%');
+}
+
 function testMiniGameEVMath() {
   const engine = { monteCarloVsRandom: () => ({ equity: [80] }) };
   function state(overrides) {
@@ -606,6 +619,7 @@ function testGlossaryData() {
 }
 
 function main() {
+  testPreflopRandomReference();
   testMiniGameEVMath();
   testGlossaryData();
   testFiveCardDistribution();
