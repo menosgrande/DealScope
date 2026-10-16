@@ -706,15 +706,15 @@ button:disabled{cursor:not-allowed}
   main { width: min(1080px, calc(100% - 32px)); }
   .tablePanel { border-radius: 18px !important; padding: 16px !important; overflow: visible; }
   .playArea {
-    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: auto;
     align-items: stretch;
     gap: 12px;
     min-height: 0;
   }
   #players {
     grid-column: 1;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: repeat(4, minmax(96px, auto));
     align-content: stretch;
@@ -723,8 +723,8 @@ button:disabled{cursor:not-allowed}
   }
   #heroAnalysis { grid-column: 2; grid-row: 1; min-width: 0; }
   .playArea > .turnPanel {
-    grid-column: 2;
-    grid-row: 2;
+    grid-column: 3;
+    grid-row: 1;
     max-height: none;
     min-height: 0;
     overflow: visible;
