@@ -27,7 +27,8 @@ function actionEV(eq,pot,invest,extraCallers,foldP){
 }
 function estimate(state,selectedTarget){
  var hero=state.players&&state.players[0],E=state.engine;
- if(!hero||!hero.hand||hero.hand.length!==2)return {status:'ハンド情報がありません'};
+ if(!hero||!Array.isArray(hero.hand)||hero.hand.length!==2)return {status:'ハンド情報がありません'};
+ if(hero.hand.some(function(c){return !Number.isInteger(c)||c<0||c>=52}))return {status:'指定ハンドに不正なカードがあります'};
  if(!state.awaiting||state.actor!==0)return {status:'あなたのアクション待ちで表示します'};
  if(!E||typeof E.monteCarloVsRandom!=='function')return {status:'エクイティ計算エンジンを利用できません'};
  var board=(state.board||[]).filter(function(c){return c!=null&&c>=0});
@@ -36,7 +37,10 @@ function estimate(state,selectedTarget){
  var trials=board.length===0?900:650, equity, exact=false, knownHands=[];
  try{
   var seed=((state.handNo||1)*104729+board.length*7919+hero.hand[0]*53+hero.hand[1]+opponents.length*997)>>>0;
-  var canUseKnown=state.knownHands===true&&opponents.every(function(p){return Array.isArray(p.hand)&&p.hand.length===2&&p.hand.every(function(c){return Number.isInteger(c)&&c>=0&&c<52})});
+  var knownMode=state.knownHands===true;
+  var validKnownOpponents=opponents.every(function(p){return Array.isArray(p.hand)&&p.hand.length===2&&p.hand.every(function(c){return Number.isInteger(c)&&c>=0&&c<52})});
+  if(knownMode&&!validKnownOpponents)return {status:'指定ハンドに不正なカードがあります'};
+  var canUseKnown=knownMode&&validKnownOpponents;
   if(canUseKnown){
    knownHands=[hero.hand].concat(opponents.map(function(p){return p.hand}));
    var allCards=knownHands.reduce(function(a,h){return a.concat(h)},[]).concat(board);
