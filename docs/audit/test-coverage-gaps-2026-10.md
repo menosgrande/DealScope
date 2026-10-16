@@ -26,7 +26,7 @@ The settlement function receives the dealer seat from the game. Remaining covera
 
 The current mini-game's private CPU decision function is exercised across all four CPU types, preflop/flop/turn/river, unopened/facing-bet states, and deep/short effective stacks. The test samples legal random card configurations with deterministic seeds and checks that every sample yields a recognized response, that deep-stack states do not produce surprise all-ins, and that facing-bet/unopened states return the appropriate action family.
 
-In addition, the test runs 32 complete hands through the real mini-game action/settlement loop with the policy controlling all four seats. The latest deterministic sample reported a 3.1% all-in-hand rate, 84.4% showdown rate, mean pot of 6,344 chips, and 9.9 actions per hand. These are regression baselines for this seed and stack/blind setup, not claims about all possible tournaments. If CPU tuning changes, compare these metrics and the per-type open-bet rates before accepting the change.
+In addition, the test runs 32 complete hands through the real mini-game action/settlement loop with the policy controlling all four seats. The latest deterministic sample reported a 3.1% all-in-hand rate, 84.4% showdown rate, mean pot of 6,344 chips, and 9.9 actions per hand. In 120 sampled deep-stack unopened preflop states per type, open-bet rates were TAG 47.5%, LAG 66.7%, TP 30.8%, and LP 45.0%; the test asserts LAG opens more often than TP. These are regression baselines for the tested seeds and stack/blind setup, not claims about all possible tournaments. If CPU tuning changes, compare these metrics before accepting the change.
 
 ### Preflop equity reference — registered with uncertainty
 
