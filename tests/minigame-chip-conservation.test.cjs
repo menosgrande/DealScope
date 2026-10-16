@@ -141,4 +141,87 @@ function prepareRiver(api, activeCount = 2) {
   assert.ok(A.awards.every(a => a.seat !== 2), 'folded player cannot receive an award');
 }
 
+// Deterministic decision-policy smoke test across random legal card samples.
+// This is not a full tournament simulation; it guards against pathological
+// action distributions in representative deep- and short-stack states.
+{
+  const { api } = boot();
+  const A = api.A;
+  let sampleSeed = 0x51f15e;
+  function rand() {
+    sampleSeed ^= sampleSeed << 13;
+    sampleSeed ^= sampleSeed >>> 17;
+    sampleSeed ^= sampleSeed << 5;
+    return (sampleSeed >>> 0) / 4294967296;
+  }
+  function shuffledDeck() {
+    const deck = Array.from({ length: 52 }, (_, i) => i);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+  const types = ['tag', 'lag', 'tp', 'lp'];
+  const streets = [
+    { name: 'preflop', board: 0 },
+    { name: 'flop', board: 3 },
+    { name: 'turn', board: 4 },
+    { name: 'river', board: 5 },
+  ];
+  const counts = {};
+  for (const type of types) {
+    for (const street of streets) {
+      for (const facingBet of [false, true]) {
+        for (const stackSize of ['deep', 'short']) {
+          const key = [type, street.name, facingBet ? 'facing' : 'unopened', stackSize].join('/');
+          const tally = { fold: 0, check: 0, call: 0, bet: 0, raise: 0, allin: 0, other: 0 };
+          for (let i = 0; i < 120; i++) {
+            const deck = shuffledDeck();
+            A.players.forEach((p, seat) => {
+              p.type = types[seat];
+              p.hand = [deck.pop(), deck.pop()];
+              p.stack = stackSize === 'deep' ? 20000 : 1200;
+              p.contrib = 0; p.fold = false; p.out = false; p.allin = false;
+              p.position = ['BTN', 'CO', 'SB', 'BB'][seat];
+            });
+            A.board = Array.from({ length: street.board }, () => deck.pop());
+            A.street = street.name;
+            A.handNo = i + 1;
+            A.blinds = [100, 200];
+            A.dealer = 3;
+            A.lastRaise = 400;
+            A.raiseLocked = [false, false, false, false];
+            A.roundBet = facingBet ? [600, 200, 600, 600] : [0, 0, 0, 0];
+            A.currentBet = facingBet ? 600 : 0;
+            A.pot = facingBet ? 1800 : 300;
+            api.setSeed(0x12340000 + i * 31 + types.indexOf(type) * 7 + street.board);
+            const action = api.ai(A.players[1]);
+            const name = action && action.a;
+            if (Object.prototype.hasOwnProperty.call(tally, name)) tally[name]++;
+            else if (name === 'fold' || name === 'check' || name === 'call' || name === 'bet' || name === 'raise' || name === 'allin') tally[name]++;
+            else tally.other++;
+          }
+          counts[key] = tally;
+          const total = Object.values(tally).reduce((sum, value) => sum + value, 0);
+          assert.equal(total, 120, key + ' accounts for every sampled decision');
+          assert.equal(tally.other, 0, key + ' returns a recognized action');
+          if (stackSize === 'deep') {
+            assert.equal(tally.allin, 0, key + ' should not produce surprise shoves with 100BB effective stacks');
+          }
+          if (facingBet) {
+            assert.ok(tally.fold + tally.call + tally.raise + tally.allin > 0,
+              key + ' should respond to an outstanding bet with a legal response');
+          } else {
+            assert.equal(tally.fold + tally.call, 0,
+              key + ' should not fold/call when no bet is outstanding');
+          }
+        }
+      }
+    }
+  }
+  console.log('PASS: CPU decision distribution smoke test (' + Object.keys(counts).length +
+    ' strata, ' + Object.keys(counts).length * 120 + ' decisions)');
+}
+
 console.log('PASS: current mini-game showdown/fold-win chip conservation');
