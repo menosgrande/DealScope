@@ -170,6 +170,7 @@ function prepareRiver(api, activeCount = 2) {
     { name: 'river', board: 5 },
   ];
   const counts = {};
+  const preflopOpenBetRates = {};
   for (const type of types) {
     for (const street of streets) {
       for (const facingBet of [false, true]) {
@@ -179,7 +180,7 @@ function prepareRiver(api, activeCount = 2) {
           for (let i = 0; i < 120; i++) {
             const deck = shuffledDeck();
             A.players.forEach((p, seat) => {
-              p.type = types[seat];
+              p.type = seat === 1 ? type : types[seat];
               p.hand = [deck.pop(), deck.pop()];
               p.stack = stackSize === 'deep' ? 20000 : 1200;
               p.contrib = 0; p.fold = false; p.out = false; p.allin = false;
@@ -203,6 +204,9 @@ function prepareRiver(api, activeCount = 2) {
             else tally.other++;
           }
           counts[key] = tally;
+          if (street.name === 'preflop' && !facingBet && stackSize === 'deep') {
+            preflopOpenBetRates[type] = tally.bet / 120;
+          }
           const total = Object.values(tally).reduce((sum, value) => sum + value, 0);
           assert.equal(total, 120, key + ' accounts for every sampled decision');
           assert.equal(tally.other, 0, key + ' returns a recognized action');
@@ -220,8 +224,12 @@ function prepareRiver(api, activeCount = 2) {
       }
     }
   }
+  assert.ok(preflopOpenBetRates.lag > preflopOpenBetRates.tp,
+    'LAG should open-bet more often than TP in the same deep-stack preflop samples: '
+      + JSON.stringify(preflopOpenBetRates));
   console.log('PASS: CPU decision distribution smoke test (' + Object.keys(counts).length +
-    ' strata, ' + Object.keys(counts).length * 120 + ' decisions)');
+    ' strata, ' + Object.keys(counts).length * 120 + ' decisions); deep-stack preflop open-bet rates='
+      + JSON.stringify(preflopOpenBetRates));
 }
 
 console.log('PASS: current mini-game showdown/fold-win chip conservation');
