@@ -327,6 +327,48 @@ function testMiniGamePotConservation() {
   assert.equal(paid[0],300,'the three-of-a-kind hand wins the main pot');
   assert.equal(paid[1],200,'the weaker two-pair hand only receives the side pot it is eligible for');
   assert.equal(side.distributed,500);
+
+  // Three contribution layers with a different winner at each level.
+  const layered = [
+    {seat:0,name:'Short stack',stack:0,contrib:100,fold:false},
+    {seat:1,name:'Middle stack',stack:0,contrib:200,fold:false},
+    {seat:2,name:'Deep stack',stack:0,contrib:300,fold:false},
+    {seat:3,name:'Folded deep stack',stack:0,contrib:300,fold:true}
+  ];
+  const layeredResult=Pots.settle(layered,[
+    {p:layered[0],s:50},
+    {p:layered[1],s:40},
+    {p:layered[2],s:30},
+    {p:layered[3],s:100}
+  ]);
+  const layeredPaid=Object.fromEntries(layeredResult.awards.map(a=>[a.player.seat,
+    layeredResult.awards.filter(x=>x.player===a.player).reduce((sum,x)=>sum+x.amount,0)]));
+  assert.equal(layeredResult.contributed,900);
+  assert.equal(layeredResult.distributed,900);
+  assert.deepEqual([0,1,2,3].map(seat=>layeredPaid[seat]||0),[400,300,200,0],
+    'each contribution layer must be awarded to the strongest eligible non-folded player');
+
+  // A tied side pot can be odd when three players contributed to that layer.
+  // With the dealer at seat 1, seat 2 receives the odd chip from the 303-chip side pot.
+  const tiedSide = [
+    {seat:0,name:'Main-pot winner',stack:0,contrib:100,fold:false},
+    {seat:1,name:'Button tie winner',stack:0,contrib:201,fold:false},
+    {seat:2,name:'First left tie winner',stack:0,contrib:201,fold:false},
+    {seat:3,name:'Side-pot loser',stack:0,contrib:201,fold:false}
+  ];
+  const tiedSideResult=Pots.settle(tiedSide,[
+    {p:tiedSide[0],s:200},
+    {p:tiedSide[1],s:100},
+    {p:tiedSide[2],s:100},
+    {p:tiedSide[3],s:50}
+  ],0,1);
+  const tiedSidePaid=Object.fromEntries(tiedSideResult.awards.map(a=>[a.player.seat,
+    tiedSideResult.awards.filter(x=>x.player===a.player).reduce((sum,x)=>sum+x.amount,0)]));
+  assert.equal(tiedSideResult.contributed,703);
+  assert.equal(tiedSideResult.distributed,703);
+  assert.deepEqual([0,1,2,3].map(seat=>tiedSidePaid[seat]||0),[400,151,152,0],
+    'side-pot tie must split exactly and assign the odd chip clockwise from the dealer');
+
   // Odd-chip tie: total contribution is 3 chips, two live players tie, and
   // the folded contributor must never receive an award. Verify conservation
   // and a one-chip difference without assuming button-relative seat ordering.
