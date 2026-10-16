@@ -25,18 +25,6 @@ function actionEV(eq,pot,invest,extraCallers,foldP){
  var called=eq*(pot+invest+extraCallers)-invest;
  return foldP*pot+(1-foldP)*called;
 }
-function multiwayActionEV(eq,pot,invest,responders,target,state){
- var allFold=1,expectedCallerChips=0;
- responders.forEach(function(p){
-  var f=foldChance(p,invest,pot),callP=1-f;
-  allFold*=f;
-  var rb=(state.roundBet&&Number(state.roundBet[p.seat]))||0;
-  expectedCallerChips+=callP*Math.min(Math.max(0,target-rb),Math.max(0,Number(p.stack)||0));
- });
- var calledProbability=1-allFold;
- var conditionalCallerChips=calledProbability>0?expectedCallerChips/calledProbability:0;
- return allFold*pot+calledProbability*(eq*(pot+invest+conditionalCallerChips)-invest);
-}
 function estimate(state,selectedTarget){
  var hero=state.players&&state.players[0],E=state.engine;
  if(!hero||!hero.hand||hero.hand.length!==2)return {status:'ハンド情報がありません'};
@@ -139,7 +127,7 @@ function renderMarkup(state,selectedTarget){
  r.rows.forEach(function(row){var v=row.evBB,cls=v>.04?'positive':v<-.04?'negative':'neutral';var value=(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' BB';html+='<div class="evRow"><span>'+row.name+'</span><b class="'+cls+'">'+value+'</b></div>'});
  html+='</div>';
  if(respondersCount(state)>1)html+='<p class="evDisclaimer">複数人が応答できる場面では、推定誤差が大きいためレイズ／オールインEVを表示しません。</p>';else if(r.raiseEVSuppressed)html+='<p class="evDisclaimer">応答可能な相手がいないため、レイズ／オールインEVは表示しません。</p>';
- else if(respondersCount(state) > 1)html+='<p class="evDisclaimer">複数人が応答できる場面のレイズ／オールインEVは、各相手のフォールド率を独立に仮定した簡易推定です。</p>';
+
  html+='<p class="evDisclaimer">フォールドを0 BBとした意思決定時点からの推定値。相手のコール／フォールド率は簡易モデルで、実戦結果や最適戦略を保証しません。</p>';
  return html;
 }
