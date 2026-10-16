@@ -346,7 +346,27 @@ function testMiniGamePotConservation() {
     'an odd-chip split between two tied eligible players must differ by exactly one chip');
   assert(!oddResult.awards.some(a=>a.player===odd[2]), 'folded player must not receive an odd-chip award');
 
-  console.log('✓ mini game pot distribution conserves chips and distinguishes side-pot winners');
+  // With the dealer at seat 1, the first tied winner clockwise from the
+  // button is seat 3, so that player receives the odd chip (not array order).
+  const clockwise = [
+    {seat:0,name:'Dealer folded',stack:0,contrib:1,fold:true},
+    {seat:1,name:'Button',stack:0,contrib:0,fold:false},
+    {seat:2,name:'Other folded',stack:0,contrib:0,fold:true},
+    {seat:3,name:'First left of button',stack:0,contrib:1,fold:false}
+  ];
+  // Seat 1 also contributes one chip to create a three-chip pot, but is not
+  // eligible to win; the tied eligible winners are seats 1 and 3.
+  clockwise[1].contrib=1;
+  const clockwiseResult=Pots.settle(clockwise,[
+    {p:clockwise[1],s:100},
+    {p:clockwise[3],s:100}
+  ],0,1);
+  const clockwisePaid=Object.fromEntries(clockwiseResult.awards.map(a=>[a.player.seat,a.amount]));
+  assert.equal(clockwiseResult.distributed,3);
+  assert.equal(clockwisePaid[3],2,'odd chip goes to the first tied winner clockwise from the dealer');
+  assert.equal(clockwisePaid[1],1);
+
+  console.log('✓ mini game pot distribution conserves chips, distinguishes side-pot winners, and assigns odd chips by dealer order');
 }
 function testMiniGameStateTransitions() {
   const players = [
