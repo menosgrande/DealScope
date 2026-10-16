@@ -529,6 +529,23 @@ function testMiniGameEVMath() {
     knownHands: true, engine: E
   });
   assert.notEqual(duplicateResult.status, 'ok', 'duplicate known cards must be rejected');
+  const malformedOpponent = MiniGameEV.estimate(state({
+    knownHands: true,
+    players: [
+      { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [52, 5], stack: 100, contrib: 0, out: false, fold: false, type: 'tag', allin: false }
+    ]
+  }));
+  assert.notEqual(malformedOpponent.status, 'ok',
+    'malformed known opponent cards must be rejected, not silently replaced by random opponents');
+  const malformedHero = MiniGameEV.estimate(state({
+    knownHands: true,
+    players: [
+      { seat: 0, hand: [52, 1], stack: 100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 100, contrib: 0, out: false, fold: false, type: 'tag', allin: false }
+    ]
+  }));
+  assert.notEqual(malformedHero.status, 'ok', 'malformed Hero cards must be rejected');
 
   // If the selected raise target exceeds Hero's stack, EV must use and label
   // the effective all-in target, not the unreachable requested target.
