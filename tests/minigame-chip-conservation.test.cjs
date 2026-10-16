@@ -232,4 +232,62 @@ function prepareRiver(api, activeCount = 2) {
       + JSON.stringify(preflopOpenBetRates));
 }
 
+// Full-hand CPU-vs-CPU-policy simulation (Hero also uses the same policy in
+// this test harness) to track real game-loop all-ins, showdowns, and pot sizes.
+{
+  const { api } = boot();
+  const A = api.A;
+  api.setSeed(0x5eed1234);
+  api.setSyncTimers(true);
+  api.restart();
+  const initialChips = A.players.reduce((sum, p) => sum + p.stack, 0);
+  let hands = 0, allInHands = 0, showdowns = 0, totalPot = 0, totalActions = 0;
+  const handLimit = 32;
+  while (hands < handLimit && !A.finished) {
+    let actionGuard = 0;
+    while (!A.handOver && !A.finished && actionGuard++ < 300) {
+      if (A.awaiting && A.actor === 0) {
+        const hero = A.players[0];
+        const legal = api.legalActions(hero);
+        let d = api.ai(hero);
+        if ((d.a === 'bet' && !legal.bet) || (d.a === 'raise' && !legal.raise) ||
+            (d.a === 'allin' && !legal.allin)) {
+          d = legal.check ? { a: 'check' } : legal.call ? { a: 'call' } : { a: 'fold' };
+        }
+        let ok = api.act(0, d.a, d.n);
+        if (!ok) {
+          const fallback = legal.check ? 'check' : legal.call ? 'call' : 'fold';
+          ok = api.act(0, fallback);
+        }
+        assert.equal(ok, true, 'automated Hero policy must always take a legal action');
+        A.awaiting = false;
+        api.advance();
+      } else if (!A.handOver && !A.finished && !A.pending) {
+        api.advance();
+      }
+    }
+    assert.ok(actionGuard < 300, 'hand must complete without an action-loop stall');
+    if (A.finished) break;
+    assert.equal(A.handOver, true, 'simulated hand must reach settlement');
+    hands++;
+    const handActions = A.history || [];
+    if (handActions.some(entry => /オールイン/.test(entry.text))) allInHands++;
+    if (A.board.length === 5) showdowns++;
+    totalPot += A.awards.reduce((sum, award) => sum + award.amount, 0);
+    totalActions += handActions.length;
+    assert.equal(A.players.reduce((sum, p) => sum + p.stack, 0) + A.pot, initialChips,
+      'total chip pool must remain conserved after every simulated hand');
+    if (!A.finished && hands < handLimit) api.nextHand();
+  }
+  assert.ok(hands >= 12, 'simulation should cover enough hands to observe varied states');
+  assert.ok(totalActions >= hands * 2, 'simulation should include meaningful betting action');
+  assert.ok(allInHands < hands, 'CPU policy must not turn every simulated hand into an all-in');
+  assert.ok(showdowns > 0, 'simulation should reach at least one showdown');
+  console.log('PASS: CPU full-hand simulation (' + hands + ' hands, all-in-hand rate='
+    + (allInHands / hands * 100).toFixed(1) + '%, showdown rate='
+    + (showdowns / hands * 100).toFixed(1) + '%, mean pot='
+    + (totalPot / hands).toFixed(0) + ', mean actions='
+    + (totalActions / hands).toFixed(1) + ')');
+}
+
 console.log('PASS: current mini-game showdown/fold-win chip conservation');
