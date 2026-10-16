@@ -55,7 +55,7 @@ function boot() {
   context.DealMiniGameBetSizing = { definitions: () => [], target: () => 0 };
   const instrumented = sources.game.replace(
     /\}\)\(\);\s*$/,
-    'window.__test={A,startImported,showdown,foldWin};})();'
+    'window.__test={A,startImported,showdown,foldWin,ai,setSeed:function(value){seed=value>>>0}};})();'
   );
   assert.notEqual(instrumented, sources.game, 'current game instrumentation anchor exists');
   new vm.Script(instrumented, { filename: 'minigame/minigame.js' }).runInContext(context);
