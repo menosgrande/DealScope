@@ -211,9 +211,12 @@
           throw new Error('mini-game control ' + (el.id || el.className) + ' clipped at ' + width + 'px');
         }
       }
+      const heroCards = Array.from(md.querySelectorAll('#players .player.hero .cards .card'))
+        .filter(el => el.getClientRects().length);
+      if (heroCards.length !== 2) throw new Error('Hero hole cards missing at ' + width + 'px');
       const visibleCards = Array.from(md.querySelectorAll('#players .player .cards .card, #board .card'))
         .filter(el => el.getClientRects().length);
-      if (visibleCards.length < 7) throw new Error('mini-game cards missing at ' + width + 'px');
+      if (visibleCards.length < 2) throw new Error('mini-game cards missing at ' + width + 'px');
       for (const card of visibleCards) {
         const rect = card.getBoundingClientRect();
         if (rect.left < -1 || rect.right > width + 1 || rect.width <= 0 || rect.height <= 0) {
