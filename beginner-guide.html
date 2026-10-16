@@ -285,7 +285,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
   <p class="quick-start-note"><span aria-hidden="true">i</span> このガイドはルールと用語の説明です。どの行動を選ぶべきかを指示するものではありません。</p>
 </section>
 
-<div class="layout"><aside class="toc"><strong>このガイドの内容</strong><nav><a href="#basics">1. 基本ルール</a><a href="#flow">2. ゲームの流れ</a><a href="#hands">3. 役の強さ</a><a href="#positions">4. ポジション</a><a href="#actions">5. ベットの種類</a><a href="#rounds">6. 行動の順番</a><a href="#equity">7. 勝率の見方</a><a href="#terms">8. 用語を調べる</a></nav></aside><div class="content">
+<div class="layout"><aside class="toc"><strong>このガイドの内容</strong><nav><a href="#basics">1. 基本ルール</a><a href="#flow">2. ゲームの流れ</a><a href="#hand-example">3. 1ハンドの通し例</a><a href="#hands">4. 役の強さ</a><a href="#positions">5. ポジション</a><a href="#actions">6. ベットの種類</a><a href="#rounds">7. 行動の順番</a><a href="#equity">8. 勝率の見方</a><a href="#terms">9. 用語を調べる</a></nav></aside><div class="content">
 <section class="topic" id="basics"><h2>1. テキサスホールデムの基本ルール</h2>
 
 <p><strong>この章で分かること：</strong>ゲームの勝ち方と、手札・共通カードの使い方。</p>
@@ -327,12 +327,43 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <p class="related">関連用語：<a href="./glossary.html?q=プリフロップ">プリフロップ</a><a href="./glossary.html?q=フロップ">フロップ</a><a href="./glossary.html?q=ターン">ターン</a><a href="./glossary.html?q=リバー">リバー</a><a href="./glossary.html?q=ショウダウン">ショウダウン</a></p>
 
 </section>
-<section class="topic" id="hands"><h2>3. 役の強さ</h2>
+<section class="topic" id="hand-example"><h2>3. 1ハンドを最初から最後まで見てみよう</h2>
+
+<p><strong>この章で分かること：</strong>カードが配られてから、チップが集まり、勝者が決まるまでの流れ。</p>
+<p>2人対戦で、ブラインドがSB 50・BB 100の例です。チップの額は流れを理解するための説明用で、毎回この通りに賭ける必要はありません。</p>
+<div class="card-demo" aria-label="プレイヤーの手札と最終的な共通カード">
+<div class="card-zone private-zone"><span class="zone-title">あなたの手札</span><div class="playing-cards"><span class="playing-card black" aria-label="A♠"><span class="rank-mark">A</span><span class="suit-mark">♠</span></span><span class="playing-card black" aria-label="K♠"><span class="rank-mark">K</span><span class="suit-mark">♠</span></span></div><small class="zone-note">A♠ K♠</small></div>
+<div class="zone-symbol" aria-hidden="true">対</div>
+<div class="card-zone private-zone"><span class="zone-title">相手の手札</span><div class="playing-cards"><span class="playing-card red" aria-label="Q♥"><span class="rank-mark">Q</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="Q♦"><span class="rank-mark">Q</span><span class="suit-mark">♦</span></span></div><small class="zone-note">Q♥ Q♦</small></div>
+</div>
+<div class="bet-example">
+<div class="bet-example-title">各段階で何が起きる？</div>
+<div class="bet-example-flow">
+<div class="bet-example-step"><span class="mini-index">PREFLOP</span><strong>参加する</strong><small>あなたが追加で50を出してコール。相手はチェック。</small><span class="chip-stack"><i></i><i></i></span></div>
+<div class="bet-example-step"><span class="mini-index">FLOP</span><strong>K♦ 7♠ 2♣</strong><small>あなたが100をベットし、相手も100をコール。</small><span class="chip-stack"><i></i><i></i><i></i></span></div>
+<div class="bet-example-step"><span class="mini-index">TURN</span><strong>4♥</strong><small>2人ともチェック。追加のチップはありません。</small><span class="chip-stack dark"><i></i></span></div>
+<div class="bet-example-step"><span class="mini-index">RIVER</span><strong>9♣</strong><small>相手が100をベット。あなたが100をコール。</small><span class="chip-stack red"><i></i><i></i></span></div>
+</div>
+<div class="pot-result"><strong>ショウダウン時のポット</strong><span class="result-value">600</span></div>
+<small class="equity-scale-note">ブラインド合計150に、プリフロップで50、フロップで200、リバーで200が加わり、合計600です。</small>
+</div>
+<h3>最後に、どちらが勝つ？</h3>
+<p>あなたはK♦と手札のK♠で<strong>キングのワンペア</strong>。相手は手札のQ♥ Q♦で<strong>クイーンのワンペア</strong>です。ワンペア同士ではペアの数字を比べるため、キングのペアを持つあなたが600チップを獲得します。</p>
+<div class="callout"><b>ここが大事：</b>フロップで役ができても、それだけで勝ちが決まるわけではありません。ターンとリバーで状況が変わることがあり、最後まで残った場合は最も強い5枚の組み合わせで比べます。</div>
+<h3>同じ役なら、次のカードも比べる</h3>
+<p>例えば2人ともワンペアのAを持っていたら、ペア以外のカードを高い順に比べます。この比較に使うカードを<strong>キッカー</strong>と呼びます。比べるカードまで全て同じなら引き分けになり、ポットを分けます。スートの違いで勝敗は決まりません。</p>
+<h3>オールインとサイドポット</h3>
+<p>オールインした人は、自分の残りチップをすべて出します。相手より少ない額しか出せない場合、相手の余ったチップをその人が勝つためのポットに無制限に加えるわけではありません。</p>
+<div class="callout"><b>例：</b>Aが100、BとCがそれぞれ200を出して全員オールインになった場合、最初の<strong>メインポットは300</strong>（100×3）。BとCがAの分を超えて出した残り100ずつで、BとCだけが争う<strong>サイドポットは200</strong>になります。Aはサイドポットを獲得できません。</div>
+<p class="related">関連用語：<a href="./glossary.html?q=コール">コール</a><a href="./glossary.html?q=チェック">チェック</a><a href="./glossary.html?q=キッカー">キッカー</a><a href="./glossary.html?q=オールイン">オールイン</a><a href="./glossary.html?q=サイドポット">サイドポット</a></p>
+</section>
+
+<section class="topic" id="hands"><h2>4. 役の強さ</h2>
 
 <p><strong>この章で分かること：</strong>10種類の役を強い順に覚える。</p>
 <p>役は上にあるものほど強くなります。同じ役同士なら、まず役を作るカードの数字を比べます。それでも同じなら、残りのカード（キッカー）を高い順に比べます。スート（♠♥♦♣）自体に強さの差はありません。</p><div class="hand-list" aria-label="ポーカーの役を強い順に表示"><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>1</b>ロイヤルフラッシュ</div><small>同じスートの A・K・Q・J・10</small></div><div class="playing-cards" aria-label="A♠、K♠、Q♠、J♠、10♠"><span class="playing-card black" aria-label="A♠"><span class="rank-mark">A</span><span class="suit-mark">♠</span></span><span class="playing-card black" aria-label="K♠"><span class="rank-mark">K</span><span class="suit-mark">♠</span></span><span class="playing-card black" aria-label="Q♠"><span class="rank-mark">Q</span><span class="suit-mark">♠</span></span><span class="playing-card black" aria-label="J♠"><span class="rank-mark">J</span><span class="suit-mark">♠</span></span><span class="playing-card black" aria-label="10♠"><span class="rank-mark ten">10</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>2</b>ストレートフラッシュ</div><small>同じスートで数字が5枚連続</small></div><div class="playing-cards" aria-label="9♥、8♥、7♥、6♥、5♥"><span class="playing-card red" aria-label="9♥"><span class="rank-mark">9</span><span class="suit-mark">♥</span></span><span class="playing-card red" aria-label="8♥"><span class="rank-mark">8</span><span class="suit-mark">♥</span></span><span class="playing-card red" aria-label="7♥"><span class="rank-mark">7</span><span class="suit-mark">♥</span></span><span class="playing-card red" aria-label="6♥"><span class="rank-mark">6</span><span class="suit-mark">♥</span></span><span class="playing-card red" aria-label="5♥"><span class="rank-mark">5</span><span class="suit-mark">♥</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>3</b>フォーカード</div><small>同じランクが4枚</small></div><div class="playing-cards" aria-label="9♠、9♥、9♦、9♣、K♠"><span class="playing-card black" aria-label="9♠"><span class="rank-mark">9</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="9♥"><span class="rank-mark">9</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="9♦"><span class="rank-mark">9</span><span class="suit-mark">♦</span></span><span class="playing-card green" aria-label="9♣"><span class="rank-mark">9</span><span class="suit-mark">♣</span></span><span class="playing-card black" aria-label="K♠"><span class="rank-mark">K</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>4</b>フルハウス</div><small>スリーカード＋ワンペア</small></div><div class="playing-cards" aria-label="K♠、K♥、K♦、8♣、8♠"><span class="playing-card black" aria-label="K♠"><span class="rank-mark">K</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="K♥"><span class="rank-mark">K</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="K♦"><span class="rank-mark">K</span><span class="suit-mark">♦</span></span><span class="playing-card green" aria-label="8♣"><span class="rank-mark">8</span><span class="suit-mark">♣</span></span><span class="playing-card black" aria-label="8♠"><span class="rank-mark">8</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>5</b>フラッシュ</div><small>同じスートが5枚。数字の連続は不要</small></div><div class="playing-cards" aria-label="A♣、J♣、8♣、5♣、2♣"><span class="playing-card green" aria-label="A♣"><span class="rank-mark">A</span><span class="suit-mark">♣</span></span><span class="playing-card green" aria-label="J♣"><span class="rank-mark">J</span><span class="suit-mark">♣</span></span><span class="playing-card green" aria-label="8♣"><span class="rank-mark">8</span><span class="suit-mark">♣</span></span><span class="playing-card green" aria-label="5♣"><span class="rank-mark">5</span><span class="suit-mark">♣</span></span><span class="playing-card green" aria-label="2♣"><span class="rank-mark">2</span><span class="suit-mark">♣</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>6</b>ストレート</div><small>スートに関係なく数字が5枚連続</small></div><div class="playing-cards" aria-label="9♠、8♥、7♦、6♣、5♠"><span class="playing-card black" aria-label="9♠"><span class="rank-mark">9</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="8♥"><span class="rank-mark">8</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="7♦"><span class="rank-mark">7</span><span class="suit-mark">♦</span></span><span class="playing-card green" aria-label="6♣"><span class="rank-mark">6</span><span class="suit-mark">♣</span></span><span class="playing-card black" aria-label="5♠"><span class="rank-mark">5</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>7</b>スリーカード</div><small>同じランクが3枚</small></div><div class="playing-cards" aria-label="Q♠、Q♥、Q♦、A♣、9♠"><span class="playing-card black" aria-label="Q♠"><span class="rank-mark">Q</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="Q♥"><span class="rank-mark">Q</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="Q♦"><span class="rank-mark">Q</span><span class="suit-mark">♦</span></span><span class="playing-card green" aria-label="A♣"><span class="rank-mark">A</span><span class="suit-mark">♣</span></span><span class="playing-card black" aria-label="9♠"><span class="rank-mark">9</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>8</b>ツーペア</div><small>異なるランクのペアが2組</small></div><div class="playing-cards" aria-label="A♠、A♥、K♣、K♦、Q♠"><span class="playing-card black" aria-label="A♠"><span class="rank-mark">A</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="A♥"><span class="rank-mark">A</span><span class="suit-mark">♥</span></span><span class="playing-card green" aria-label="K♣"><span class="rank-mark">K</span><span class="suit-mark">♣</span></span><span class="playing-card blue" aria-label="K♦"><span class="rank-mark">K</span><span class="suit-mark">♦</span></span><span class="playing-card black" aria-label="Q♠"><span class="rank-mark">Q</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>9</b>ワンペア</div><small>同じランクが2枚</small></div><div class="playing-cards" aria-label="J♠、J♥、A♣、8♦、3♠"><span class="playing-card black" aria-label="J♠"><span class="rank-mark">J</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="J♥"><span class="rank-mark">J</span><span class="suit-mark">♥</span></span><span class="playing-card green" aria-label="A♣"><span class="rank-mark">A</span><span class="suit-mark">♣</span></span><span class="playing-card blue" aria-label="8♦"><span class="rank-mark">8</span><span class="suit-mark">♦</span></span><span class="playing-card black" aria-label="3♠"><span class="rank-mark">3</span><span class="suit-mark">♠</span></span></div></div><div class="hand-row"><div class="hand-info"><div class="hand-name"><b>10</b>ハイカード</div><small>どの役もできていない</small></div><div class="playing-cards" aria-label="A♠、K♥、9♦、6♣、3♠"><span class="playing-card black" aria-label="A♠"><span class="rank-mark">A</span><span class="suit-mark">♠</span></span><span class="playing-card red" aria-label="K♥"><span class="rank-mark">K</span><span class="suit-mark">♥</span></span><span class="playing-card blue" aria-label="9♦"><span class="rank-mark">9</span><span class="suit-mark">♦</span></span><span class="playing-card green" aria-label="6♣"><span class="rank-mark">6</span><span class="suit-mark">♣</span></span><span class="playing-card black" aria-label="3♠"><span class="rank-mark">3</span><span class="suit-mark">♠</span></span></div></div></div><div class="callout"><b>例：</b>ボードが Q♠ J♠ 10♠ 4♦ 2♣、手札が A♠ K♠ なら、A-K-Q-J-10のロイヤルフラッシュです。役は最も強い5枚で比べます。</div><p class="related">詳しい用語：<a href="./glossary.html?q=フラッシュ">フラッシュ</a><a href="./glossary.html?q=ストレート">ストレート</a><a href="./glossary.html?q=キッカー">キッカー</a></p>
 </section>
-<section class="topic" id="positions"><h2>4. ポジションとブラインド（SB・BB）</h2>
+<section class="topic" id="positions"><h2>5. ポジションとブラインド（SB・BB）</h2>
 
 <p><strong>この章で分かること：</strong>最初はBTN・SB・BBの3つだけ覚えれば大丈夫。</p>
 <p>ポジション（行動する順番に関わる席）は、まずBTN（ボタン）・SB（小さいブラインド）・BB（大きいブラインド）の3つから覚えます。UTG（プリフロップで最初の席）・HJ（UTGの次）・CO（BTNの手前）は、あとで覚えれば十分です。</p>
@@ -378,7 +409,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <p class="related">関連用語：<a href="./glossary.html?q=UTG">UTG</a><a href="./glossary.html?q=SB">SB</a><a href="./glossary.html?q=BB">BB</a><a href="./glossary.html?q=BTN">BTN</a><a href="./glossary.html?q=ポジション">ポジション</a></p>
 
 </section>
-<section class="topic" id="actions"><h2>5. ベッティングアクション</h2>
+<section class="topic" id="actions"><h2>6. ベッティングアクション</h2>
 
 <p><strong>この章で分かること：</strong>自分の番に選ぶ6つの行動。</p>
 <div class="cards">
@@ -392,7 +423,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <p class="related">関連用語：<a href="./glossary.html?q=チェック">チェック</a><a href="./glossary.html?q=コール">コール</a><a href="./glossary.html?q=レイズ">レイズ</a><a href="./glossary.html?q=フォールド">フォールド</a><a href="./glossary.html?q=オールイン">オールイン</a></p>
 
 </section>
-<section class="topic" id="rounds"><h2>6. ベッティングの基本的な流れ</h2>
+<section class="topic" id="rounds"><h2>7. ベッティングの基本的な流れ</h2>
 
 <p><strong>この章で分かること：</strong>チップを賭ける順番と、次のカードへ進む条件。</p>
 <div class="round-timeline" aria-label="1回のベッティングラウンド">
@@ -414,7 +445,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 </div>
 
 </section>
-<section class="topic" id="equity"><h2>7. DealScopeの勝率表示</h2>
+<section class="topic" id="equity"><h2>8. DealScopeの勝率表示</h2>
 
 <p><strong>この章で分かること：</strong>勝率計算ツールに表示される数字の意味。</p>
 <p>ここからは、ポーカーのルールそのものではなく、DealScopeで局面を確認するときの補足です。役は今のカードの組み合わせ、勝率表示は入力したカード条件で最終的にどれくらいの取り分が見込まれるかを示します。引き分けの場合はポットの取り分を等分して計算します。</p>
@@ -432,7 +463,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <div class="pills"><a href="./#AsKs-QhQd">サンプル局面を計算する</a><a href="./minigame/">このままミニゲームを試す</a></div>
 
 </section>
-<section class="topic" id="terms"><h2>8. 分からない用語を調べる</h2>
+<section class="topic" id="terms"><h2>9. 分からない用語を調べる</h2>
 
 <p><strong>この章で分かること：</strong>初めて見る略語を用語集で調べる方法。</p>
 <p>本文で出てきた略語や専門用語が分からないときは、用語集で調べられます。例えば、BBは「ビッグブラインド」、BTNは「ボタン」のことです。まずは本文の説明を読み、もっと詳しく知りたい言葉だけ用語集で確認すれば大丈夫です。</p>
