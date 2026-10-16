@@ -141,6 +141,116 @@ function prepareRiver(api, activeCount = 2) {
   assert.ok(A.awards.every(a => a.seat !== 2), 'folded player cannot receive an award');
 }
 
+// Deterministic CPU raise execution and poker reopening rules.
+// The seed + AA + facing-bet state force the LAG policy to choose a raise.
+{
+  const { api } = boot();
+  const A = api.A;
+  api.startImported(importedPayload([]));
+  A.players.forEach((p, i) => {
+    p.stack = 20000;
+    p.contrib = 0;
+    p.fold = false;
+    p.out = false;
+    p.allin = false;
+    p.type = ['tag', 'lag', 'tp', 'lp'][i];
+    p.position = ['SB', 'BTN', 'BB', 'CO'][i];
+    p.hand = [[44, 45], [48, 49], [32, 36], [8, 12]][i];
+  });
+  A.street = 'preflop';
+  A.currentBet = 600;
+  A.lastRaise = 400;
+  A.roundBet = [600, 200, 600, 600];
+  A.players.forEach((p, i) => { p.stack -= A.roundBet[i]; p.contrib = A.roundBet[i]; });
+  A.pot = A.roundBet.reduce((sum, n) => sum + n, 0);
+  A.acted = [true, false, true, true];
+  A.raiseLocked = [false, false, false, false];
+  A.handOver = false;
+  A.finished = false;
+  A.awaiting = false;
+
+  const initialChips = chips(A);
+  api.setSeed(0x12345678);
+  const cpu = A.players[1];
+  const legalBefore = api.legalActions(cpu);
+  assert.equal(legalBefore.raise, true, 'CPU must have a legal raise facing the existing bet');
+  const decision = api.ai(cpu);
+  assert.equal(decision.a, 'raise', 'fixed AA/LAG/seed state must make the CPU choose raise');
+  assert.ok(decision.n >= legalBefore.minRaise, 'CPU raise target must meet the minimum raise');
+  assert.ok(decision.n <= legalBefore.max, 'CPU raise target must not exceed its stack');
+
+  const stackBeforeRaise = cpu.stack;
+  const potBeforeRaise = A.pot;
+  assert.equal(api.act(cpu.seat, decision.a, decision.n), true, 'CPU raise must execute successfully');
+  assert.equal(A.currentBet, decision.n, 'raise target becomes the new current bet');
+  assert.equal(A.roundBet[cpu.seat], decision.n, 'CPU round contribution equals its raise-to target');
+  assert.equal(stackBeforeRaise - cpu.stack, decision.n - 200, 'CPU pays target minus chips already committed');
+  assert.equal(A.pot, potBeforeRaise + decision.n - 200, 'raise adds exactly the incremental chips to the pot');
+  assert.equal(A.history.at(-1).text, 'レイズ ' + decision.n.toLocaleString('ja-JP'), 'raise is recorded in the hand history');
+  assert.equal(chips(A), initialChips, 'executing the CPU raise conserves chips');
+
+  // A live opponent can respond to the raise with a call.
+  const caller = A.players[2];
+  const callLegal = api.legalActions(caller);
+  assert.equal(callLegal.call, true, 'opponent must be allowed to call the CPU raise');
+  assert.equal(callLegal.callAmount, A.currentBet - A.roundBet[caller.seat], 'call amount equals the outstanding difference');
+  const callerStack = caller.stack;
+  const potBeforeCall = A.pot;
+  assert.equal(api.act(caller.seat, 'call'), true, 'opponent call must execute');
+  assert.equal(caller.stack, callerStack - callLegal.callAmount, 'opponent pays the exact call amount');
+  assert.equal(A.roundBet[caller.seat], A.currentBet, 'caller is now matched to the current bet');
+  assert.equal(A.pot, potBeforeCall + callLegal.callAmount, 'call adds exactly the call amount to the pot');
+  assert.equal(chips(A), initialChips, 'opponent call conserves chips');
+
+  // A full raise reopens action for a player who acted before the CPU raise.
+  const reraiser = A.players[0];
+  assert.equal(A.acted[reraiser.seat], false, 'a full raise resets prior action status');
+  const reraiseLegal = api.legalActions(reraiser);
+  assert.equal(reraiseLegal.raise, true, 'a prior actor may re-raise after a full raise');
+  assert.equal(api.act(reraiser.seat, 'raise', reraiseLegal.minRaise), true, 'legal re-raise executes');
+  assert.equal(A.currentBet, reraiseLegal.minRaise, 're-raise establishes its target as the new current bet');
+  assert.equal(A.history.at(-1).text, 'レイズ ' + reraiseLegal.minRaise.toLocaleString('ja-JP'), 're-raise is recorded');
+  assert.equal(chips(A), initialChips, 're-raise conserves chips');
+}
+
+// A short all-in raise does not reopen raising for a player who already acted.
+{
+  const { api } = boot();
+  const A = api.A;
+  api.startImported(importedPayload([]));
+  A.players.forEach((p, i) => {
+    p.stack = i === 2 ? 600 : 19000;
+    p.contrib = 0;
+    p.fold = false;
+    p.out = false;
+    p.allin = false;
+    p.type = ['tag', 'lag', 'tp', 'lp'][i];
+    p.position = ['SB', 'BTN', 'BB', 'CO'][i];
+    p.hand = [[44, 45], [48, 49], [32, 36], [8, 12]][i];
+  });
+  A.street = 'preflop';
+  A.currentBet = 1000;
+  A.lastRaise = 400;
+  A.roundBet = [1000, 1000, 600, 1000];
+  A.players.forEach((p, i) => { p.contrib = A.roundBet[i]; if (i !== 2) p.stack -= A.roundBet[i]; });
+  A.pot = A.roundBet.reduce((sum, n) => sum + n, 0);
+  A.acted = [true, true, false, true];
+  A.raiseLocked = [false, false, false, false];
+  A.handOver = false;
+  A.finished = false;
+  A.awaiting = false;
+
+  const shortStack = A.players[2];
+  assert.equal(A.roundBet[shortStack.seat] + shortStack.stack, 1200, 'short stack can raise current bet from 1,000 to 1,200');
+  assert.equal(1200 - A.currentBet, 200, 'short all-in increment is below the previous full raise size');
+  assert.equal(api.act(shortStack.seat, 'allin'), true, 'short all-in raise executes');
+  assert.equal(A.currentBet, 1200, 'short all-in raises the current bet to 1,200');
+  assert.equal(A.raiseLocked[0], true, 'previously acted player is locked after an incomplete raise');
+  const priorActorLegal = api.legalActions(A.players[0]);
+  assert.equal(priorActorLegal.call, true, 'previous actor may still call the short raise');
+  assert.equal(priorActorLegal.raise, false, 'previous actor may not re-raise after an incomplete raise');
+}
+
 // Deterministic decision-policy smoke test across random legal card samples.
 // This is not a full tournament simulation; it guards against pathological
 // action distributions in representative deep- and short-stack states.
