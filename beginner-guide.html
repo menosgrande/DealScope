@@ -313,6 +313,12 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
   .card-demo .playing-card .suit-mark{font-size:13px}
   .street-step .playing-card{width:23px;height:35px}
 }
+.knowledge-check{display:grid;gap:8px;margin:12px 0}
+.knowledge-check details{border:1px solid var(--line);border-radius:9px;background:var(--felt2);overflow:hidden}
+.knowledge-check summary{cursor:pointer;padding:11px 13px;font-size:14px;font-weight:700;line-height:1.5}
+.knowledge-check summary::marker{color:var(--brass)}
+.knowledge-check details p{margin:0;padding:0 13px 13px;color:#e5ece7;font-size:14px}
+.knowledge-check details p b{color:var(--brass)}
 </style></head>
 <body><a class="skip-link" href="#guide-content">本文へスキップ</a>
 <main id="guide-content">
@@ -338,6 +344,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 
 <p><strong>この章で分かること：</strong>ゲームの勝ち方と、手札・共通カードの使い方。</p>
 <div class="callout"><b>まず、勝ち方は2つ。</b> 最後に手札を比べて一番強い役を持っていること、または相手全員がフォールド（勝負を降りること）して自分だけが残ることです。強い役ができるまで必ず続けるゲームではありません。</div>
+<div class="callout"><b>ポットとブラインド：</b>ポットは、そのハンドでプレイヤーが出したチップの集まりです。ブラインドはカードが配られた後の勝負を始めるため、SB（スモールブラインド）とBB（ビッグブラインド）が先に出すチップです。例えばSB 50・BB 100なら、最初のポットは合計150チップから始まります。</div>
 <p>各プレイヤーは、自分だけの手札を2枚受け取ります。全員で使う共通カードは、ゲームが進むにつれて最大5枚まで公開されます。自分の手札2枚と共通カードを合わせた7枚から、最も強い5枚を使って役を比べます。</p>
 <div class="visual-label">カードの組み合わせ</div>
 <div class="card-demo" aria-label="上に全員共通のコミュニティカード5枚、下に自分だけの手札2枚を表示した図">
@@ -408,6 +415,9 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <div class="callout"><b>ここが大事：</b>フロップで役ができても、それだけで勝ちが決まるわけではありません。ターンとリバーで状況が変わることがあり、最後まで残った場合は最も強い5枚の組み合わせで比べます。</div>
 <h3>同じ役なら、次のカードも比べる</h3>
 <p>例えば2人ともワンペアのAを持っていたら、ペア以外のカードを高い順に比べます。この比較に使うカードを<strong>キッカー</strong>と呼びます。比べるカードまで全て同じなら引き分けになり、ポットを分けます。スートの違いで勝敗は決まりません。</p>
+<h3>引き分けになる具体例</h3>
+<p>ボードが A♣ K♦ Q♥ 7♠ 2♣、プレイヤーAの手札が A♦ J♠、プレイヤーBの手札が A♥ J♦ だとします。どちらも最も強い5枚は「Aのワンペア＋K・Q・J」の組み合わせです。スートが違っても役の強さは同じなので、ほかに条件がなければポットを等分します。</p>
+<div class="callout"><b>覚えること：</b>勝敗はスートの色やマークではなく、最も強い5枚のランクで比べます。5枚の強さが完全に同じなら引き分けです。</div>
 <h3>オールインとサイドポット</h3>
 <p>オールインした人は、自分の残りチップをすべて出します。相手より少ない額しか出せない場合、相手の余ったチップをその人が勝つためのポットに無制限に加えるわけではありません。</p>
 <div class="callout"><b>例：</b>Aが100、BとCがそれぞれ200を出して全員オールインになった場合、最初の<strong>メインポットは300</strong>（100×3）。BとCがAの分を超えて出した残り100ずつで、BとCだけが争う<strong>サイドポットは200</strong>になります。Aはサイドポットを獲得できません。つまり、Aが最も強い役でも獲得できるのはメインポットまでで、サイドポットはBとCのうち強い役を持つ人が獲得します。</div>
@@ -529,6 +539,13 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 
 <p><strong>この章で分かること：</strong>初めて見る略語を用語集で調べる方法。</p>
 <p>本文で出てきた略語や専門用語が分からないときは、用語集で調べられます。例えば、BBは「ビッグブラインド」、BTNは「ボタン」のことです。まずは本文の説明を読み、もっと詳しく知りたい言葉だけ用語集で確認すれば大丈夫です。</p>
+<h3>理解チェック：3問</h3>
+<p>本文を見ずに考えてから、各問題を開いて答えを確認してみましょう。</p>
+<div class="knowledge-check">
+<details><summary>Q1. ボードが 9♠ 8♥ 7♦ 6♣ 5♠、手札が A♣ K♦ のとき、最も強い5枚は？</summary><p><b>答え：</b>ボードの5枚だけです。9から5までのストレートが完成しているため、手札を使う必要はありません。</p></details>
+<details><summary>Q2. Aが100をベットし、Bが合計300にレイズしたら、Aの番はもう終わり？</summary><p><b>答え：</b>いいえ。Aは追加でコールする、さらにレイズする、フォールドする、のいずれかで対応する必要があります。必要な対応が終わるまで、そのベッティングラウンドは終了しません。</p></details>
+<details><summary>Q3. 2人の役が同じで、最も強い5枚のランクも同じなら、どちらが勝つ？</summary><p><b>答え：</b>引き分けです。ポットを分けます。♠♥♦♣のスート自体に強さの順位はありません。</p></details>
+</div>
 <div class="pills"><a href="./glossary.html?q=BB">BBを調べる</a><a href="./glossary.html?q=UTG">UTGを調べる</a><a href="./glossary.html?q=OOP">OOPを調べる</a><a href="./glossary.html">用語集を開く</a><a href="./">勝率計算に戻る</a></div>
 
 </section>
