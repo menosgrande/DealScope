@@ -265,6 +265,54 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 }
 
 @media(max-width:650px){html{scroll-padding-top:64px}.topic{scroll-margin-top:64px}.toc{position:sticky!important;top:0;z-index:20;margin:0 -11px 18px;padding:7px 10px;border-radius:0 0 10px 10px;background:rgba(10,33,26,.97);backdrop-filter:blur(8px)}.toc>strong{display:none}.toc nav{display:flex!important;gap:6px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}.toc a{flex:none;padding:7px 10px;border:1px solid var(--line);border-radius:18px;font-size:12px;background:var(--felt2)}.hero .pills{display:none}}@media(max-width:420px){.position-cycle-track,.position-order-track{overflow-x:auto;justify-content:flex-start;padding-bottom:8px}.position-cycle-node,.position-order-node{flex:none;min-width:72px}}
+
+/* Match the main win-rate calculator's card slots: centered rank/suit, ivory face, suit-colored text. */
+.playing-cards{align-items:center;flex-wrap:nowrap;gap:4px;min-width:0}
+.playing-card{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  flex:0 0 auto;width:44px;height:60px;padding:2px;
+  border:2px solid var(--ivory);border-radius:7px;
+  background:var(--ivory);color:var(--ink);box-shadow:none;
+  font-family:inherit;line-height:1.05;overflow:hidden;isolation:auto;
+}
+.playing-card:before{content:none}
+.playing-card .rank-mark{font-size:20px;font-weight:700;line-height:1.05;letter-spacing:0}
+.playing-card .suit-mark{align-self:center;font-size:17px;line-height:1.05}
+.playing-card .rank-mark.ten{font-size:17px;letter-spacing:-.4px}
+.playing-card.black{color:var(--c0)}
+.playing-card.red{color:var(--c1)}
+.playing-card.blue{color:var(--c2)}
+.playing-card.green{color:var(--c3)}
+/* Keep dense examples readable while using the same centered card face. */
+.hand-row .playing-card{width:35px;height:49px;padding:2px;border-width:1px;border-radius:6px}
+.hand-row .playing-card .rank-mark{font-size:15px}
+.hand-row .playing-card .suit-mark{font-size:13px}
+.hand-row .playing-card .rank-mark.ten{font-size:13px}
+.street-zone .playing-card,.street-step .playing-card,.table-center .playing-card{
+  width:clamp(23px,3vw,31px);height:clamp(35px,4.5vw,43px);padding:2px;border-width:1px;border-radius:5px
+}
+.street-zone .playing-card .rank-mark,.street-step .playing-card .rank-mark,.table-center .playing-card .rank-mark{font-size:clamp(11px,1.4vw,14px)}
+.street-zone .playing-card .suit-mark,.street-step .playing-card .suit-mark,.table-center .playing-card .suit-mark{font-size:clamp(10px,1.3vw,13px)}
+.street-zone .playing-card .rank-mark.ten,.street-step .playing-card .rank-mark.ten,.table-center .playing-card .rank-mark.ten{font-size:10px}
+.card-demo .playing-card{width:40px;height:56px}
+.card-demo .playing-card .rank-mark{font-size:19px}
+.card-demo .playing-card .suit-mark{font-size:16px}
+@media(max-width:650px){
+  .card-demo .playing-card{width:36px;height:51px}
+  .card-demo .playing-card .rank-mark{font-size:17px}
+  .card-demo .playing-card .suit-mark{font-size:14px}
+  .street-zone .playing-card,.street-step .playing-card,.table-center .playing-card{width:25px;height:37px}
+  .street-zone .playing-card .rank-mark,.street-step .playing-card .rank-mark,.table-center .playing-card .rank-mark{font-size:11px}
+  .street-zone .playing-card .suit-mark,.street-step .playing-card .suit-mark,.table-center .playing-card .suit-mark{font-size:10px}
+}
+@media(max-width:390px){
+  .playing-card{width:40px;height:56px}
+  .hand-row .playing-card{width:32px;height:46px}
+  .card-demo .playing-card{width:34px;height:49px}
+  .card-demo .playing-card .rank-mark{font-size:16px}
+  .card-demo .playing-card .suit-mark{font-size:13px}
+  .street-step .playing-card{width:23px;height:35px}
+}
 </style></head>
 <body><a class="skip-link" href="#guide-content">本文へスキップ</a>
 <main id="guide-content">
