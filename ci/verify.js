@@ -327,6 +327,25 @@ function testMiniGamePotConservation() {
   assert.equal(paid[0],300,'the three-of-a-kind hand wins the main pot');
   assert.equal(paid[1],200,'the weaker two-pair hand only receives the side pot it is eligible for');
   assert.equal(side.distributed,500);
+  // Odd-chip tie: total contribution is 3 chips, two live players tie, and
+  // the folded contributor must never receive an award. Verify conservation
+  // and a one-chip difference without assuming button-relative seat ordering.
+  const odd = [
+    {seat:0,name:'Odd A',stack:0,contrib:1,fold:false},
+    {seat:1,name:'Odd B',stack:0,contrib:1,fold:false},
+    {seat:2,name:'Odd folded',stack:0,contrib:1,fold:true}
+  ];
+  const oddResult = Pots.settle(odd, [
+    {p:odd[0],s:100},
+    {p:odd[1],s:100},
+    {p:odd[2],s:1}
+  ]);
+  assert.equal(oddResult.contributed,3);
+  assert.equal(oddResult.distributed,3);
+  assert.deepEqual(oddResult.awards.map(a=>a.amount).sort((a,b)=>a-b),[1,2],
+    'an odd-chip split between two tied eligible players must differ by exactly one chip');
+  assert(!oddResult.awards.some(a=>a.player===odd[2]), 'folded player must not receive an odd-chip award');
+
   console.log('✓ mini game pot distribution conserves chips and distinguishes side-pot winners');
 }
 function testMiniGameStateTransitions() {
