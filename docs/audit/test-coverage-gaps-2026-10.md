@@ -50,11 +50,13 @@ These are fidelity and coverage questions, not proof that ordinary settlement is
 
 Evidence: `ci/verify.js`, `tests/minigame-chip-conservation.test.cjs`, and `minigame/pots.js`.
 
-### P2 — Independent preflop reference value remains missing
+### P2 — Preflop reference is registered, but it is an approximate external benchmark
 
-`SPEC.md` section 12.6 marks the known-opponent, one-opponent preflop Monte Carlo reference value as not registered. Do not fill this slot with a guessed value. Obtain a reproducible value from an independent trusted calculator and record the source URL, access date, exact cards, board, number of opponents, trial count or exact-calculation mode, and tie/equity convention.
+`SPEC.md` section 12.6 now records an independent reference for Hero `As Ah` against one uniformly random opponent hand: 85.2% equity. The source reports 400,000 simulated runouts and a rounded result, so it is not an exact golden value. The developer verification and CI compare the fixed-seed, 100,000-trial result within a four-standard-error tolerance.
 
-Evidence: `SPEC.md` section 12.6.
+This closes the missing-reference gap without pretending that the external number is exact. If a stronger reference becomes available, prefer a reproducible exact enumeration or a second independent source with explicit method and tie convention.
+
+Evidence: `SPEC.md` section 12.6, `verify/equity.js`, and `ci/verify.js`.
 
 ### P2 — Responsive smoke coverage exists; visual QA is still incomplete
 
@@ -77,7 +79,7 @@ Evidence: `README.md`, `SPEC.md`, and `minigame/ev.js`.
 1. Add EV tests for stack-capped raises, minimum-raise exceptions, and no eligible responder states.
 2. Expand pure `minigame/pots.js` tests for three-plus contribution layers, side-pot ties, and button-relative odd chips if required by the intended rules.
 3. Extend the existing mobile viewport smoke checks only if a specific uncovered regression is identified; otherwise complete manual visual QA.
-4. Register an independently sourced preflop reference case with full provenance.
+4. Keep the sourced preflop reference's provenance and uncertainty explicit; replace it only with a stronger reproducible reference.
 5. Keep README and SPEC aligned with the core-versus-mini-game boundary.
 
 ## Audit limitation
