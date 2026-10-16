@@ -210,7 +210,7 @@ const Pots = require('../minigame/pots.js');
   assert.equal(settled.awards.reduce((sum,a)=>sum+a.amount,0),1500);
   assert.ok(settled.awards.every(a=>a.player!==p2),'folded player cannot win the dead pot or side pots');
 }
-assert.match(currentGameSource,/DealMiniGamePots\\.settle\\(all,scores,A\\.basePot\\|\\|0,A\\.dealer\\)/,'showdown includes imported starting pot and dealer seat in settlement');
+assert.match(currentGameSource,/DealMiniGamePots\.settle\(all,scores,A\.basePot\|\|0,A\.dealer\)/,'showdown includes imported starting pot and dealer seat in settlement');
 assert.match(currentGameSource,/var total=\(A\.basePot\|\|0\)\+all\.reduce\(function\(s,p\)\{return s\+\(p\.contrib\|\|0\)\},0\);/,'showdown summary total includes imported starting pot');
 
 console.log('PASS: analysis-to-mini-game bridge smoke tests');
