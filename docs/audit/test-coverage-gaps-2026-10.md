@@ -56,19 +56,19 @@ Evidence: `ci/verify.js`, `tests/minigame-chip-conservation.test.cjs`, and `mini
 
 Evidence: `SPEC.md` section 12.6.
 
-### P2 — Mobile visual regression is not currently a CI assertion
+### P2 — Responsive smoke coverage exists; visual QA is still incomplete
 
-The workflow runs Node regression tests and browser checks, but the reviewed CI entry points do not assert horizontal overflow or control clipping across representative viewport widths.
+The initial audit missed the viewport assertions in `ci/browser-verify.html`. The existing CI browser test already checks the calculator and mini-game at 320, 375, 390, and 430 CSS px for horizontal overflow, key controls/cards being clipped, major-region overlap, player-seat overlap, and action-button overlap.
 
-Recommended follow-up: add a browser smoke test at 320, 375, 390, and 430 CSS px. Check document-level horizontal overflow and key controls/seat panels, and retain screenshots as review artifacts. Functional assertions should remain separate from screenshot review.
+Remaining work is visual rather than a missing baseline assertion: retain or compare screenshots if useful, and perform a manual check of vertical scrolling, tap targets, and real-device rendering. Do not add a duplicate viewport test without first extending the current one.
 
-Evidence: `.github/workflows/verify.yml` and `ci/browser-verify.js`.
+Evidence: `ci/browser-verify.html`, `ci/browser-verify.js`, and `.github/workflows/verify.yml`.
 
 ### P2 — Documentation boundaries need to remain explicit
 
 The intended product boundary is: the core analysis page may display Pot Odds as contextual information, but it does not recommend actions or provide strategy-solving EV. The separate `minigame/` mode may show heuristic action-EV estimates as a game aid; those values are not GTO/Solver outputs or optimal-action recommendations.
 
-The README now states this boundary and describes Monte Carlo error as a statistical estimate rather than a maximum. When revising `SPEC.md`, keep roadmap items clearly marked as unimplemented plans and distinguish the core calculator from the experimental mini-game.
+The README now states this boundary, describes Monte Carlo error as a statistical estimate rather than a maximum, and marks the existing responsive CI smoke checks as implemented. When revising `SPEC.md`, keep roadmap items clearly marked and distinguish implemented automation from remaining manual visual QA.
 
 Evidence: `README.md`, `SPEC.md`, and `minigame/ev.js`.
 
@@ -76,7 +76,7 @@ Evidence: `README.md`, `SPEC.md`, and `minigame/ev.js`.
 
 1. Add EV tests for stack-capped raises, minimum-raise exceptions, and no eligible responder states.
 2. Expand pure `minigame/pots.js` tests for three-plus contribution layers, side-pot ties, and button-relative odd chips if required by the intended rules.
-3. Add mobile viewport overflow/clipping checks to CI.
+3. Extend the existing mobile viewport smoke checks only if a specific uncovered regression is identified; otherwise complete manual visual QA.
 4. Register an independently sourced preflop reference case with full provenance.
 5. Keep README and SPEC aligned with the core-versus-mini-game boundary.
 
