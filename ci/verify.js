@@ -369,6 +369,28 @@ function testMiniGamePotConservation() {
   assert.deepEqual([0,1,2,3].map(seat=>tiedSidePaid[seat]||0),[400,151,152,0],
     'side-pot tie must split exactly and assign the odd chip clockwise from the dealer');
 
+  // If every contributor to a higher layer folded, that dead side-pot layer
+  // follows the previous eligible pot's winners; it must not disappear or
+  // be awarded to a folded contributor.
+  const deadSide = [
+    {seat:0,name:'Live A',stack:0,contrib:100,fold:false},
+    {seat:1,name:'Folded B',stack:0,contrib:200,fold:true},
+    {seat:2,name:'Folded C',stack:0,contrib:200,fold:true},
+    {seat:3,name:'Live D',stack:0,contrib:100,fold:false}
+  ];
+  const deadSideResult=Pots.settle(deadSide,[
+    {p:deadSide[0],s:100},
+    {p:deadSide[1],s:900},
+    {p:deadSide[2],s:800},
+    {p:deadSide[3],s:100}
+  ]);
+  const deadSidePaid=Object.fromEntries(deadSideResult.awards.map(a=>[a.player.seat,
+    deadSideResult.awards.filter(x=>x.player===a.player).reduce((sum,x)=>sum+x.amount,0)]));
+  assert.equal(deadSideResult.contributed,600);
+  assert.equal(deadSideResult.distributed,600);
+  assert.deepEqual([0,1,2,3].map(seat=>deadSidePaid[seat]||0),[300,0,0,300],
+    'dead side-pot layer must follow eligible main-pot winners when all side-pot contributors folded');
+
   // Odd-chip tie: total contribution is 3 chips, two live players tie, and
   // the folded contributor must never receive an award. Verify conservation
   // and a one-chip difference without assuming button-relative seat ordering.
