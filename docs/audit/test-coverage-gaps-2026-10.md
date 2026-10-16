@@ -37,16 +37,15 @@ Evidence: `ci/verify.js`, `tests/minigame-ev-active.test.cjs`, and `minigame/ev.
 
 The current `ci/verify.js` includes an exact per-seat main-pot/side-pot fixture where the strongest short stack wins the main pot and a weaker hand wins the side pot, plus a tied-pot odd-chip fixture that verifies conservation and a one-chip difference. `tests/minigame-chip-conservation.test.cjs` also checks showdown/fold-win conservation and that a folded player does not receive an award. Therefore, the original claim that these cases were untested was too broad.
 
+The current regression suite now includes three contribution layers with different winners, a tied side pot with an odd chip, exact per-seat payouts, and dealer-relative clockwise odd-chip assignment. The production settlement path passes the dealer seat into the pure settlement function.
+
 Remaining cases worth adding:
 
-- Three or more contribution layers with a different winner at each layer.
-- Ties within a side pot as well as the main pot, with exact per-seat awards.
 - Folded players contributing at multiple levels and all-in players eligible only for lower layers.
-- A contribution layer with no eligible non-folded player: define the intended behavior explicitly, then test it.
-- Odd-chip assignment relative to the button and first eligible seat clockwise, if standard Hold'em seat-order behavior is intended. Current coverage intentionally avoids assuming button-relative order.
+- A contribution layer with no eligible non-folded player: explicitly define whether the unmatched amount should be returned or awarded, then test it.
 - Property-style small-state tests for conservation and eligibility, alongside hand-verifiable fixed examples.
 
-These are fidelity and coverage questions, not proof that ordinary settlement is incorrect.
+These are remaining fidelity and coverage questions, not proof that ordinary settlement is incorrect.
 
 Evidence: `ci/verify.js`, `tests/minigame-chip-conservation.test.cjs`, and `minigame/pots.js`.
 
