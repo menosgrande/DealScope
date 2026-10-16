@@ -333,7 +333,7 @@ function foldWin(){
 function showdown(){
  var b=A.board,all=A.players.filter(function(p){return !p.out}),scores=all.map(function(p){return{p:p,s:E.evaluate(p.hand.concat(b))}});
  A.players.forEach(function(p){var z=scores.find(function(x){return x.p===p});p.showdownScore=z?z.s:0});
- var settlement=window.DealMiniGamePots.settle(all,scores,A.basePot||0);
+ var settlement=window.DealMiniGamePots.settle(all,scores,A.basePot||0,A.dealer);
  settlement.awards.forEach(function(a){a.player.stack+=a.amount});
  var awardMap={};settlement.awards.forEach(function(a){awardMap[a.player.seat]=(awardMap[a.player.seat]||0)+a.amount});
  A.awards=Object.keys(awardMap).map(function(seat){return{seat:Number(seat),amount:awardMap[seat]}});
