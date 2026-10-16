@@ -240,6 +240,18 @@
           if (overlaps(actionButtons[i], actionButtons[j])) throw new Error('action buttons overlap at ' + width + 'px');
         }
       }
+      // WCAG 2.2 target-size minimum is 24x24 CSS px (subject to defined exceptions).
+      // Check the frequently tapped game controls at every supported phone width.
+      const tapTargets = Array.from(md.querySelectorAll(
+        '#foldBtn, #callBtn, #betBtn, #allinBtn, #minusStep, #plusStep, #nextBtn, #newBtn'
+      )).filter(el => el.getClientRects().length && md.defaultView.getComputedStyle(el).display !== 'none');
+      for (const el of tapTargets) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width < 24 || rect.height < 24) {
+          throw new Error('tap target below 24x24 CSS px at ' + width + 'px: '
+            + (el.id || el.className) + ' (' + rect.width + 'x' + rect.height + ')');
+        }
+      }
       const heroCards = Array.from(md.querySelectorAll('#players .player.hero .cards .card'))
         .filter(el => el.getClientRects().length);
       if (heroCards.length !== 2) throw new Error('Hero hole cards missing at ' + width + 'px');
