@@ -81,8 +81,8 @@ function row(result, kind) {
   assert.equal(result.equityPct, 100);
   assert.equal(row(result, 'call').name, 'コール 50',
     'the displayed call amount must not exceed Hero stack');
-  assert.equal(row(result, 'call').evBB, 0.75,
-    'eligible pot is 150 chips; net short-stack call EV is 150 chips / 200-chip BB = 0.75 BB');
+  assert.equal(row(result, 'call').evBB, 0.8,
+    '150 chips / 200-chip BB is 0.75 BB, displayed to one decimal as 0.8 BB');
 }
 
 // Invalid duplicate known cards must be rejected before equity reaches the UI.
