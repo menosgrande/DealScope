@@ -509,7 +509,45 @@ function testMiniGameEVMath() {
     knownHands: true, engine: E
   });
   assert.notEqual(duplicateResult.status, 'ok', 'duplicate known cards must be rejected');
-  console.log('✓ mini-game EV arithmetic / side-pot boundary / multiway suppression');
+
+  // If the selected raise target exceeds Hero's stack, EV must use and label
+  // the effective all-in target, not the unreachable requested target.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 1200, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 5000, contrib: 1000, out: false, fold: false, type: 'tag', allin: false }
+    ],
+    pot: 2000, currentBet: 1000, roundBet: [0, 1000, 0, 0],
+    blinds: [100, 200], legal: { minRaise: 2000 }
+  }), 3000);
+  const cappedRows = result.rows.filter(r => r.kind === 'raise' || r.kind === 'allin');
+  assert.equal(cappedRows.length, 1, 'stack-capped selected raise must not duplicate the all-in EV row');
+  assert.equal(cappedRows[0].name, 'オールイン', 'stack-capped raise must be labeled with the effective all-in action');
+
+  // A legal short all-in raise may be below the normal minimum raise target.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 1100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 5000, contrib: 1000, out: false, fold: false, type: 'tag', allin: false }
+    ],
+    pot: 2000, currentBet: 1000, roundBet: [0, 1000, 0, 0],
+    blinds: [100, 200], legal: { minRaise: 2000 }
+  }));
+  assert(result.rows.some(r => r.name === 'オールイン' && r.kind === 'raise'),
+    'short all-in raise below the normal minimum must be represented when Hero can raise all-in');
+
+  // No active responder means no aggressive EV row, but fold/call context remains available.
+  result = MiniGameEV.estimate(state({
+    players: [
+      { seat: 0, hand: [0, 1], stack: 100, contrib: 0, out: false, fold: false },
+      { seat: 1, hand: [4, 5], stack: 0, contrib: 100, out: false, fold: false, type: 'tag', allin: true }
+    ],
+    pot: 200, currentBet: 100, roundBet: [0, 100, 0, 0], legal: { minRaise: 200 }
+  }));
+  assert.equal(result.raiseEVSuppressed, true);
+  assert(!result.rows.some(r => r.kind === 'raise' || r.kind === 'allin'),
+    'all-in opponents cannot respond to Hero raises');
+  console.log('✓ mini-game EV arithmetic / side-pot boundary / raise caps / short all-in / responder boundaries');
 }
 
 function testGlossaryData() {
