@@ -625,7 +625,9 @@ Monte Carlo の正しさは次の方法で確認する(ヘルプの「開発者�
 | ハンド指定(`monteCarlo`、1万/5万/10万回) | Exact の厳密値 |
 | 相手想定1人・Flop(`monteCarloVsRandom`) | Exact(約107万通りの全列挙)の厳密値 |
 | 相手想定2人・River | 別の素朴なループで数えた全組み合わせの値 |
-| 相手想定1人・Preflop | 外部の信頼できる計算機の値(未登録) |
+| 相手想定1人・Preflop (AA vs random) | 外部参考値 85.2% (丸められたMonte Carlo値。下記出典を参照) |
+
+- プリフロップ外部参考値: Hero `As Ah`、Boardなし、相手1人を全ての有効な2枚から等確率で選ぶ条件。参考値は85.2% (引き分けの取り分を含むequity)。出典: [Zayrion Poker Equity Calculator](https://zayrion.ai/tools/poker-equity-calculator)、2026-10-16取得。ページ記載の値は40万試行の丸められた近似値であり、厳密なgolden valueではないため、CIでは固定seed・10万試行の結果を4σ以内で照合する。
 
 - 判定式: `|MC − 厳密値| ≤ 4 × max( √(p(1−p)/N) × 100 , 0.05 )` ポイント(9.1参照)
 - 種を固定した検証は毎回同じ結果になる。ある種で偶然外れても、種を変えて確かめ直せば原因が分かる
