@@ -113,13 +113,19 @@ function estimate(state,selectedTarget){
  }
  var minRaise=Number(state.legal&&state.legal.minRaise)||Math.max(bb,(Number(state.currentBet)||0)+bb);
  var maxTarget=roundBet+stack;
- if(!raiseEVSuppressed&&maxTarget>=(Number(state.currentBet)||0)+bb){
+ if(!raiseEVSuppressed&&maxTarget>(Number(state.currentBet)||0)){
+  var selectedIsAllIn=false;
   if(Number.isFinite(Number(selectedTarget))&&Number(selectedTarget)>0){
-   var chosen=clamp(Number(selectedTarget),minRaise,maxTarget);
-   addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
+   // If Hero cannot reach the normal minimum raise, the only raise-sized
+   // action available may be a legal short all-in. Never label a capped
+   // effective target with the larger requested slider value.
+   var chosen=maxTarget<minRaise?maxTarget:clamp(Number(selectedTarget),minRaise,maxTarget);
+   selectedIsAllIn=chosen>=maxTarget;
+   if(selectedIsAllIn)addBet('オールイン',maxTarget);
+   else addBet((call>0?'入力額でレイズ ':'入力額でベット ')+Math.round(chosen).toLocaleString('ja-JP'),chosen);
   }
   var allinTarget=maxTarget;
-  if(allinTarget>0&&(!Number.isFinite(Number(selectedTarget))||Math.abs(allinTarget-Number(selectedTarget))>bb/2))addBet('オールイン',allinTarget);
+  if(allinTarget>0&&!selectedIsAllIn&&(!Number.isFinite(Number(selectedTarget))||Math.abs(allinTarget-Number(selectedTarget))>bb/2))addBet('オールイン',allinTarget);
  }
  return {status:'ok',hand:handLabel(hero.hand),equityPct:round1(equity*100),equityMode:state.knownHands===true&&knownHands.length?'known':'random',exact:exact,raiseEVSuppressed:raiseEVSuppressed,rows:rows.map(function(r){return {name:r.name,evBB:round1(r.ev/bb),kind:r.kind}}),trials:trials};
 }
