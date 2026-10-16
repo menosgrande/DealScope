@@ -44,7 +44,7 @@ function boot() {
   const context = vm.createContext({
     document, sessionStorage, location: { href: '' },
     confirm: () => true,
-    setTimeout: () => 1,
+    setTimeout: callback => { if (context.__syncTimers) callback(); return 1; },
     clearTimeout() {},
   });
   context.window = context;
@@ -55,7 +55,7 @@ function boot() {
   context.DealMiniGameBetSizing = { definitions: () => [], target: () => 0 };
   const instrumented = sources.game.replace(
     /\}\)\(\);\s*$/,
-    'window.__test={A,startImported,showdown,foldWin,ai,setSeed:function(value){seed=value>>>0}};})();'
+    'window.__test={A,startImported,showdown,foldWin,ai,act,advance,resetHand,restart,nextHand,legalActions,setSeed:function(value){seed=value>>>0},setSyncTimers:function(value){window.__syncTimers=!!value}};})();'
   );
   assert.notEqual(instrumented, sources.game, 'current game instrumentation anchor exists');
   new vm.Script(instrumented, { filename: 'minigame/minigame.js' }).runInContext(context);
