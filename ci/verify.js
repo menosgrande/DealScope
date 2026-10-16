@@ -53,8 +53,13 @@ function testEvaluatorOrdering() {
   const scores = cases.map(([n,h,k]) => [n,E.evaluate(hand(h))]);
   for (let i=0;i<scores.length;i++) assert.equal(scores[i][1] >>> 20, cases[i][2]);
   assert(E.evaluate(hand('As Kd Qh Jc Ts')) > E.evaluate(hand('Ks Qd Jh Tc 9s')));
-  assert(E.evaluate(hand('5s 4d 3h 2c As')) < E.evaluate(hand('6s 5d 4h 3c 2s')));
+  const wheel = E.evaluate(hand('5s 4d 3h 2c As'));
+  const sixHigh = E.evaluate(hand('6s 5d 4h 3c 2s'));
+  assert.equal(wheel >>> 20, 4, 'A-2-3-4-5 must be classified as a straight');
+  assert(wheel < sixHigh, 'the wheel is the lowest straight');
   assert(E.evaluate(hand('As Ah Kd Qc Jh')) > E.evaluate(hand('As Ah Qd Jc Th')));
+  assert(E.evaluate(hand('As Ah Kd Qc Jh')) > E.evaluate(hand('Ac Ad Ks Qd Th')),
+    'when pair and first two kickers tie, the third kicker decides the winner');
   console.log('✓ evaluator ordering / golden cases');
 }
 
@@ -96,7 +101,12 @@ function testEquityConservation() {
     const sum=r.equity.reduce((a,b)=>a+b,0);
     assert(Math.abs(sum-100)<1e-9);
   }
-  console.log('✓ equity conservation');
+  // Independent exact tie case: a royal flush on the board forces a 50/50 split.
+  const boardRoyalFlush=hand('As Ks Qs Js Ts');
+  const tie=E.exactSync([hand('2c 3d'),hand('4h 5d')],boardRoyalFlush);
+  assert.equal(tie.total,1);
+  assert.deepEqual(tie.equity,[50,50], 'a board-only royal flush must split equity evenly');
+  console.log('✓ equity conservation / exact split-pot reference case');
 }
 
 function testAnalysisLayer() {
@@ -189,15 +199,38 @@ function testInputStateRoundTrips() {
   assert.equal(duplicate.players[0][0], -1, 'board cards take precedence over duplicate hole cards');
   assert.equal(duplicate.players[1][0], -1, 'earlier visible cards take precedence over later duplicates');
 
-  const saved = S.normalizeSaved({
-    mode: 'known', n: 2, opp: 1,
-    players: [hand('As Kd'), hand('Qs Qh'), hand('Js Jh'), [-1, -1]],
+  const sourcePlayers = [hand('As Kd'), hand('Qs Qh'), hand('Js Jh'), hand('Ts Th')];
+  const sourceBoard = [card('2c'), card('7h'), card('9d'), card('Tc'), -1];
+  const saved = S.normalizeSaved({ mode: 'known', n: 2, opp: 1, players: sourcePlayers, board: sourceBoard });
+  assert(saved, 'valid saved state should normalize');
+  assert.deepEqual(saved.players[2], sourcePlayers[2], 'non-visible player cards should remain saved');
+
+  // Saved state retains hidden cards across mode/count changes, while a share URL
+  // intentionally contains only the visible Hero and must not leak those cards.
+  for (const n of [2, 3, 4]) {
+    const normalized = S.normalizeSaved({ mode: 'known', n, opp: 1, players: sourcePlayers, board: sourceBoard });
+    assert(normalized, 'valid known state with player count ' + n + ' should normalize');
+    const switched = S.normalizeSaved({ ...normalized, mode: 'random', n, opp: Math.min(4, n) });
+    assert(switched, 'switching mode should preserve a valid saved state');
+    assert.deepEqual(switched.players, sourcePlayers, 'mode/count changes must retain hidden cards in local saved state');
+    const shared = S.decode(S.encode({ ...switched, mode: 'random', opp: Math.min(4, n) }));
+    assert(shared, 'random-mode share URL should decode');
+    assert.deepEqual(shared.players.slice(1), [[-1, -1], [-1, -1], [-1, -1]], 'share URL must not serialize hidden opponents');
+  }
+
+  const duplicateSaved = S.normalizeSaved({
+    mode: 'random', n: 2, opp: 2,
+    players: [hand('As Kd'), hand('As Qh'), hand('Js Jh'), [-1, -1]],
     board: [card('2c'), card('7h'), card('9d'), -1, -1],
   });
-  assert(saved, 'valid saved state should normalize');
-  assert.deepEqual(saved.players[2], hand('Js Jh'), 'non-visible player cards should remain saved');
+  assert(duplicateSaved);
+  const usedCards = duplicateSaved.board.concat(...duplicateSaved.players).filter(c => c >= 0);
+  assert.equal(new Set(usedCards).size, usedCards.length, 'duplicate saved cards must be deduplicated before calculation');
   assert.equal(S.normalizeSaved({ mode: 'invalid' }), null, 'invalid saved state should be rejected');
-  console.log('✓ input state: URL round-trip / hidden-hand privacy / duplicate precedence / saved-state validation');
+  assert.equal(S.normalizeSaved({ mode: 'known', n: 2, players: [[52, 0], [-1, -1], [-1, -1], [-1, -1]], board: [-1, -1, -1, -1, -1] }), null,
+    'out-of-range card ids must not enter a normalized state');
+  assert.equal(S.decode('#AsKd-2zQh'), null, 'malformed URL card tokens must be rejected');
+  console.log('✓ input state: URL round-trip / hidden-hand privacy / mode-count retention / duplicates / invalid state');
 }
 
 function testBoardDeal() {
@@ -485,6 +518,7 @@ function main() {
   testEvaluatorOrdering();
   testSevenCardAndEnumeration();
   testEquityConservation();
+  testInputStateRoundTrips();
   testAnalysisLayer();
   testBoardDeal();
   testCanonicalAndCache();
