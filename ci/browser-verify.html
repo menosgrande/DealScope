@@ -189,6 +189,41 @@
       throw new Error('mobile players should retain two-column layout');
     }
 
+    // Responsive smoke checks at the supported phone widths. Check the actual
+    // document viewport and visible controls, not only the computed grid columns.
+    for (const width of [320, 375, 390, 430]) {
+      mini.style.width = width + 'px';
+      frame.style.width = width + 'px';
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (md.documentElement.scrollWidth > width + 1 || md.body.scrollWidth > width + 1) {
+        throw new Error('mini-game horizontal overflow at ' + width + 'px: document='
+          + md.documentElement.scrollWidth + ', body=' + md.body.scrollWidth);
+      }
+      if (doc.documentElement.scrollWidth > width + 1 || doc.body.scrollWidth > width + 1) {
+        throw new Error('calculator horizontal overflow at ' + width + 'px: document='
+          + doc.documentElement.scrollWidth + ', body=' + doc.body.scrollWidth);
+      }
+      const visibleControls = Array.from(md.querySelectorAll('#foldBtn, #callBtn, #betBtn, #amountSlider, #players, #board'))
+        .filter(el => el.getClientRects().length);
+      for (const el of visibleControls) {
+        const rect = el.getBoundingClientRect();
+        if (rect.left < -1 || rect.right > width + 1) {
+          throw new Error('mini-game control ' + (el.id || el.className) + ' clipped at ' + width + 'px');
+        }
+      }
+      const visibleCards = Array.from(md.querySelectorAll('#players .player .cards .card, #board .card'))
+        .filter(el => el.getClientRects().length);
+      if (visibleCards.length < 7) throw new Error('mini-game cards missing at ' + width + 'px');
+      for (const card of visibleCards) {
+        const rect = card.getBoundingClientRect();
+        if (rect.left < -1 || rect.right > width + 1 || rect.width <= 0 || rect.height <= 0) {
+          throw new Error('mini-game card clipped or collapsed at ' + width + 'px');
+        }
+      }
+    }
+    mini.style.width = '390px';
+    frame.style.width = '390px';
+
     const glossaryFrame = document.createElement('iframe');
     glossaryFrame.id = 'glossary';
     glossaryFrame.src = '/glossary.html';
