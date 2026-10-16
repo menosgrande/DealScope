@@ -2,85 +2,52 @@
 
 ## Scope
 
-Read-only audit of the current `main` versions of:
+Review of the current DealScope main branch, focusing on mini-game EV, pot settlement, CPU action policy, responsive browser checks, and equity verification. Missing coverage is not treated as proof of a runtime defect.
 
-- `tests/minigame-ev-active.test.cjs`
-- `tests/minigame-chip-conservation.test.cjs`
-- `ci/verify.js`
-- `minigame/ev.js`
-- `minigame/pots.js`
-- `verify.js`
-- `SPEC.md`
-- `.github/workflows/verify.yml`
+## Findings and closure status
 
-This document separates existing assertions from remaining coverage gaps. A missing assertion is not, by itself, evidence of a runtime defect. The test files were inspected remotely; this audit does not claim that the full suite was executed locally.
+### EV boundaries — additional regression coverage added
 
-## Findings
+Existing checks cover short-stack calls, folded contributors, all-in opponents, duplicate known cards, and suppression of unsupported multiway aggressive-EV rows. New assertions on `main` cover stack-capped raise labeling, short all-in raise boundaries, malformed known cards, and no-responder states. The unused multiway EV function and duplicate render branch were removed rather than left as misleading dead code.
 
-### P1 — EV boundary coverage exists, but raise legality and responder edge cases remain
+EV values remain heuristic estimates for the separate mini-game, not Solver/GTO outputs or action recommendations.
 
-The initial version of this audit understated existing coverage. The current `ci/verify.js` already asserts numeric EV results for a short-stack call, an unmatchable excess contribution, a folded contributor, an all-in opponent, and rejection of duplicate known cards. It also checks that multiway aggressive EV rows are suppressed. `tests/minigame-ev-active.test.cjs` separately covers action-row presence, selected raise sizing, and the collapsible UI.
+### Pot settlement — exact edge fixtures added
 
-Remaining cases worth adding:
+The pure settlement tests now cover:
+- Three contribution layers with a different winner at each level.
+- Exact per-seat awards and chip conservation.
+- A tied side pot with an odd chip, with priority clockwise from the dealer button.
+- A higher contribution layer whose contributors have all folded; that dead layer follows the previous eligible pot winners instead of disappearing or being awarded to folded players.
 
-- A proposed raise target above Hero's stack: assert the exact effective target and whether the action is legal or represented as all-in.
-- A stack-capped raise that is below the normal minimum raise: assert the short-all-in exception is handled consistently with the game rules.
-- No opponent remains eligible to respond (all opponents folded, out, or all-in): assert the available rows and EV status are appropriate.
-- Invalid/malformed card IDs, in addition to duplicate known cards, are rejected safely.
-- A regression test that compares displayed EV units and pot/call inputs against the documented heuristic formula.
+The settlement function receives the dealer seat from the game. Remaining coverage could include property-based small-state checks, but the previously listed fixed-case gaps have been addressed.
 
-These are coverage improvements, not confirmed calculation defects. Keep the displayed values explicitly labeled as heuristic estimates, not solver EV or action recommendations.
+### CPU behavior — deterministic decision-policy sampling added
 
-Evidence: `ci/verify.js`, `tests/minigame-ev-active.test.cjs`, and `minigame/ev.js`.
+The current mini-game's private CPU decision function is exercised across all four CPU types, preflop/flop/turn/river, unopened/facing-bet states, and deep/short effective stacks. The test samples legal random card configurations with deterministic seeds and checks that every sample yields a recognized response, that deep-stack states do not produce surprise all-ins, and that facing-bet/unopened states return the appropriate action family.
 
-### P1 — Pot settlement has side-pot and odd-chip smoke coverage; exact payout rules still need deeper cases
+This is a decision-policy distribution smoke test, not a full tournament simulation. If future CPU tuning changes these thresholds, review the resulting per-stratum counts before changing limits. A full-hand simulation with long-run VPIP, fold-to-raise, all-in, showdown, and average-pot statistics would provide a stronger behavioral model, but should only be added if the current policy smoke test reveals a concrete problem.
 
-The current `ci/verify.js` includes an exact per-seat main-pot/side-pot fixture where the strongest short stack wins the main pot and a weaker hand wins the side pot, plus a tied-pot odd-chip fixture that verifies conservation and a one-chip difference. `tests/minigame-chip-conservation.test.cjs` also checks showdown/fold-win conservation and that a folded player does not receive an award. Therefore, the original claim that these cases were untested was too broad.
+### Preflop equity reference — registered with uncertainty
 
-The current regression suite now includes three contribution layers with different winners, a tied side pot with an odd chip, exact per-seat payouts, and dealer-relative clockwise odd-chip assignment. The production settlement path passes the dealer seat into the pure settlement function.
+`SPEC.md` section 12.6 records an external approximate reference for Hero `As Ah` against one uniformly random opponent hand: 85.2% equity. The source reports 400,000 simulated runouts and a rounded result, so it is not an exact golden value. The developer verification and CI compare the fixed-seed, 100,000-trial result within a four-standard-error tolerance. Keep the source, access date, trial count, and tie/equity convention explicit.
 
-Remaining cases worth adding:
+### Responsive behavior — automated smoke checks cover supported phone widths
 
-- Folded players contributing at multiple levels and all-in players eligible only for lower layers.
-- A contribution layer with no eligible non-folded player: explicitly define whether the unmatched amount should be returned or awarded, then test it.
-- Property-style small-state tests for conservation and eligibility, alongside hand-verifiable fixed examples.
+`ci/browser-verify.html` checks 320, 375, 390, and 430 CSS px for horizontal overflow, clipped controls/cards, overlapping major regions/seats/action buttons, calculator-to-game state transfer, glossary filtering, and a real mini-game settlement. This is more than a basic viewport check.
 
-These are remaining fidelity and coverage questions, not proof that ordinary settlement is incorrect.
+Manual real-device inspection cannot be conclusively replaced by headless CI. The remaining human-only question is whether the UI feels comfortable to use while scrolling and tapping on physical phones. The CI can be strengthened with explicit minimum tap-target assertions and retained screenshots, but do not duplicate existing overflow/overlap assertions.
 
-Evidence: `ci/verify.js`, `tests/minigame-chip-conservation.test.cjs`, and `minigame/pots.js`.
+### Documentation — scope and statistical language corrected
 
-### P2 — Preflop reference is registered, but it is an approximate external benchmark
+The README now describes Monte Carlo error as a statistical estimate rather than a hard maximum and distinguishes implemented responsive checks from remaining manual visual QA. The core calculator remains an objective equity/context tool; the mini-game's action-EV display remains a separate heuristic feature, not a solver.
 
-`SPEC.md` section 12.6 now records an independent reference for Hero `As Ah` against one uniformly random opponent hand: 85.2% equity. The source reports 400,000 simulated runouts and a rounded result, so it is not an exact golden value. The developer verification and CI compare the fixed-seed, 100,000-trial result within a four-standard-error tolerance.
+## Current remaining work
 
-This closes the missing-reference gap without pretending that the external number is exact. If a stronger reference becomes available, prefer a reproducible exact enumeration or a second independent source with explicit method and tie convention.
-
-Evidence: `SPEC.md` section 12.6, `verify/equity.js`, and `ci/verify.js`.
-
-### P2 — Responsive smoke coverage exists; visual QA is still incomplete
-
-The initial audit missed the viewport assertions in `ci/browser-verify.html`. The existing CI browser test already checks the calculator and mini-game at 320, 375, 390, and 430 CSS px for horizontal overflow, key controls/cards being clipped, major-region overlap, player-seat overlap, and action-button overlap.
-
-Remaining work is visual rather than a missing baseline assertion: retain or compare screenshots if useful, and perform a manual check of vertical scrolling, tap targets, and real-device rendering. Do not add a duplicate viewport test without first extending the current one.
-
-Evidence: `ci/browser-verify.html`, `ci/browser-verify.js`, and `.github/workflows/verify.yml`.
-
-### P2 — Documentation boundaries need to remain explicit
-
-The intended product boundary is: the core analysis page may display Pot Odds as contextual information, but it does not recommend actions or provide strategy-solving EV. The separate `minigame/` mode may show heuristic action-EV estimates as a game aid; those values are not GTO/Solver outputs or optimal-action recommendations.
-
-The README now states this boundary, describes Monte Carlo error as a statistical estimate rather than a maximum, and marks the existing responsive CI smoke checks as implemented. When revising `SPEC.md`, keep roadmap items clearly marked and distinguish implemented automation from remaining manual visual QA.
-
-Evidence: `README.md`, `SPEC.md`, and `minigame/ev.js`.
-
-## Recommended implementation order
-
-1. Add EV tests for stack-capped raises, minimum-raise exceptions, and no eligible responder states.
-2. Expand pure `minigame/pots.js` tests for three-plus contribution layers, side-pot ties, and button-relative odd chips if required by the intended rules.
-3. Extend the existing mobile viewport smoke checks only if a specific uncovered regression is identified; otherwise complete manual visual QA.
-4. Keep the sourced preflop reference's provenance and uncertainty explicit; replace it only with a stronger reproducible reference.
-5. Keep README and SPEC aligned with the core-versus-mini-game boundary.
+1. Add or retain explicit tap-target-size assertions in the browser smoke test if the current controls meet the chosen threshold; otherwise fix any failing control.
+2. Review CPU per-stratum counts from CI and adjust the decision policy only if the deterministic sample shows an unreasonable pattern. A full-hand simulation is optional follow-up, not a blocker absent evidence of a defect.
+3. Perform a final real-phone visual/tap check if physical-device access is available; automated CI already covers viewport bounds and functional paths.
 
 ## Audit limitation
 
-This is a source/test-coverage audit, not a full execution or visual QA report. Repository files were inspected remotely. The audit does not claim that the full test suite was run locally or that a production deployment was manually exercised.
+Source and test files were inspected through repository tools. GitHub Actions is the execution source of truth; do not describe a workflow as passing until its run has completed successfully. This document does not claim a manual real-device test or an exhaustive full-tournament CPU simulation.
