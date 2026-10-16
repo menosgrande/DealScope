@@ -148,9 +148,15 @@ const V=root.DealVerify;const {E,out,tick,pct,pl,num,head,row,summary,setBusy,ca
           `全組み合わせ ${pct(ex2)} / 近似計算(10万回) ${pct(mc2)} / 差 ${Math.abs(mc2 - ex2).toFixed(2)}pt`);
         await tick();
       }
-      // Preflop: 正解値は外部の計算機の値待ち
-      const pre = E.monteCarloVsRandom(cards('As Ks'), [], 100000, { seed: 12345 }).equity[0];
-      row('info', 'ランダム相手 プリフロップ(AKs)', `近似計算 ${pct(pre)}。正解値は未登録(外部の計算機の値を、サイト名・取得日・引き分けの扱いと一緒に登録する)`);
+      // Preflop reference: AA vs one uniformly random hand.
+      // Zayrion reports 85.2% from 400k simulated runouts (accessed 2026-10-16).
+      const pre = E.monteCarloVsRandom(cards('As Ah'), [], 100000, { seed: 12345 }).equity[0];
+      const preRef = 85.2, preP = preRef / 100;
+      const preSE = Math.max(Math.sqrt(preP * (1 - preP) / 100000) * 100, 0.05);
+      const preOk = Math.abs(pre - preRef) <= 4 * preSE;
+      if (!preOk) allOk = false;
+      row(preOk ? 'ok' : 'ng', 'ランダム相手 プリフロップ(AA)',
+        `近似計算 ${pct(pre)} / 外部参考値 85.20% / 差 ${Math.abs(pre - preRef).toFixed(2)}pt。判定幅は4σ。出典: https://zayrion.ai/tools/poker-equity-calculator (2026-10-16取得)。外部値は40万試行の丸められた近似値で、引き分けを含むエクイティ`);
       return allOk;
     }
   
