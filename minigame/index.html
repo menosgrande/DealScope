@@ -699,6 +699,58 @@ button:disabled{cursor:not-allowed}
 .actionBadge.call{background:#e5c15d;color:#211a08;border-color:#f4d879}.actionBadge.raise,.actionBadge.bet,.actionBadge.allin{background:#8e3038;color:#fff;border-color:#cf6970}.actionBadge.fold{background:#414b47;color:#ddd;border-color:#67736e}
 @media(prefers-reduced-motion:reduce){.player.current,.board .card.reveal{animation:none!important}}
 @media(max-width:600px){.tablePanel{border-radius:43%/34%!important;padding:19px 14px 17px!important;min-height:350px}.potTotal b{font-size:23px}.player.current{animation:none;box-shadow:0 0 0 2px var(--brass),0 0 10px #d8b25255}.actionBadge{top:23px;right:4px}}
+
+
+/* Usability stabilization: predictable desktop layout and readable table. */
+@media (min-width: 761px) {
+  main { width: min(1080px, calc(100% - 32px)); }
+  .tablePanel { border-radius: 18px !important; padding: 16px !important; overflow: visible; }
+  .playArea {
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+    grid-template-rows: auto auto;
+    align-items: stretch;
+    gap: 12px;
+    min-height: 0;
+  }
+  #players {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, minmax(96px, auto));
+    align-content: stretch;
+    gap: 8px;
+    overflow: visible;
+  }
+  #heroAnalysis { grid-column: 2; grid-row: 1; min-width: 0; }
+  .playArea > .turnPanel {
+    grid-column: 2;
+    grid-row: 2;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+  .player { min-height: 96px; padding: 8px; }
+  .player .phead { top: 7px; left: 8px; right: 8px; }
+  .player .cards { left: 9px; bottom: 7px; width: calc(100% - 112px); }
+  .player .cards .card, .player .cards .cardBack { width: 34px; height: 45px; font-size: 18px; }
+  .player .sideInfo { top: 31px; right: 9px; bottom: 7px; width: 88px; }
+  .player .made { left: 9px; right: 112px; bottom: 5px; font-size: 9px; }
+  .turnPanel { padding: 10px; }
+}
+@media (min-width: 601px) and (max-width: 760px) {
+  main { width: min(620px, 100%); }
+  .tablePanel { border-radius: 18px !important; padding: 10px !important; }
+  .playArea { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  #heroAnalysis { order: 1; }
+  #players { order: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(106px, auto)); min-height: 0; }
+  .player { min-height: 106px; }
+  .playArea > .turnPanel { order: 3; max-height: none; overflow: visible; }
+}
+@media (max-width: 600px) {
+  .tablePanel { border-radius: 18px !important; }
+}
+
 </style>
 </head>
 <body>
@@ -785,7 +837,7 @@ button:disabled{cursor:not-allowed}
 <script src="./pots.js?v=20261008-poker4"></script>
 <script src="./ev.js?v=20261015-visual-pass1"></script>
 <script src="./bet-sizing.js?v=20261013-betsize1"></script>
-<script src="./minigame.js?v=20261015-visual-pass1"></script>
+<script src="./minigame.js?v=20261016-usability1"></script>
 </body>
 </html>
 
