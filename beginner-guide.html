@@ -319,6 +319,27 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 .knowledge-check summary::marker{color:var(--brass)}
 .knowledge-check details p{margin:0;padding:0 13px 13px;color:#e5ece7;font-size:14px}
 .knowledge-check details p b{color:var(--brass)}
+
+/* PR #20: consistent suit colors and stronger card legibility */
+.playing-card{background:#fff;border:1px solid #b8b3a8;box-shadow:0 2px 4px #0005}
+.playing-card.red,.playing-card.blue,.card-demo .playing-card.red,.card-demo .playing-card.blue{color:#c62828}
+.playing-card.green,.playing-card.black,.card-demo .playing-card.green,.card-demo .playing-card.black{color:#171717}
+.playing-card .rank-mark,.playing-card .suit-mark{font-weight:800}
+@media(max-width:650px){
+ .street-step .playing-card{width:clamp(27px,7.2vw,34px);height:clamp(41px,10.8vw,50px);padding:3px}
+ .street-step .rank-mark,.street-step .suit-mark{font-size:13px}
+ .street-step .rank-mark.ten{font-size:10px;letter-spacing:-.7px}
+ .street-zone .playing-card{width:clamp(24px,6.1vw,31px);height:clamp(36px,9.1vw,45px);padding:2px}
+ .street-zone .rank-mark,.street-zone .suit-mark{font-size:12px}
+ .street-zone .rank-mark.ten{font-size:9px;letter-spacing:-.6px}
+ .table-center .playing-card{width:28px;height:41px;padding:3px}
+ .table-center .rank-mark,.table-center .suit-mark{font-size:12px}
+}
+@media(max-width:390px){
+ .street-step .playing-card{width:27px;height:41px}
+ .street-step .rank-mark,.street-step .suit-mark{font-size:12px}
+ .street-zone .playing-card{width:24px;height:36px}
+}
 </style></head>
 <body><a class="skip-link" href="#guide-content">本文へスキップ</a>
 <main id="guide-content">
@@ -445,8 +466,8 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <section class="topic" id="positions"><h2>5. ポジションとブラインド（SB・BB）</h2>
 
 <p><strong>この章で分かること：</strong>最初はBTN・SB・BBの3つだけ覚えれば大丈夫。</p>
-<p>ポジション（行動する順番に関わる席）は、まずBTN（ボタン）・SB（小さいブラインド）・BB（大きいブラインド）の3つから覚えます。UTG（プリフロップで最初の席）・HJ（UTGの次）・CO（BTNの手前）は、あとで覚えれば十分です。</p>
-<div class="callout"><b>まず覚える3つ：</b>BTNはボタンの席、SBは小さいブラインド、BBは大きいブラインドです。例えばブラインドが50/100なら、SBは50、BBは100を先に出します。</div>
+<p>ポジション（行動する順番に関わる席）は、まずBTN（ボタン）・SB（スモールブラインド）・BB（ビッグブラインド）の3つから覚えます。UTG（プリフロップで最初の席）・HJ（UTGの次）・CO（BTNの手前）は、あとで覚えれば十分です。</p>
+<div class="callout"><b>まず覚える3つ：</b>BTNはボタンの席、SBはスモールブラインド、BBはビッグブラインドです。例えばブラインドが50/100なら、SBは50、BBは100を先に出します。</div>
 <div class="position-cycle"><div class="position-cycle-head"><strong>① 席の並び</strong><span>6人卓の例・席の順番を示す図</span></div>
 <div class="position-cycle-track" aria-label="6人卓の席順：BTN、SB、BB、UTG、HJ、CO">
 <div class="position-cycle-node is-button"><strong>BTN</strong><small>ボタン</small></div><span class="position-cycle-arrow" aria-hidden="true">→</span>
@@ -458,8 +479,8 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 </div><p class="position-cycle-foot">最初は色付きのBTN・SB・BBを覚えます。UTG・HJ・COは、あとで覚えれば十分です。</p></div>
 <div class="position-definitions">
 <div class="position-definition"><strong>BTN — ボタン</strong><span>フロップ以降、全員が残っていれば通常最後に行動します。</span></div>
-<div class="position-definition"><strong>SB — 小さいブラインド</strong><span>BTNの次の席。最初に少額のチップを出します。</span></div>
-<div class="position-definition"><strong>BB — 大きいブラインド</strong><span>SBの次の席。最初にSBより大きい額を出します。</span></div>
+<div class="position-definition"><strong>SB — スモールブラインド</strong><span>BTNの次の席。最初に少額のチップを出します。</span></div>
+<div class="position-definition"><strong>BB — ビッグブラインド</strong><span>SBの次の席。最初にSBより大きい額を出します。</span></div>
 </div>
 <div class="visual-label">あとで覚える3つの席</div>
 <div class="position-definitions">
@@ -511,13 +532,13 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <div class="round-step"><b>1</b><strong>順番が来る</strong><p>プリフロップはUTGから。以降はボタンの左隣にいる最初の参加者から。</p></div>
 <div class="round-step"><b>2</b><strong>誰も賭けていない</strong><p>チェックかベットを選びます。</p></div>
 <div class="round-step"><b>3</b><strong>ベットされた</strong><p>残る人はコール・レイズ・フォールドなどで対応します。</p></div>
-<div class="round-step"><b>4</b><strong>ラウンド終了</strong><p>参加している人が必要な額を合わせるなど、それ以上の対応が必要なくなると終了します。誰かが降りて1人だけ残った場合は、その時点で勝負が決まります。</p></div>
+<div class="round-step"><b>4</b><strong>ラウンド終了</strong><p>ベットやレイズに全員が対応し、追加の対応が不要になると終了します。誰も賭けず全員がチェックした場合も終了です。誰かが降りて1人だけ残った場合は、その時点で勝負が決まります。</p></div>
 <div class="round-step"><b>5</b><strong>次のカード／決着</strong><p>リバー後ならショウダウン。全員が降りたら残った1人の勝ちです。</p></div>
 </div>
 <div class="cards betting-end-examples">
 <article class="card"><h3>全員がチェック</h3><p>誰もベットしておらず、全員がチェックしたら、そのラウンドは終了して次の共通カードへ進みます（リバー後ならショウダウンへ）。</p></article>
 <article class="card"><h3>ベットにコール</h3><p>Aが100をベットし、Bが100をコール。ほかに参加者がいなければ、必要な額がそろいラウンドが終了します。</p></article>
-<article class="card"><h3>レイズが入る</h3><p>Aが100をベットし、Bが300にレイズしたら、Aには追加で対応する番が戻ります。Aがコール・再レイズ・フォールドなどを選ぶまで、ラウンドは終わりません。</p></article>
+<article class="card"><h3>レイズが入る</h3><p>Aが100をベットし、Bが300にレイズしたら、Aには追加で対応する番が戻ります。Aがコール・再レイズ・フォールドなどを選ぶまで、ラウンドは終わりません。レイズ後は、まだ対応していない参加者にも再び行動順が回ります。</p></article>
 </div>
 <div class="callout"><b>ポイント：</b>「全員が一度行動したら終了」ではありません。ベットやレイズが入ったときは、残っているプレイヤーが必要な額に対応するまで続きます。全員がフォールドして1人だけ残った場合は、その時点でポットを獲得します。</div>
 <div class="bet-example"><div class="bet-example-title">例：ポット300チップのとき</div>
@@ -535,7 +556,7 @@ footer{border-top:1px solid rgba(143,176,163,.2);margin-top:8px;padding-top:17px
 <section class="topic" id="equity"><h2>8. DealScopeの勝率表示</h2>
 
 <p><strong>この章で分かること：</strong>勝率計算ツールに表示される数字の意味。</p>
-<p>ここからは、ポーカーのルールそのものではなく、DealScopeで局面を確認するときの補足です。役は今のカードの組み合わせ、勝率表示は入力したカード条件で最終的にどれくらいの取り分が見込まれるかを示します。引き分けの場合はポットの取り分を等分して計算します。</p>
+<p>ここからは、ポーカーのルールそのものではなく、DealScopeで局面を確認するときの補足です。役は今のカードの組み合わせです。DealScopeの「勝率」は、入力したカード条件で最終的に見込まれるポットの期待取り分を割合で表すエクイティです。勝てばポット全額、引き分けなら分け前を受け取るものとして平均するため、単純な「勝つ確率」とは異なる場合があります。</p>
 <p>例：手札が A♠ A♥でも、相手の手札や残りの共通カードで結果は変わります。今の役だけでは、最終的な取り分は決まりません。</p>
 <div class="cards"><article class="card"><h3>ハンド指定</h3><p>相手の手札を指定して計算します。例：自分がA♠ K♠、相手がQ♥ Q♦と分かっている場面です。</p></article><article class="card"><h3>相手想定</h3><p>相手の手札をランダムに配った場合を推定します。例：自分の手札を A♠ K♠ にし、相手のカードは指定せずに計算します。相手のプレイ傾向は反映しません。</p></article></div>
 <div class="equity-visual" role="img" aria-label="2人対戦で自分の期待取り分が70パーセント、相手が30パーセントという説明用の例">
