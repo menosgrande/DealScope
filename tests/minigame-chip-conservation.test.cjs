@@ -240,7 +240,7 @@ function prepareRiver(api, activeCount = 2) {
   api.setSeed(0x5eed1234);
   api.setSyncTimers(true);
   api.restart();
-  const initialChips = A.players.reduce((sum, p) => sum + p.stack, 0);
+  const initialChips = A.players.reduce((sum, p) => sum + p.stack, 0) + A.pot;
   let hands = 0, allInHands = 0, showdowns = 0, totalPot = 0, totalActions = 0;
   const handLimit = 32;
   while (hands < handLimit && !A.finished) {
