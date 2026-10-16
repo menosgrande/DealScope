@@ -189,12 +189,17 @@
       throw new Error('mobile players should retain two-column layout');
     }
 
-    // Responsive smoke checks at the supported phone widths. Check the actual
-    // document viewport and visible controls, not only the computed grid columns.
+    // Responsive smoke checks at the supported phone widths. Use a phone-like
+    // viewport height as well, so the test exercises vertical scrolling and reachability.
+    mini.style.height = '700px';
+    frame.style.height = '700px';
     for (const width of [320, 375, 390, 430]) {
       mini.style.width = width + 'px';
       frame.style.width = width + 'px';
       await new Promise(resolve => setTimeout(resolve, 50));
+      if (md.defaultView.innerHeight < 600 || md.documentElement.scrollHeight <= md.defaultView.innerHeight) {
+        throw new Error('mini-game should provide a vertically scrollable page at ' + width + 'px');
+      }
       if (md.documentElement.scrollWidth > width + 1 || md.body.scrollWidth > width + 1) {
         throw new Error('mini-game horizontal overflow at ' + width + 'px: document='
           + md.documentElement.scrollWidth + ', body=' + md.body.scrollWidth);
@@ -251,6 +256,12 @@
           throw new Error('tap target below 24x24 CSS px at ' + width + 'px: '
             + (el.id || el.className) + ' (' + rect.width + 'x' + rect.height + ')');
         }
+        el.scrollIntoView({ block: 'center' });
+        const reachable = el.getBoundingClientRect();
+        if (reachable.top < -1 || reachable.bottom > md.defaultView.innerHeight + 1) {
+          throw new Error('tap target cannot be brought into the phone viewport by scrolling at '
+            + width + 'px: ' + (el.id || el.className));
+        }
       }
       const heroCards = Array.from(md.querySelectorAll('#players .player.hero .cards .card'))
         .filter(el => el.getClientRects().length);
@@ -267,6 +278,8 @@
     }
     mini.style.width = '390px';
     frame.style.width = '390px';
+    mini.style.height = '1200px';
+    frame.style.height = '1200px';
 
     const glossaryFrame = document.createElement('iframe');
     glossaryFrame.id = 'glossary';
