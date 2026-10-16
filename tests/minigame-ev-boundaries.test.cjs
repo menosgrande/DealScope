@@ -20,7 +20,7 @@ function baseState() {
   return {
     players: [
       { seat: 0, hand: [card('As'), card('Ah')], stack: 100, contrib: 100, type: 'tag', out: false, fold: false, allin: false },
-      { seat: 1, hand: [card('Kd'), card('Kc')], stack: 1000, contrib: 300, type: 'tp', out: false, fold: false, allin: false },
+      { seat: 1, hand: [card('Kd'), card('Kc')], stack: 0, contrib: 300, type: 'tp', out: false, fold: false, allin: true },
       { seat: 2, hand: [card('Jd'), card('Jh')], stack: 0, contrib: 300, type: 'tag', out: false, fold: false, allin: true },
       { seat: 3, hand: [card('Qs'), card('Qh')], stack: 0, contrib: 300, type: 'lag', out: false, fold: true, allin: false },
     ],
@@ -67,6 +67,8 @@ function row(result, kind) {
 {
   const s = baseState();
   s.players[0].stack = 50;
+  s.players[1].stack = 1000;
+  s.players[1].allin = false;
   s.players[0].contrib = 0;
   s.players[1].contrib = 400;
   s.players[2].contrib = 400;
