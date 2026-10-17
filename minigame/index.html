@@ -399,6 +399,14 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
 }
 @media(prefers-reduced-motion:reduce){.player.current{animation:none!important}}
 
+
+/* Keep the financial consequence of each main action visible while sizing a bet. */
+.actionCostSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:7px 0 9px}
+.actionCostSummary>div{display:flex;flex-direction:column;gap:3px;min-width:0;padding:7px 9px;border:1px solid #315d4a;border-radius:8px;background:#0d2a20}
+.actionCostSummary span{font-size:10px;line-height:1.35;color:#a9c3b5}
+.actionCostSummary b{font-size:12px;line-height:1.35;color:#f1f6f2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:430px){.actionCostSummary{gap:5px}.actionCostSummary>div{padding:6px}.actionCostSummary span{font-size:9px}.actionCostSummary b{font-size:11px}}
+
 </style>
 </head>
 <body>
@@ -436,6 +444,10 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
             <output id="amountReadout" for="amountSlider">400</output>
           </div>
           <div class="amountCallRow"><span id="toCall" class="tocall"></span><span id="stepLabel" class="stepLabel">刻み幅 100</span></div>
+          <div class="actionCostSummary" aria-live="polite">
+            <div><span>コールした場合</span><b id="callAfterStack">—</b></div>
+            <div><span id="raiseCostLabel">ベット後の追加額 / 残り</span><b id="raiseAfterStack">—</b></div>
+          </div>
           <input id="amountSlider" type="range" min="200" max="20000" step="100" value="400" aria-label="ベットまたはレイズ額">
           <div class="amountNudge">
             <button id="minusStep" type="button" aria-label="金額を1刻み下げる">−</button>
