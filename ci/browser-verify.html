@@ -120,6 +120,8 @@
     await new Promise(resolve => mini.addEventListener('load', resolve, {once:true}));
     const md = mini.contentDocument;
     await waitFor(() => md && md.querySelector('#turnLabel'), 4000);
+    const actionCostSummary = md.querySelector('.actionCostSummary');
+    if (!actionCostSummary || !md.querySelector('#callAfterStack') || !md.querySelector('#raiseAfterStack')) throw new Error('action cost and remaining stack summary is missing');
     const slider = md.querySelector('#amountSlider');
     const amountValue = md.querySelector('#amount');
     const amountReadout = md.querySelector('#amountReadout');
@@ -132,6 +134,7 @@
     slider.value = String(Math.min(Number(slider.max), Number(slider.min) + Number(slider.step)));
     slider.dispatchEvent(new md.defaultView.Event('input', {bubbles:true}));
     if (amountValue.value !== slider.value) throw new Error('slider value did not update action amount');
+    if (!md.querySelector('#raiseAfterStack').textContent.includes('/')) throw new Error('raise sizing should show added amount and remaining stack');
     if (amountReadout.textContent !== Number(slider.value).toLocaleString('ja-JP')) throw new Error('slider amount readout did not update');
     if (!betButton.textContent.includes(Number(slider.value).toLocaleString('ja-JP'))) throw new Error('bet action label did not follow slider value');
     if (!stepLabel.textContent.includes(Number(slider.step).toLocaleString('ja-JP'))) throw new Error('slider increment label did not update');
