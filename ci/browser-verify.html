@@ -131,6 +131,7 @@
     const betButton = md.querySelector('#betBtn');
     if (!slider || slider.type !== 'range' || !amountValue || !amountReadout) throw new Error('bet sizing slider is missing');
     if (!minusStep || !plusStep || !stepLabel || !betButton) throw new Error('bet sizing adjustment controls are missing');
+    await waitFor(() => !slider.disabled, 15000);
     slider.value = String(Math.min(Number(slider.max), Number(slider.min) + Number(slider.step)));
     slider.dispatchEvent(new md.defaultView.Event('input', {bubbles:true}));
     if (amountValue.value !== slider.value) throw new Error('slider value did not update action amount');
