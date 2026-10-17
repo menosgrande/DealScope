@@ -176,17 +176,27 @@
 
     mini.style.width = '900px';
     const playGrid = md.defaultView.getComputedStyle(md.querySelector('.playArea'));
-    if (playGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
-      throw new Error('desktop should have player, analysis, and action columns');
+    if (playGrid.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
+      throw new Error('desktop should place the player strip above action and analysis panels');
     }
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 1) {
-      throw new Error('desktop players should use compact four-row layout');
+    if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
+      throw new Error('desktop opponents should use a horizontal three-column strip');
+    }
+    const boardHistory = md.querySelector('.boardHistoryRow');
+    if (!boardHistory || !md.querySelector('.boardFocus #board') || !md.querySelector('.boardHistoryRow #log')) {
+      throw new Error('board/pot and action history should share the upper play area');
+    }
+    if (md.defaultView.getComputedStyle(md.querySelector('#turnHeroCards')).display === 'none') {
+      throw new Error('hero hole cards should remain visible beside action controls');
     }
     mini.style.width = '390px';
     const mobileGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (mobileGrid.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
-      throw new Error('mobile players should retain two-column layout');
+    if (mobileGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
+      throw new Error('mobile opponents should remain in a compact horizontal strip');
+    }
+    if (md.defaultView.getComputedStyle(md.querySelector('.turnDecisionHeader')).display === 'none') {
+      throw new Error('mobile action panel should keep hero cards and call context visible');
     }
 
     // Responsive smoke checks at the supported phone widths. Use a phone-like
