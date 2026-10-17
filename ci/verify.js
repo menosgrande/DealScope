@@ -309,7 +309,22 @@ function testMiniGamePotConservation() {
   assert.equal(er.contributed,1100);
   assert.equal(er.distributed,1100);
   assert.equal(ea,eb);
-  assert.deepEqual(edge.map(p=>p.stack),[0,1100,0]);
+  // C's unmatched 200 is returned even though C folded; D wins only the
+  // 900 chips that were matched by at least one opponent.
+  assert.deepEqual(edge.map(p=>p.stack),[200,900,0]);
+
+  const unmatched=[
+    {seat:0,name:'A',stack:0,contrib:500,fold:false},
+    {seat:1,name:'B',stack:0,contrib:300,fold:false},
+    {seat:2,name:'C',stack:0,contrib:300,fold:false},
+  ];
+  const unmatchedScores=unmatched.map(p=>({p,s:p.name==='B'?60:p.name==='C'?50:40}));
+  const ur=Pots.settle(unmatched,unmatchedScores);
+  ur.awards.forEach(a=>{a.player.stack+=a.amount;});
+  assert.equal(ur.contributed,1100);
+  assert.equal(ur.distributed,1100);
+  assert.deepEqual(unmatched.map(p=>p.stack),[200,900,0],
+    'an unmatched top contribution must be refunded, not awarded to the pot winner');
 
   // A stronger short stack takes the main pot, while a weaker hand can
   // legitimately receive the side pot when it alone matched the extra chips.
