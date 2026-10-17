@@ -120,6 +120,8 @@
     await new Promise(resolve => mini.addEventListener('load', resolve, {once:true}));
     const md = mini.contentDocument;
     await waitFor(() => md && md.querySelector('#turnLabel'), 4000);
+    const actionCostSummary = md.querySelector('.actionCostSummary');
+    if (!actionCostSummary || !md.querySelector('#callAfterStack') || !md.querySelector('#raiseAfterStack')) throw new Error('action cost and remaining stack summary is missing');
     const slider = md.querySelector('#amountSlider');
     const amountValue = md.querySelector('#amount');
     const amountReadout = md.querySelector('#amountReadout');
@@ -129,9 +131,11 @@
     const betButton = md.querySelector('#betBtn');
     if (!slider || slider.type !== 'range' || !amountValue || !amountReadout) throw new Error('bet sizing slider is missing');
     if (!minusStep || !plusStep || !stepLabel || !betButton) throw new Error('bet sizing adjustment controls are missing');
+    await waitFor(() => !slider.disabled, 15000);
     slider.value = String(Math.min(Number(slider.max), Number(slider.min) + Number(slider.step)));
     slider.dispatchEvent(new md.defaultView.Event('input', {bubbles:true}));
     if (amountValue.value !== slider.value) throw new Error('slider value did not update action amount');
+    if (!md.querySelector('#raiseAfterStack').textContent.includes('/')) throw new Error('raise sizing should show added amount and remaining stack');
     if (amountReadout.textContent !== Number(slider.value).toLocaleString('ja-JP')) throw new Error('slider amount readout did not update');
     if (!betButton.textContent.includes(Number(slider.value).toLocaleString('ja-JP'))) throw new Error('bet action label did not follow slider value');
     if (!stepLabel.textContent.includes(Number(slider.step).toLocaleString('ja-JP'))) throw new Error('slider increment label did not update');
@@ -176,17 +180,27 @@
 
     mini.style.width = '900px';
     const playGrid = md.defaultView.getComputedStyle(md.querySelector('.playArea'));
-    if (playGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
-      throw new Error('desktop should have player, analysis, and action columns');
+    if (playGrid.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
+      throw new Error('desktop should place the player strip above action and analysis panels');
     }
     const desktopGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 1) {
-      throw new Error('desktop players should use compact four-row layout');
+    if (desktopGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
+      throw new Error('desktop opponents should use a horizontal three-column strip');
+    }
+    const boardHistory = md.querySelector('.boardHistoryRow');
+    if (!boardHistory || !md.querySelector('.boardFocus #board') || !md.querySelector('.boardHistoryRow #log')) {
+      throw new Error('board/pot and action history should share the upper play area');
+    }
+    if (md.defaultView.getComputedStyle(md.querySelector('#turnHeroCards')).display === 'none') {
+      throw new Error('hero hole cards should remain visible beside action controls');
     }
     mini.style.width = '390px';
     const mobileGrid = md.defaultView.getComputedStyle(md.querySelector('#players'));
-    if (mobileGrid.gridTemplateColumns.trim().split(/\s+/).length !== 2) {
-      throw new Error('mobile players should retain two-column layout');
+    if (mobileGrid.gridTemplateColumns.trim().split(/\s+/).length !== 3) {
+      throw new Error('mobile opponents should remain in a compact horizontal strip');
+    }
+    if (md.defaultView.getComputedStyle(md.querySelector('.turnDecisionHeader')).display === 'none') {
+      throw new Error('mobile action panel should keep hero cards and call context visible');
     }
 
     // Responsive smoke checks at the supported phone widths. Use a phone-like
@@ -263,10 +277,10 @@
             + width + 'px: ' + (el.id || el.className));
         }
       }
-      const heroCards = Array.from(md.querySelectorAll('#players .player.hero .cards .card'))
+      const heroCards = Array.from(md.querySelectorAll('#turnHeroCards .card'))
         .filter(el => el.getClientRects().length);
-      if (heroCards.length !== 2) throw new Error('Hero hole cards missing at ' + width + 'px');
-      const visibleCards = Array.from(md.querySelectorAll('#players .player .cards .card, #board .card'))
+      if (heroCards.length !== 2) throw new Error('Hero hole cards missing beside action controls at ' + width + 'px');
+      const visibleCards = Array.from(md.querySelectorAll('#players .player .cards .card, #turnHeroCards .card, #board .card'))
         .filter(el => el.getClientRects().length);
       if (visibleCards.length < 2) throw new Error('mini-game cards missing at ' + width + 'px');
       for (const card of visibleCards) {
@@ -376,6 +390,46 @@
       throw new Error('stack total did not conserve the 4,000 starting chips plus 1,000 imported pot');
     }
     settlementFrame.remove();
+
+    /* A fresh random game must finish a normal hand and advance to the next hand. */
+    const freshGame = document.createElement('iframe');
+    freshGame.id = 'freshGame';
+    freshGame.src = '/minigame/index.html';
+    freshGame.style = 'width:390px;height:1200px;border:0;position:absolute;left:-9999px';
+    const freshLoaded = new Promise(resolve => freshGame.addEventListener('load', resolve, {once:true}));
+    document.body.appendChild(freshGame);
+    await freshLoaded;
+    const fd = freshGame.contentDocument;
+    await waitFor(() => fd && fd.querySelector('#turnLabel') && fd.querySelectorAll('#players .player').length === 4, 5000);
+    const freshDeadline = performance.now() + 30000;
+    let freshActions = 0;
+    while (performance.now() < freshDeadline) {
+      const next = fd.querySelector('#nextBtn');
+      if (next && next.style.display === 'block') break;
+      const callButton = fd.querySelector('#callBtn');
+      const foldButton = fd.querySelector('#foldBtn');
+      if (callButton && !callButton.disabled) {
+        callButton.click();
+        freshActions++;
+      } else if (foldButton && !foldButton.disabled) {
+        foldButton.click();
+        freshActions++;
+      }
+      await new Promise(resolve => setTimeout(resolve, 75));
+    }
+    if (fd.querySelector('#nextBtn').style.display !== 'block') {
+      throw new Error('fresh random game did not finish a normal hand within 30 seconds');
+    }
+    if (freshActions < 1) throw new Error('fresh game did not accept a player action');
+    if (fd.querySelector('#potValue').textContent !== '0') {
+      throw new Error('fresh game did not clear the pot after the hand');
+    }
+    fd.querySelector('#nextBtn').click();
+    await waitFor(() => fd.querySelector('#info').textContent.includes('Hand #2'), 5000);
+    if (fd.querySelectorAll('#players .player').length !== 4) {
+      throw new Error('fresh game did not redeal four player seats for Hand #2');
+    }
+    freshGame.remove();
 
     status.textContent = 'PASS';
     document.title = 'PASS';
