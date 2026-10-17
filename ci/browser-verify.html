@@ -377,6 +377,46 @@
     }
     settlementFrame.remove();
 
+    /* A fresh random game must finish a normal hand and advance to the next hand. */
+    const freshGame = document.createElement('iframe');
+    freshGame.id = 'freshGame';
+    freshGame.src = '/minigame/index.html';
+    freshGame.style = 'width:390px;height:1200px;border:0;position:absolute;left:-9999px';
+    const freshLoaded = new Promise(resolve => freshGame.addEventListener('load', resolve, {once:true}));
+    document.body.appendChild(freshGame);
+    await freshLoaded;
+    const fd = freshGame.contentDocument;
+    await waitFor(() => fd && fd.querySelector('#turnLabel') && fd.querySelectorAll('#players .player').length === 4, 5000);
+    const freshDeadline = performance.now() + 30000;
+    let freshActions = 0;
+    while (performance.now() < freshDeadline) {
+      const next = fd.querySelector('#nextBtn');
+      if (next && next.style.display === 'block') break;
+      const callButton = fd.querySelector('#callBtn');
+      const foldButton = fd.querySelector('#foldBtn');
+      if (callButton && !callButton.disabled) {
+        callButton.click();
+        freshActions++;
+      } else if (foldButton && !foldButton.disabled) {
+        foldButton.click();
+        freshActions++;
+      }
+      await new Promise(resolve => setTimeout(resolve, 75));
+    }
+    if (fd.querySelector('#nextBtn').style.display !== 'block') {
+      throw new Error('fresh random game did not finish a normal hand within 30 seconds');
+    }
+    if (freshActions < 1) throw new Error('fresh game did not accept a player action');
+    if (fd.querySelector('#potValue').textContent !== '0') {
+      throw new Error('fresh game did not clear the pot after the hand');
+    }
+    fd.querySelector('#nextBtn').click();
+    await waitFor(() => fd.querySelector('#info').textContent.includes('Hand #2'), 5000);
+    if (fd.querySelectorAll('#players .player').length !== 4) {
+      throw new Error('fresh game did not redeal four player seats for Hand #2');
+    }
+    freshGame.remove();
+
     status.textContent = 'PASS';
     document.title = 'PASS';
   } catch (e) {
