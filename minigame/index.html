@@ -249,6 +249,156 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
  .bottomDetails{grid-template-columns:1fr 1fr}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Play-first layout: board and action history share the top row; hero controls stay visually primary. */
+.tablePanel{
+  border:1px solid #49775d!important;
+  border-radius:14px!important;
+  padding:12px!important;
+  overflow:visible!important;
+  background:linear-gradient(145deg,#123c2d,#0b2b20)!important;
+  box-shadow:0 8px 24px #0003,inset 0 0 0 1px #d9b75b12!important;
+}
+.tablePanel::before{display:none!important}
+.boardHistoryRow{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(220px,1fr);
+  gap:10px;
+  align-items:stretch;
+  margin:4px 0 12px;
+  min-width:0;
+}
+.boardFocus{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:8px 10px;
+  border:1px solid #49775d;
+  border-radius:11px;
+  background:radial-gradient(ellipse at 50% 35%,#164b38 0,#0b2b20 78%);
+}
+.boardFocus .potArea{margin:0 auto 2px;min-height:38px}
+.boardFocus .potTotal b{font-size:23px}
+.boardFocus .board{min-height:64px;margin:3px 0 4px;gap:clamp(4px,1vw,8px)}
+.boardFocus .board .card{width:clamp(34px,4vw,46px);height:clamp(47px,5.4vw,63px);font-size:clamp(18px,2vw,23px)}
+.boardHistoryRow .logBox{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  max-height:164px;
+  overflow:hidden;
+  border-color:#315d4a;
+  border-radius:11px;
+  background:linear-gradient(145deg,#103529,#0b281f);
+  box-shadow:inset 0 1px 0 #ffffff08;
+}
+.boardHistoryRow .logBox summary{
+  flex:none;
+  min-height:38px;
+  padding:9px 11px;
+  border-bottom:1px solid #315d4a;
+  font-size:11px;
+  font-weight:850;
+}
+.boardHistoryRow .logBox .log{
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:7px 10px;
+  scrollbar-width:thin;
+}
+.playArea{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,1.1fr);
+  grid-template-rows:auto auto;
+  grid-template-areas:"players players" "actions analysis";
+  align-items:start;
+  gap:10px;
+  min-height:0;
+  height:auto;
+}
+.playArea > .players{
+  grid-area:players;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-auto-rows:minmax(78px,auto);
+  grid-template-rows:none;
+  gap:7px;
+  min-width:0;
+  min-height:0;
+  height:auto;
+}
+.playArea > .turnPanel{grid-area:actions;min-width:0;max-height:none;overflow:visible}
+.playArea > .heroAnalysis{grid-area:analysis;min-width:0;max-height:none;overflow:visible}
+.playArea > .players > .player.hero{
+  order:4;
+  grid-column:1 / -1;
+  min-height:47px;
+  padding:7px 10px;
+  background:linear-gradient(145deg,#193d2d,#0c2b20);
+}
+.playArea > .players > .player.hero .cards{display:none}
+.playArea > .players > .player.hero .sideInfo{top:29px;right:10px;flex-direction:row;align-items:center;gap:14px;width:auto;border-left:0;padding-left:0}
+.playArea > .players > .player.hero .betline{font-size:10px}
+.playArea > .players > .player:not(.hero){min-height:78px}
+.playArea > .players > .player:not(.hero) .cards{display:none}
+.playArea > .players > .player:not(.hero):has(.cards .card:not(.cardBack)) .cards{display:flex;height:40px;width:auto;padding:3px 0}
+.playArea > .players > .player:not(.hero):has(.cards .card:not(.cardBack)) .cards .card{width:26px;height:35px;font-size:14px}
+.playArea > .players > .player:not(.hero):has(.cards .card:not(.cardBack)) .sideInfo{top:42px}
+.playArea > .players > .player:not(.hero) .actionBadge{top:27px}
+.turnDecisionHeader{display:grid}
+.turnDecisionHand .card{flex:none}
+@media(max-width:760px){
+  .boardHistoryRow{grid-template-columns:minmax(0,1.15fr) minmax(175px,1fr);gap:7px}
+  .boardFocus{padding:7px 5px}
+  .boardFocus .board .card{width:clamp(29px,8vw,38px);height:clamp(42px,11vw,52px);font-size:clamp(16px,4.8vw,21px)}
+  .boardHistoryRow .logBox{max-height:150px}
+  .playArea{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;grid-template-areas:"actions" "players" "analysis";gap:8px}
+  .playArea > .players{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .playArea > .players > .player:not(.hero){padding:7px 6px;min-height:68px}
+  .playArea > .players > .player .phead{font-size:10px;gap:3px}
+  .playArea > .players > .player .phead small{font-size:9px}
+  .playArea > .players > .player:not(.hero) .actionBadge{position:static;display:inline-flex;max-width:100%;margin-bottom:3px}
+  .playArea > .players > .player:not(.hero):has(.cards .card:not(.cardBack)) .cards{height:34px}
+  .playArea > .players > .player:not(.hero):has(.cards .card:not(.cardBack)) .cards .card{width:22px;height:30px;font-size:12px}
+  .playArea > .players > .player.hero{min-height:44px}
+  .playArea > .turnPanel{max-height:none;overflow:visible}
+  .turnDecisionHeader{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(48px,.7fr) minmax(60px,.8fr);padding:7px;gap:6px}
+  .turnDecisionHand .card{width:29px;height:40px;font-size:16px}
+  .bottomDetails{grid-template-columns:1fr 1fr}
+}
+@media(max-width:430px){
+  main{padding:8px 7px calc(14px + env(safe-area-inset-bottom))}
+  .tablePanel{padding:8px!important}
+  .boardHistoryRow{grid-template-columns:minmax(0,1fr) minmax(0,.82fr);gap:5px}
+  .boardFocus{padding:7px 3px}
+  .boardFocus .potArea{gap:4px;min-height:34px}
+  .boardFocus .potStack{transform:scale(.82);transform-origin:center}
+  .boardFocus .potTotal{font-size:9px}
+  .boardFocus .potTotal b{font-size:18px}
+  .boardFocus .board{gap:3px;min-height:47px}
+  .boardFocus .board .card{width:clamp(25px,6.5vw,30px);height:42px;font-size:15px;border-radius:4px}
+  .boardHistoryRow .logBox{max-height:132px}
+  .boardHistoryRow .logBox summary{min-height:34px;padding:8px 6px;font-size:10px}
+  .boardHistoryRow .logBox .log{padding:5px 6px;font-size:10px}
+  .playArea > .players{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .playArea > .players > .player:not(.hero){padding:6px 4px;min-height:62px}
+  .playArea > .players > .player:not(.hero) .phead{font-size:9px}
+  .playArea > .players > .player:not(.hero) .typeTag{font-size:8px;padding:1px 3px}
+  .playArea > .players > .player:not(.hero) .sideInfo{right:4px;width:auto;top:40px;padding-left:4px}
+  .playArea > .players > .player:not(.hero) .stack{font-size:10px}
+  .playArea > .players > .player:not(.hero) .betline{font-size:9px}
+  .playArea > .players > .player.hero .sideInfo{top:27px;gap:8px}
+  .turnDecisionHeader{grid-template-columns:minmax(0,1fr) minmax(42px,.65fr) minmax(52px,.75fr);padding:6px;gap:4px}
+  .turnDecisionHeader small{font-size:9px}
+  .turnDecisionHeader>div>b{font-size:13px}
+  .turnDecisionHand .card{width:25px;height:35px;font-size:14px}
+  .turnCard{min-height:36px}
+  .actions button{min-height:44px;height:auto;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.player.current{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -259,11 +409,19 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
   <div class="panel tablePanel">
     <div class="metaRow"><div id="street" class="street"></div><div id="info" class="info"></div></div>
     <div id="msg" class="msg" role="status" aria-live="polite" aria-atomic="true"></div>
-    <div class="potArea" aria-label="現在のポット">
-      <div class="potStack" id="potChips"></div>
-      <div class="potTotal"><span>POT</span><b id="potValue">0</b></div>
+    <div class="boardHistoryRow">
+      <section class="boardFocus" aria-label="ボードとポット">
+        <div class="potArea" aria-label="現在のポット">
+          <div class="potStack" id="potChips"></div>
+          <div class="potTotal"><span>POT</span><b id="potValue">0</b></div>
+        </div>
+        <div id="board" class="board"></div>
+      </section>
+      <details class="panel logBox" open>
+        <summary>アクション履歴</summary>
+        <div class="log" id="log"></div>
+      </details>
     </div>
-    <div id="board" class="board"></div>
     <div class="playArea">
       <div id="players" class="players"></div>
       <aside id="heroAnalysis" class="panel heroAnalysis" aria-label="自分のハンド分析"></aside>
@@ -311,10 +469,6 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
 
   <div class="bottomDetails">
     <div class="restartArea"><span class="restartLabel">ゲームをリセット</span><button id="newBtn" class="new">最初からやり直す</button></div>
-    <details class="panel logBox">
-      <summary>アクション履歴</summary>
-      <div class="log" id="log"></div>
-    </details>
     <details class="panel helpBox">
       <summary>遊び方・用語</summary>
       <div class="helpBody">
