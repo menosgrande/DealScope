@@ -46,9 +46,9 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
 .card .suit{margin-left:1px}
 .card.spade .suit{color:#111!important}.card.heart .suit{color:#d23b45!important}.card.diamond .suit{color:#3478d4!important}.card.club .suit{color:#31945a!important}
 .cardBack{border-color:#d6b85c;background:repeating-linear-gradient(45deg,#164432 0,#164432 4px,#1c503d 4px,#1c503d 8px);box-shadow:0 3px 0 #061c14,0 5px 9px #0004;color:#e4c56d}
-.playArea{display:grid;grid-template-columns:minmax(320px,1.05fr) minmax(290px,.95fr) minmax(245px,.82fr);gap:10px;align-items:stretch;min-width:0}
-.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(148px,1fr));gap:8px;min-width:0;min-height:314px}
-.player{position:relative;min-width:0;min-height:148px;padding:10px;border:1px solid #3b6b55;border-radius:10px;background:linear-gradient(145deg,#103327,#09251d);overflow:hidden;transition:border-color .12s,background .12s,opacity .12s}
+.playArea{display:grid;grid-template-columns:minmax(260px,1fr) minmax(250px,.98fr) minmax(220px,.85fr);gap:10px;align-items:stretch;min-width:0}
+.players{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(4,minmax(68px,1fr));gap:7px;min-width:0;min-height:314px}
+.player{position:relative;min-width:0;min-height:68px;padding:8px 10px;border:1px solid #3b6b55;border-radius:10px;background:linear-gradient(145deg,#103327,#09251d);overflow:hidden;transition:border-color .12s,background .12s,opacity .12s}
 .player.hero{border-color:#b99a4b;background:linear-gradient(145deg,#1a402e,#0c2b20);box-shadow:inset 0 0 0 1px #e3bd6125}
 .player.current{border-color:#f0d17c;box-shadow:inset 0 0 0 1px #e3bd6188,0 0 0 1px #e3bd6128}
 .player.winner{border-color:#ffe29a;box-shadow:inset 0 0 0 1px var(--gold),0 0 15px #e3bd6126}
@@ -165,7 +165,7 @@ a.backLink:hover{border-color:var(--gold);background:#174432}
 .helpGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .helpGrid>div{padding:8px;border:1px solid var(--line-soft);border-radius:7px;background:#0b2a20}
 .helpBody p{margin:0 0 6px}.helpBody p:last-child{margin-bottom:0}
-@media(max-width:1050px) and (min-width:761px){
+@media(max-width:850px) and (min-width:761px){
  main{padding:10px}
  .playArea{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto}
  .playArea>.players{grid-column:1/-1;grid-row:1;min-height:280px;grid-template-rows:repeat(2,minmax(132px,1fr))}
