@@ -273,9 +273,9 @@
             + width + 'px: ' + (el.id || el.className));
         }
       }
-      const heroCards = Array.from(md.querySelectorAll('#players .player.hero .cards .card'))
+      const heroCards = Array.from(md.querySelectorAll('#turnHeroCards .card'))
         .filter(el => el.getClientRects().length);
-      if (heroCards.length !== 2) throw new Error('Hero hole cards missing at ' + width + 'px');
+      if (heroCards.length !== 2) throw new Error('Hero hole cards missing beside action controls at ' + width + 'px');
       const visibleCards = Array.from(md.querySelectorAll('#players .player .cards .card, #board .card'))
         .filter(el => el.getClientRects().length);
       if (visibleCards.length < 2) throw new Error('mini-game cards missing at ' + width + 'px');
